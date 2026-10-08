@@ -107,8 +107,10 @@ def _pdf_via_playwright(html: str, ctx) -> bytes:
             page.wait_for_timeout(300)
             return page.pdf(
                 format="Letter",
+                landscape=True,
+                prefer_css_page_size=True,
                 print_background=True,
-                margin={"top": "0.45in", "bottom": "0.5in", "left": "0.4in", "right": "0.4in"},
+                margin={"top": "0.35in", "bottom": "0.45in", "left": "0.4in", "right": "0.4in"},
                 display_header_footer=True,
                 header_template="<div></div>",
                 footer_template=(
