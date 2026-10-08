@@ -139,12 +139,10 @@ def lookup(element_id: str):
     except (LegoError, requests.RequestException, ValueError) as e:
         err = e
     try:
-        res = page_lookup(element_id)
-        if res or err is None:
-            return res
+        # The page is authoritative when it answers: a 404 there means LEGO doesn't sell the element.
+        return page_lookup(element_id)
     except (LegoError, requests.RequestException) as e:
-        err = err or e
-    raise LegoError(str(err))
+        raise LegoError(f"{e}" + (f" (GraphQL: {err})" if err else ""))
 
 
 def _parse_money(s):
