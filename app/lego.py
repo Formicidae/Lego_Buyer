@@ -99,7 +99,16 @@ def _extract_js_string(js: str, idx: int) -> str:
         return raw.encode().decode("unicode_escape")
 
 
-def discover_query(force=False) -> str:
+def _samples(js: str, needle: str, url: str, width=350, limit=3):
+    out = []
+    for m in list(re.finditer(re.escape(needle), js))[:limit]:
+        a, b = max(0, m.start() - width), min(len(js), m.end() + width)
+        out.append({"script": url.rsplit("/", 1)[-1], "at": m.start(), "context": js[a:b]})
+    return out
+
+
+def discover_query(force=False, debug=None) -> str:
+    """debug: optional list; samples around every PickABrickQuery mention are appended to it."""
     if not force and QUERY_CACHE.exists():
         return QUERY_CACHE.read_text()
     h = {**HEADERS, "Accept": "text/html,application/xhtml+xml,*/*;q=0.8", "Accept-Language": "en-US,en;q=0.9"}
@@ -125,6 +134,11 @@ def discover_query(force=False) -> str:
             js = _session.get(u, headers=h, timeout=30).text
         except requests.RequestException:
             continue
+        if debug is not None:
+            debug.extend(_samples(js, "PickABrickQuery", u))
+            for needle in ("deliveryChannel", "elements(", "kind:\"Document\"", '"kind":"Document"', "OperationDefinition"):
+                if needle in js:
+                    debug.append({"script": u.rsplit("/", 1)[-1], "has": needle})
         for m in re.finditer(r"query PickABrickQuery", js):
             try:
                 q = _extract_js_string(js, m.start())

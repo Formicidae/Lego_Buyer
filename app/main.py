@@ -426,14 +426,19 @@ def _diagnostics():
 
 async def api_admin_discover(request: Request):
     def run():
-        q = lego.discover_query(force=True)
+        debug = []
+        try:
+            q = lego.discover_query(force=True, debug=debug)
+        except lego.QueryNotFound as e:
+            return {"error": str(e), "samples": debug[:12]}
         try:
             probe = lego.graphql_lookup("6204668")
         except Exception as e:
             probe = f"FAIL: {e}"
         return {"chars": len(q), "head": q[:600], "variables": lego.query_variables(q, "6204668"), "probe_6204668": probe}
     try:
-        return JSONResponse(await run_in_threadpool(run))
+        res = await run_in_threadpool(run)
+        return JSONResponse(res, status_code=200 if "error" not in res else 500)
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
