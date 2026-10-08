@@ -102,12 +102,24 @@ def _extract_js_string(js: str, idx: int) -> str:
 def discover_query(force=False) -> str:
     if not force and QUERY_CACHE.exists():
         return QUERY_CACHE.read_text()
-    h = {**HEADERS, "Accept": "text/html,*/*"}
-    html = _session.get(PAB_PAGE, headers=h, timeout=30).text
-    srcs = re.findall(r'src="([^"]+/_next/static/[^"]+\.js)"', html)
-    srcs = [u if u.startswith("http") else "https://www.lego.com" + u for u in srcs]
+    h = {**HEADERS, "Accept": "text/html,application/xhtml+xml,*/*;q=0.8", "Accept-Language": "en-US,en;q=0.9"}
+    r = _session.get(PAB_PAGE, headers=h, timeout=30)
+    html = r.text
+    # Script URLs appear as src="..." attributes and inside Next.js manifests; accept both relative and absolute.
+    srcs = re.findall(r'(?:src|href)="((?:https?://[^"]+)?/_next/static/[^"]+\.js)"', html)
+    srcs += re.findall(r'"((?:https?://[^"]+)?/_next/static/chunks/[^"]+\.js)"', html)
+    seen, ordered = set(), []
+    for u in srcs:
+        u = u if u.startswith("http") else "https://www.lego.com" + u
+        if u not in seen:
+            seen.add(u)
+            ordered.append(u)
+    # Page-specific chunks are the likeliest home of the query; check them first.
+    ordered.sort(key=lambda u: 0 if "pick" in u.lower() else 1)
+    srcs = ordered
     if not srcs:
-        raise QueryNotFound("Pick a Brick page had no scripts (blocked?)")
+        snippet = re.sub(r"\s+", " ", html[:300])
+        raise QueryNotFound(f"Pick a Brick page had no scripts (HTTP {r.status_code}, {len(html)} chars): {snippet}")
     for u in srcs:
         try:
             js = _session.get(u, headers=h, timeout=30).text
@@ -131,7 +143,7 @@ def discover_query(force=False) -> str:
                             pass
                 QUERY_CACHE.write_text(q)
                 return q
-    raise QueryNotFound(f"no PickABrickQuery in {len(srcs)} scripts")
+    raise QueryNotFound(f"no PickABrickQuery in {len(srcs)} scripts; first few: " + ", ".join(u.rsplit("/", 1)[-1] for u in srcs[:5]))
 
 
 def query_variables(q: str, element_id: str):
