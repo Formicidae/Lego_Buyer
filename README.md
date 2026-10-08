@@ -53,6 +53,14 @@ made while offline, syncing them when the Pi is reachable again.
 
 ## Using it
 
+- **Lists.** A list is a LEGO set (loaded by number) or a BrickOwl wishlist (imported from your
+  account; lots are matched to Rebrickable parts so they get the same pictures and LEGO prices).
+  On the home page, tick several lists and *Open selected together* for one combined store
+  checklist. Finds are credited to the lists in the order you ticked them, and every list keeps its
+  own counts, so opening one list afterwards shows exactly what it still needs.
+- **Admin** (`/admin`): update to the latest code, run diagnostics against Rebrickable, BrickOwl and
+  lego.com, and read the app log, all from a phone.
+
 - **Have** — go through your collection and tap *Have* (or the picture) once per piece you own.
   *All* marks a lot complete.
 - **Trip** — at the store, tap *Exact* when you find the exact part, *Alt* for an acceptable

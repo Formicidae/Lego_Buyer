@@ -36,8 +36,15 @@ def build_checklist(set_info, parts, minifigs, mode="trip", order="color"):
                 continue
             figs.append({**f, "remaining": rem, "kind": "minifig"})
 
-    for p in items:
+    for p in items + figs:
         p["lego_value"] = (p.get("lego_price") or 0) * (p["remaining"] if mode == "trip" else p["quantity"])
+        if len(p.get("members") or []) > 1 or (p.get("members") and set_info.get("kind") == "view"):
+            bits = []
+            for m in p["members"]:
+                n = m["quantity"] if mode == "have" else max(0, m["quantity"] - m["owned"] - m["found_exact"] - (m["found_alt"] if count_alt else 0))
+                if n > 0:
+                    bits.append(f"{_short(m['list_name'])} ×{n}")
+            p["member_text"] = " · ".join(bits)
     if order == "price":
         # Big-ticket parts first, as one flat list.
         items.sort(key=lambda p: (-(p.get("lego_price") or 0), -p["lego_value"], p["color_name"], p["part_name"]))
@@ -69,6 +76,10 @@ def build_checklist(set_info, parts, minifigs, mode="trip", order="color"):
         "lego_value": round(sum(p["lego_value"] for p in items), 2),
         "priced": sum(1 for p in items if p.get("lego_price") is not None),
     }
+
+
+def _short(name, n=18):
+    return name if len(name) <= n else name[: n - 1] + "…"
 
 
 def render_checklist_html(ctx) -> str:

@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="/static/style.css">
 <link rel="manifest" href="/manifest.webmanifest">
 </head>
-<body data-set="{{ set_num or '' }}">
+<body data-set="{{ set_num or '' }}" data-view="{{ view_keys or '' }}">
 
 <header class="topbar">
   <a class="brand" href="/">
@@ -35,17 +35,30 @@
     </div>
     <p class="hint" id="load-status">Pulls the full inventory and part images from Rebrickable.</p>
   </form>
+  <div class="import-form">
+    <label>Or import a BrickOwl wishlist</label>
+    <div class="load-row">
+      <select id="wl-select"><option value="">Loading your wishlists…</option></select>
+      <button class="btn primary" type="button" id="btn-import-wl" disabled>Import</button>
+    </div>
+    <p class="hint" id="wl-status"></p>
+  </div>
+
+  <div class="lists-head"><h2>Your lists</h2><button class="btn primary" id="btn-combine" type="button" disabled>Open selected together</button></div>
+  <p class="hint">Tick two or more and open them together for one combined store checklist. Each list keeps its own counts, so you can still buy for just one of them afterwards. Finds are credited to lists in the order you tick them.</p>
   <ul class="set-list" id="set-list">
     {% for s in sets %}
     <li>
+      <input type="checkbox" class="pick" value="{{ s.set_num }}" aria-label="select">
       <a href="/s/{{ s.set_num }}">
-        {% if s.img_url %}<img src="{{ s.img_url }}" alt="">{% endif %}
-        <div><b>{{ s.set_num }}</b> {{ s.name }}<br><small>{{ s.num_parts }} pieces · {{ s.lots }} lots{% if s.year %} · {{ s.year }}{% endif %}</small></div>
+        {% if s.img_url %}<img src="{{ s.img_url }}" alt="">{% else %}<span class="list-icon">{{ '♥' if s.kind == 'wishlist' else '▣' }}</span>{% endif %}
+        <div><b>{{ s.set_num if s.kind != 'wishlist' else 'Wishlist' }}</b> {{ s.name }}<br><small>{{ s.num_parts }} pieces · {{ s.lots }} lots{% if s.year %} · {{ s.year }}{% endif %}{% if s.import_notes %} · <span class="warn-text">some lots couldn't be matched</span>{% endif %}</small></div>
       </a>
       <button class="btn ghost icon danger" data-del="{{ s.set_num }}" title="Remove">&times;</button>
     </li>
     {% endfor %}
   </ul>
+  <p class="hint"><a href="/admin">Admin: update, diagnostics, logs</a></p>
 </section>
 
 <!-- Set workspace -->

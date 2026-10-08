@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin · Lego Buyer</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+  .admin { max-width: 760px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
+  .panel h2 { margin: 0 0 8px; font-size: 16px; }
+  pre { background: #f7f4ec; border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-size: 12px; overflow: auto; max-height: 360px; white-space: pre-wrap; word-break: break-word; margin: 10px 0 0; }
+  .row-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 8px 0 0; font-size: 14px; }
+  dt { color: var(--ink-2); } dd { margin: 0; word-break: break-word; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/"><span class="brand-dots"></span><div><small>LEGO BUYER</small><b>Admin</b></div></a>
+  <div class="topbar-actions"><a class="btn ghost" href="/">Back</a></div>
+</header>
+<main class="admin">
+  <section class="panel">
+    <h2>App</h2>
+    <div class="row-btns">
+      <button class="btn primary" id="btn-update" type="button">Update to latest</button>
+      <button class="btn ghost" id="btn-diag" type="button">Run diagnostics</button>
+      <button class="btn ghost" id="btn-logs" type="button">Show logs</button>
+    </div>
+    <p class="hint" id="status">Update pulls the newest code from GitHub and restarts the app (about 20 seconds). Diagnostics checks each outside service.</p>
+    <dl id="diag" hidden></dl>
+    <pre id="out" hidden></pre>
+  </section>
+</main>
+<div class="toast" id="toast" hidden></div>
+<script>
+  const $ = (s) => document.querySelector(s);
+  const status = (t) => { $('#status').textContent = t; };
+  $('#btn-update').addEventListener('click', async () => {
+    if (!confirm('Pull the latest code and restart the app?')) return;
+    status('Updating…');
+    try {
+      const r = await fetch('/api/admin/update', { method: 'POST' }); const j = await r.json();
+      if (!r.ok) { status(j.error || 'Update failed'); return; }
+      status(j.message);
+      const t0 = Date.now();
+      const wait = async () => {
+        try { const h = await fetch('/health', { cache: 'no-store' }); if (h.ok && Date.now() - t0 > 4000) { status('Back up. Running diagnostics…'); runDiag(); return; } } catch {}
+        if (Date.now() - t0 < 120000) setTimeout(wait, 2000); else status('Still not back after 2 minutes — check logs or SSH in.');
+      };
+      setTimeout(wait, 3000);
+    } catch (e) { status('Update request failed: ' + e.message); }
+  });
+  const runDiag = async () => {
+    status('Checking Rebrickable, BrickOwl, lego.com…'); $('#diag').hidden = true;
+    try {
+      const j = await (await fetch('/api/admin/diagnostics')).json();
+      const dl = $('#diag'); dl.innerHTML = ''; dl.hidden = false;
+      for (const [k, v] of Object.entries(j)) {
+        const dt = document.createElement('dt'); dt.textContent = k;
+        const dd = document.createElement('dd'); dd.textContent = typeof v === 'object' ? JSON.stringify(v) : String(v);
+        if (/FAIL/.test(dd.textContent)) dd.style.color = 'var(--red)';
+        dl.append(dt, dd);
+      }
+      status('Diagnostics done.');
+    } catch (e) { status('Diagnostics failed: ' + e.message); }
+  };
+  $('#btn-diag').addEventListener('click', runDiag);
+  $('#btn-logs').addEventListener('click', async () => {
+    const pre = $('#out'); pre.hidden = false; pre.textContent = 'Loading…';
+    pre.textContent = await (await fetch('/api/admin/logs?lines=200')).text();
+    pre.scrollTop = pre.scrollHeight;
+  });
+</script>
+</body>
+</html>

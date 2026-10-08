@@ -56,6 +56,7 @@
         <div class="nm">{{ p.part_name }}</div>
         <div class="col">{{ p.color_name }}{% if p.is_spare %} <small>(spare)</small>{% endif %}</div>
         <div class="ids">{% if p.element_id %}El {{ p.element_id }} · {% endif %}D {{ p.part_num }}{% if p.lego_price is not none %} · <b>${{ '%.2f' % p.lego_price }}</b>{% endif %}</div>
+        {% if p.member_text %}<div class="ids">{{ p.member_text }}</div>{% endif %}
         <div class="boxes">
           {% if mode == 'trip' %}<div class="box">exact</div><div class="box alt">alt</div>{% else %}<div class="box">have</div>{% endif %}
         </div>

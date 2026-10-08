@@ -3,8 +3,12 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 
+  const viewKeys = document.body.dataset.view || '';
   const state = {
-    setNum: document.body.dataset.set || null,
+    setNum: document.body.dataset.set || (viewKeys ? `v:${viewKeys}` : null),
+    isView: !!viewKeys,
+    api: viewKeys ? `/api/views/${viewKeys}` : `/api/sets/${document.body.dataset.set || ''}`,
+    page: viewKeys ? `/v/${viewKeys}` : `/s/${document.body.dataset.set || ''}`,
     set: null,
     parts: [],
     figs: [],
@@ -42,7 +46,7 @@
       while (q.length) {
         const item = q[0];
         try {
-          const res = await api(`/api/sets/${state.setNum}/progress`, { method: 'POST', body: JSON.stringify(item) });
+          const res = await api(`${state.api}/progress`, { method: 'POST', body: JSON.stringify(item) });
           if (!res) return;
           state.rev = res.rev;
         } catch (e) {
@@ -177,6 +181,7 @@
         $('.color-name', r).textContent = it.kind === 'minifig' ? 'Complete minifigure' : it.color_name;
         $('.element', r).textContent = it.kind === 'minifig' ? it.fig_num : (it.element_id ? `Element ${it.element_id}` : `Design ${it.part_num}`);
         if (it.is_spare) $('.meta', r).insertAdjacentHTML('beforeend', '<span class="tag">spare</span>');
+        if (state.isView && it.members) { const m = document.createElement('div'); m.className = 'members'; r.querySelector('.meta').after(m); }
         paintPrice(it, r);
         rows.appendChild(r);
         state.rows.set(it.key, r);
@@ -207,6 +212,11 @@
   const paintRow = (it, r) => {
     const need = needed(it), rem = remaining(it);
     paintPrice(it, r);
+    const mem = $('.members', r);
+    if (mem && it.members) mem.textContent = it.members.map((m) => {
+      const n = state.mode === 'have' ? `${m.owned}/${m.quantity} owned` : `${Math.max(0, m.quantity - m.owned - m.found_exact - (countAlt() ? m.found_alt : 0))} to find`;
+      return `${m.list_name.length > 18 ? m.list_name.slice(0, 17) + '…' : m.list_name}: ${n}`;
+    }).join(' · ');
     const qty = $('.qty', r);
     let have, total, label;
     if (state.mode === 'have') { have = it.owned; total = it.quantity; label = 'owned'; qty.textContent = `×${it.quantity}`; }
@@ -284,7 +294,7 @@
     const who = ensureWho();
     if (!confirm('Finish the trip? Everything marked Exact (and Alt, if counted) moves into your collection and the store counters reset.')) return;
     try {
-      const r = await api(`/api/sets/${state.setNum}/finish_trip`, { method: 'POST', body: JSON.stringify({ who }) });
+      const r = await api(`${state.api}/finish_trip`, { method: 'POST', body: JSON.stringify({ who }) });
       if (!r) return;
       state.rev = -1; await loadSet();
       toast(`Added ${r.pieces} pieces to your collection${r.lego_value ? ` (worth $${r.lego_value.toFixed(2)} at LEGO)` : ''}`, 4000);
@@ -295,6 +305,7 @@
 
   // ---------- updates ----------
   const applyProgress = (it, row) => { Object.assign(it, row); const el = state.rows.get(it.key); if (el) paintRow(it, el); renderSummary(); };
+  const viewName = () => state.isView ? 'Combined' : (state.set.kind === 'wishlist' ? 'Wishlist' : `LEGO ${state.set.set_num.replace(/-1$/, '')}`);
 
   const tap = async (it, field, delta) => {
     const who = ensureWho();
@@ -303,7 +314,7 @@
     it[field] = Math.max(0, it[field] + delta); it.updated_by = who || it.updated_by; it.updated_at = Date.now() / 1000;
     applyProgress(it, {});
     try {
-      const res = await api(`/api/sets/${state.setNum}/progress`, { method: 'POST', body: JSON.stringify({ key: it.key, field, delta, who }) });
+      const res = await api(`${state.api}/progress`, { method: 'POST', body: JSON.stringify({ key: it.key, field, delta, who }) });
       if (!res) return;
       state.rev = res.rev; delete res.rev;
       applyProgress(it, res);
@@ -317,7 +328,7 @@
     const who = ensureWho();
     it[field] = value; applyProgress(it, {});
     try {
-      const res = await api(`/api/sets/${state.setNum}/progress`, { method: 'POST', body: JSON.stringify({ key: it.key, field, value, who }) });
+      const res = await api(`${state.api}/progress`, { method: 'POST', body: JSON.stringify({ key: it.key, field, value, who }) });
       if (!res) return;
       state.rev = res.rev; delete res.rev; applyProgress(it, res);
       if (state.hideDone && isDone(it)) scheduleRender();
@@ -333,7 +344,7 @@
     if (!state.setNum || document.hidden) return;
     if (loadQueue().length) { await flushQueue(); if (loadQueue().length) return; }
     try {
-      const res = await api(`/api/sets/${state.setNum}/progress?rev=${state.rev}`);
+      const res = await api(`${state.api}/progress?rev=${state.rev}`);
       if (state.serverDown) { state.serverDown = false; updateNetBanner(); }
       if (!res || !res.changed) return;
       state.rev = res.rev;
@@ -343,7 +354,7 @@
       let structural = settingsChanged;
       for (const it of [...state.parts, ...state.figs]) {
         const p = res.progress[it.key] || { owned: 0, found_exact: 0, found_alt: 0, updated_at: null, updated_by: null };
-        const changed = ['owned', 'found_exact', 'found_alt'].some((k) => it[k] !== p[k]);
+        const changed = ['owned', 'found_exact', 'found_alt'].some((k) => it[k] !== p[k]) || (p.members && JSON.stringify(p.members) !== JSON.stringify(it.members));
         if (changed) { Object.assign(it, p); const el = state.rows.get(it.key); if (el) paintRow(it, el); if (state.hideDone && isDone(it)) structural = true; if (!el) structural = true; }
       }
       if (structural) { syncFilterUI(); render(); } else renderSummary();
@@ -352,7 +363,7 @@
 
   // ---------- set loading ----------
   const loadSet = async () => {
-    const data = await api(`/api/sets/${state.setNum}`);
+    const data = await api(`${state.api}`);
     if (!data) return;
     state.set = data.set; state.rev = data.rev;
     state.parts = data.parts.map((p) => ({ ...p, kind: 'part' }));
@@ -363,9 +374,10 @@
       it.updated_by = q.who || it.updated_by;
     }
     updateNetBanner();
-    $('#hdr-small').textContent = `LEGO ${state.set.set_num.replace(/-1$/, '')}`;
+    $('#hdr-small').textContent = viewName();
     $('#hdr-title').textContent = state.set.name;
-    document.title = `${state.set.set_num.replace(/-1$/, '')} · Lego Buyer`;
+    document.title = `${state.set.name} · Lego Buyer`;
+    if (state.isView) $('#btn-reload').hidden = true;
     syncFilterUI();
     render();
   };
@@ -379,12 +391,12 @@
     $('#f-hide-done').checked = state.hideDone;
     const n = [state.set.include_spares, state.set.include_minifigs, !state.set.count_alt, !state.hideDone].filter(Boolean).length;
     $('#filter-count').hidden = n === 0; $('#filter-count').textContent = n;
-    $('#link-pdf').href = `/s/${state.setNum}/checklist.pdf?mode=${state.mode === 'have' ? 'have' : 'trip'}&order=${pdfOrder()}`;
-    $('#link-print').href = `/s/${state.setNum}/checklist?mode=${state.mode === 'have' ? 'have' : 'trip'}&order=${pdfOrder()}`;
+    $('#link-pdf').href = `${state.page}/checklist.pdf?mode=${state.mode === 'have' ? 'have' : 'trip'}&order=${pdfOrder()}`;
+    $('#link-print').href = `${state.page}/checklist?mode=${state.mode === 'have' ? 'have' : 'trip'}&order=${pdfOrder()}`;
   };
 
   const saveSetting = async (patch) => {
-    const res = await api(`/api/sets/${state.setNum}/settings`, { method: 'POST', body: JSON.stringify(patch) });
+    const res = await api(`${state.api}/settings`, { method: 'POST', body: JSON.stringify(patch) });
     if (!res) return;
     state.set = res.set; state.rev = res.rev; syncFilterUI(); render();
   };
@@ -393,7 +405,7 @@
   const money = (n) => `$${(n || 0).toFixed(2)}`;
   const renderBuyPlan = async () => {
     if (state.mode !== 'buy' || !state.setNum) return;
-    let plan; try { plan = await api(`/api/sets/${state.setNum}/buyplan`); } catch { return; }
+    let plan; try { plan = await api(`${state.api}/buyplan`); } catch { return; }
     if (!plan) return;
     const el = $('#buy-summary'); const L = plan.lego;
     const tierCard = (name, t) => {
@@ -413,7 +425,7 @@
   const watchPriceJob = () => {
     clearInterval(priceTimer);
     priceTimer = setInterval(async () => {
-      let j; try { j = await api(`/api/sets/${state.setNum}/prices`); } catch { return; }
+      let j; try { j = await api(`${state.api}/prices`); } catch { return; }
       if (!j) return;
       const st = $('#price-status');
       if (j.state === 'running') { st.textContent = `Checking lego.com… ${j.done} / ${j.total}${j.errors ? ` (${j.errors} failed)` : ''}`; return; }
@@ -426,7 +438,7 @@
   const startPrices = async (force) => {
     $('#btn-prices').disabled = true; $('#btn-prices-force').disabled = true;
     $('#price-status').textContent = 'Starting…';
-    try { await api(`/api/sets/${state.setNum}/prices`, { method: 'POST', body: JSON.stringify({ force }) }); watchPriceJob(); }
+    try { await api(`${state.api}/prices`, { method: 'POST', body: JSON.stringify({ force }) }); watchPriceJob(); }
     catch (e) { toast(e.message); $('#btn-prices').disabled = false; $('#btn-prices-force').disabled = false; }
   };
 
@@ -456,6 +468,39 @@
     if (state.set) { syncFilterUI(); render(); }
   };
 
+  const waitJob = (name) => new Promise((resolve) => {
+    const t = setInterval(async () => {
+      const j = await api(`/api/jobs/${name}`).catch(() => null);
+      if (!j || j.state === 'running') { if (j && $('#wl-status')) $('#wl-status').textContent = `Importing… ${j.done} / ${j.total} lots (Rebrickable allows about one lookup a second)`; return; }
+      clearInterval(t); resolve(j);
+    }, 1500);
+  });
+  const initHome = async () => {
+    const picks = $$('.pick');
+    const order = [];
+    const sync = () => { $('#btn-combine').disabled = order.length < 2; $('#btn-combine').textContent = order.length < 2 ? 'Open selected together' : `Open ${order.length} together`; };
+    picks.forEach((c) => c.addEventListener('change', () => { if (c.checked) order.push(c.value); else order.splice(order.indexOf(c.value), 1); sync(); }));
+    $('#btn-combine').addEventListener('click', () => { if (order.length >= 2) location.href = `/v/${order.join(',')}`; });
+    const sel = $('#wl-select');
+    try {
+      const r = await api('/api/brickowl/wishlists');
+      sel.innerHTML = '';
+      if (!r || !r.wishlists.length) { sel.innerHTML = '<option value="">No wishlists on your BrickOwl account</option>'; return; }
+      for (const w of r.wishlists) { const o = document.createElement('option'); o.value = w.wishlist_id; o.textContent = `${w.name}${w.count ? ` (${w.count} lots)` : ''}`; sel.appendChild(o); }
+      $('#btn-import-wl').disabled = false;
+    } catch (e) { sel.innerHTML = `<option value="">${e.message}</option>`; }
+    $('#btn-import-wl').addEventListener('click', async () => {
+      const wid = sel.value; if (!wid) return;
+      $('#btn-import-wl').disabled = true; $('#wl-status').textContent = 'Starting import…';
+      try {
+        await api('/api/brickowl/import', { method: 'POST', body: JSON.stringify({ wishlist_id: wid }) });
+        const j = await waitJob(`import:bo-${wid}`);
+        if (j.state === 'failed') { $('#wl-status').textContent = j.message || 'Import failed'; $('#btn-import-wl').disabled = false; return; }
+        location.href = `/s/bo-${wid}`;
+      } catch (e) { $('#wl-status').textContent = e.message; $('#btn-import-wl').disabled = false; }
+    });
+  };
+
   const init = () => {
     $('#btn-who').textContent = state.who || '?';
     $('#btn-who').addEventListener('click', () => { state.who = ''; localStorage.removeItem('lb_who'); ensureWho(); $('#btn-who').textContent = state.who || '?'; });
@@ -476,14 +521,22 @@
       await api(`/api/sets/${b.dataset.del}`, { method: 'DELETE' }); location.reload();
     }));
 
-    if (!state.setNum) { $('#home').hidden = false; $('#btn-switch').hidden = true; $('#btn-reload').hidden = true; return; }
+    if (!state.setNum) {
+      $('#home').hidden = false; $('#btn-switch').hidden = true; $('#btn-reload').hidden = true;
+      initHome();
+      return;
+    }
     $('#workspace').hidden = false;
 
     $('#btn-reload').addEventListener('click', async () => {
-      if (!confirm('Re-fetch this set from Rebrickable? Your counts are kept.')) return;
+      const wl = state.set && state.set.kind === 'wishlist';
+      if (!confirm(wl ? 'Re-import this wishlist from BrickOwl? Your counts are kept.' : 'Re-fetch this set from Rebrickable? Your counts are kept.')) return;
       toast('Reloading…', 6000);
-      try { await api('/api/sets', { method: 'POST', body: JSON.stringify({ set_num: state.setNum }) }); await loadSet(); toast('Set refreshed'); }
-      catch (e) { toast(e.message); }
+      try {
+        const r = await api('/api/sets', { method: 'POST', body: JSON.stringify({ set_num: state.setNum }) });
+        if (r && r.job) { await waitJob(`import:${state.setNum}`); }
+        await loadSet(); toast('Refreshed');
+      } catch (e) { toast(e.message); }
     });
     $$('.stage').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
     $('#search').addEventListener('input', (e) => { state.search = e.target.value; render(); });
@@ -496,7 +549,7 @@
     $('#f-count-alt').addEventListener('change', (e) => saveSetting({ count_alt: e.target.checked }));
     $('#btn-reset-trip').addEventListener('click', async () => {
       if (!confirm('Reset all Exact/Alt store counts for this set? Owned counts are kept.')) return;
-      await api(`/api/sets/${state.setNum}/reset`, { method: 'POST', body: JSON.stringify({ fields: ['found_exact', 'found_alt'] }) });
+      await api(`${state.api}/reset`, { method: 'POST', body: JSON.stringify({ fields: ['found_exact', 'found_alt'] }) });
       state.rev = -1; await loadSet(); toast('Trip counts reset');
     });
     $('#pdf-order').addEventListener('change', (e) => { localStorage.setItem('lb_pdf_order', e.target.value); syncFilterUI(); });
@@ -520,7 +573,7 @@
     });
 
     setMode(state.mode);
-    loadSet().then(async () => { const j = await api(`/api/sets/${state.setNum}/prices`).catch(() => null); if (j && j.state === 'running') watchPriceJob(); }).catch((e) => toast(e.message));
+    loadSet().then(async () => { const j = await api(`${state.api}/prices`).catch(() => null); if (j && j.state === 'running') watchPriceJob(); }).catch((e) => toast(e.message));
     state.pollTimer = setInterval(poll, 2500);
     window.addEventListener('online', () => { updateNetBanner(); flushQueue(); });
     window.addEventListener('offline', updateNetBanner);

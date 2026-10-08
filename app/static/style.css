@@ -74,7 +74,16 @@ a { color: var(--green); }
 .load-row { display: flex; gap: 8px; }
 .load-row input { flex: 1; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; font-size: 18px; background: var(--card); }
 .hint { color: var(--ink-2); font-size: 13px; }
-.set-list { list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 10px; }
+.import-form { margin-top: 18px; }
+.import-form label { font-weight: 700; display: block; margin-bottom: 6px; }
+.import-form select { flex: 1; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; font-size: 16px; background: var(--card); }
+.lists-head { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; gap: 8px; }
+.lists-head h2 { margin: 0; font-size: 18px; }
+.set-list .pick { width: 22px; height: 22px; accent-color: var(--green); flex: none; }
+.list-icon { width: 64px; height: 48px; display: grid; place-items: center; font-size: 22px; color: var(--green); background: var(--green-2); border-radius: 8px; }
+.warn-text { color: var(--amber-ink); }
+.members { font-size: 11px; color: var(--ink-2); }
+.set-list { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 10px; }
 .set-list li { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; }
 .set-list a { flex: 1; display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink); min-width: 0; }
 .set-list img { width: 64px; height: 48px; object-fit: contain; background: #fff; border-radius: 8px; }
@@ -195,13 +204,9 @@ a { color: var(--green); }
 @media (max-width: 480px) {
   .topbar { padding-left: 12px; padding-right: 12px; }
   .btn.ghost#btn-switch { display: none; }
-  .stages, .toolbar, .grid, .summary, .filters, .bucket { position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; max-width: 1400px; margin: 0 auto; padding: 8px 16px calc(8px + env(safe-area-inset-bottom)); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: linear-gradient(to top, var(--bg) 70%, transparent); }
-.bucket-text { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; flex: 1 1 260px; }
-.bucket-text b { font-size: 18px; }
-.bucket-text small { display: block; color: var(--ink-2); font-size: 12px; }
-.bucket-text.win b { color: var(--green); }
-@media (max-width: 480px) { .bucket { padding-left: 10px; padding-right: 10px; } .bucket .btn { padding: 8px 10px; font-size: 13px; } }
-.buy-panel { padding-left: 10px; padding-right: 10px; }
+  .stages, .toolbar, .grid, .summary, .filters, .buy-panel { padding-left: 10px; padding-right: 10px; }
+  .bucket { padding-left: 10px; padding-right: 10px; }
+  .bucket .btn { padding: 8px 10px; font-size: 13px; }
   .row { grid-template-columns: 96px 1fr; gap: 8px; padding: 10px; }
   .pic img { width: 96px; height: 96px; }
   .stage small { display: none; }

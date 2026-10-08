@@ -104,6 +104,9 @@ def connect() -> sqlite3.Connection:
 
 
 MIGRATIONS = [
+    "ALTER TABLE sets ADD COLUMN kind TEXT NOT NULL DEFAULT 'set'",
+    "ALTER TABLE sets ADD COLUMN source_id TEXT",
+    "ALTER TABLE sets ADD COLUMN import_notes TEXT",
     "ALTER TABLE set_parts ADD COLUMN lego_available INTEGER",
     "ALTER TABLE set_parts ADD COLUMN lego_limit INTEGER",
     "ALTER TABLE set_parts ADD COLUMN lego_error TEXT",
@@ -198,15 +201,17 @@ def replace_set(set_info, parts, minifigs, categories, colors):
         conn.execute("DELETE FROM set_minifigs WHERE set_num=?", (set_num,))
         conn.execute("DELETE FROM progress WHERE set_num=?", (set_num,))
         conn.execute(
-            "INSERT INTO sets(set_num, name, year, num_parts, img_url, loaded_at, include_spares, include_minifigs, count_alt) "
-            "VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(set_num) DO UPDATE SET "
-            "name=excluded.name, year=excluded.year, num_parts=excluded.num_parts, img_url=excluded.img_url, loaded_at=excluded.loaded_at",
+            "INSERT INTO sets(set_num, name, year, num_parts, img_url, loaded_at, include_spares, include_minifigs, count_alt, kind, source_id, import_notes) "
+            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(set_num) DO UPDATE SET "
+            "name=excluded.name, year=excluded.year, num_parts=excluded.num_parts, img_url=excluded.img_url, loaded_at=excluded.loaded_at, "
+            "kind=excluded.kind, source_id=excluded.source_id, import_notes=excluded.import_notes",
             (
                 set_num, set_info["name"], set_info.get("year"), set_info.get("num_parts"), set_info.get("set_img_url"),
                 time.time(),
                 existing["include_spares"] if existing else 0,
                 existing["include_minifigs"] if existing else 0,
                 existing["count_alt"] if existing else 1,
+                set_info.get("kind", "set"), set_info.get("source_id"), set_info.get("import_notes"),
             ),
         )
         for cid, cname in categories.items():

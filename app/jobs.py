@@ -2,7 +2,7 @@
 import threading
 import time
 
-from . import db, lego
+from . import brickowl, db, lego
 
 _jobs = {}
 _lock = threading.Lock()
@@ -47,6 +47,33 @@ def start_price_job(set_num, force=False):
                 _jobs[name]["state"] = "done"
                 _jobs[name]["finished"] = time.time()
         except Exception as e:  # pragma: no cover
+            with _lock:
+                _jobs[name].update({"state": "failed", "message": str(e)})
+
+    threading.Thread(target=run, name=name, daemon=True).start()
+    return status(name)
+
+
+def start_wishlist_import(wishlist_id):
+    name = f"import:bo-{wishlist_id}"
+    with _lock:
+        cur = _jobs.get(name)
+        if cur and cur.get("state") == "running":
+            return dict(cur)
+        _jobs[name] = {"state": "running", "done": 0, "total": 0, "started": time.time(), "set_num": f"bo-{wishlist_id}"}
+
+    def progress(done, total):
+        with _lock:
+            _jobs[name].update({"done": done, "total": total})
+
+    def run():
+        try:
+            info, parts, figs, cats, colors, problems = brickowl.fetch_wishlist(wishlist_id, on_progress=progress)
+            info["import_notes"] = "\n".join(problems) if problems else None
+            db.replace_set(info, parts, figs, cats, colors)
+            with _lock:
+                _jobs[name].update({"state": "done", "finished": time.time(), "lots": len(parts), "problems": problems})
+        except Exception as e:
             with _lock:
                 _jobs[name].update({"state": "failed", "message": str(e)})
 
