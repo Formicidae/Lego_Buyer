@@ -93,9 +93,21 @@ def connect() -> sqlite3.Connection:
     return conn
 
 
+MIGRATIONS = [
+    "ALTER TABLE set_parts ADD COLUMN lego_available INTEGER",
+    "ALTER TABLE set_parts ADD COLUMN lego_limit INTEGER",
+    "ALTER TABLE set_parts ADD COLUMN lego_error TEXT",
+]
+
+
 def init():
     with connect() as conn:
         conn.executescript(SCHEMA)
+        for m in MIGRATIONS:
+            try:
+                conn.execute(m)
+            except sqlite3.OperationalError:
+                pass  # column already exists
 
 
 @contextmanager
@@ -166,6 +178,10 @@ def replace_set(set_info, parts, minifigs, categories, colors):
         }
         old_figs = {r["fig_num"]: r["id"] for r in conn.execute("SELECT id, fig_num FROM set_minifigs WHERE set_num=?", (set_num,))}
         old_progress = {r["key"]: dict(r) for r in conn.execute("SELECT * FROM progress WHERE set_num=?", (set_num,))}
+        old_prices = {
+            r["element_id"]: dict(r)
+            for r in conn.execute("SELECT element_id, lego_price, lego_tier, lego_available, lego_limit, price_checked_at FROM set_parts WHERE set_num=? AND price_checked_at IS NOT NULL", (set_num,))
+        }
 
         existing = conn.execute("SELECT include_spares, include_minifigs, count_alt FROM sets WHERE set_num=?", (set_num,)).fetchone()
         conn.execute("DELETE FROM set_parts WHERE set_num=?", (set_num,))
@@ -199,6 +215,12 @@ def replace_set(set_info, parts, minifigs, categories, colors):
                     p.get("element_id"), p["quantity"], 1 if p.get("is_spare") else 0, p.get("img_url"), json.dumps(p.get("external_ids") or {}),
                 ),
             )
+            op_ = old_prices.get(p.get("element_id"))
+            if op_:
+                conn.execute(
+                    "UPDATE set_parts SET lego_price=?, lego_tier=?, lego_available=?, lego_limit=?, price_checked_at=? WHERE id=?",
+                    (op_["lego_price"], op_["lego_tier"], op_["lego_available"], op_["lego_limit"], op_["price_checked_at"], cur.lastrowid),
+                )
             old_id = old_parts.get((p["part_num"], p["color_id"], 1 if p.get("is_spare") else 0))
             if old_id is not None and f"p:{old_id}" in old_progress:
                 op = old_progress[f"p:{old_id}"]
@@ -315,3 +337,37 @@ def reset_progress(set_num, fields):
         if sets:
             conn.execute(f"UPDATE progress SET {sets}, updated_at=? WHERE set_num=?", (time.time(), set_num))
         bump_rev(conn, set_num)
+
+
+# ---------- LEGO prices ----------
+
+def elements_to_price(set_num, max_age_hours=24, include_spares=False):
+    """Distinct element IDs in the set whose price is missing or stale."""
+    cutoff = time.time() - max_age_hours * 3600
+    rows = q(
+        "SELECT DISTINCT element_id FROM set_parts WHERE set_num=? AND element_id IS NOT NULL AND element_id != '' "
+        "AND (price_checked_at IS NULL OR price_checked_at < ?)" + ("" if include_spares else " AND is_spare=0"),
+        (set_num, cutoff),
+    )
+    return [r["element_id"] for r in rows]
+
+
+def save_price(element_id, result, error=None):
+    """Apply a lookup result to every set that contains this element."""
+    with tx() as conn:
+        if result is None and error:
+            # Lookup failed (network, blocked, parser): keep any old price, record the error, retry next run.
+            conn.execute("UPDATE set_parts SET lego_error=? WHERE element_id=?", (error[:300], element_id))
+        elif result is None:
+            # LEGO doesn't sell this element.
+            conn.execute(
+                "UPDATE set_parts SET lego_price=NULL, lego_tier=NULL, lego_available=0, lego_limit=NULL, lego_error=NULL, price_checked_at=? WHERE element_id=?",
+                (time.time(), element_id),
+            )
+        else:
+            conn.execute(
+                "UPDATE set_parts SET lego_price=?, lego_tier=?, lego_available=?, lego_limit=?, lego_error=NULL, price_checked_at=? WHERE element_id=?",
+                (result.get("price"), result.get("tier"), 1 if result.get("available") else 0, result.get("limit"), time.time(), element_id),
+            )
+        for r in conn.execute("SELECT DISTINCT set_num FROM set_parts WHERE element_id=?", (element_id,)):
+            bump_rev(conn, r["set_num"])

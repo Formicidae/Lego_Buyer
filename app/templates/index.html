@@ -66,6 +66,7 @@
         <option value="name">Name</option>
         <option value="remaining">Most needed</option>
         <option value="recent">Recently tapped</option>
+        <option value="tier">LEGO tier</option>
       </select>
     </label>
     <button class="btn ghost" id="btn-filters" type="button">Filters <span class="pill" id="filter-count" hidden></span></button>
@@ -86,9 +87,16 @@
   <div class="summary" id="summary"></div>
 
   <div class="buy-panel" id="buy-panel" hidden>
-    <h2>Buy plan</h2>
-    <p>Price lookup against LEGO Pick a Brick and BrickOwl comes in the next build. For now, everything still needed after your collection and the store trip is listed below so you can order it by hand.</p>
-    <div class="buy-actions">
+    <div class="buy-head">
+      <h2>LEGO Pick a Brick</h2>
+      <div class="buy-actions">
+        <button class="btn primary" id="btn-prices" type="button">Check LEGO prices</button>
+        <button class="btn ghost" id="btn-prices-force" type="button" title="Ignore cached prices and re-check every part">Re-check all</button>
+      </div>
+    </div>
+    <p class="hint" id="price-status">Prices and Bestseller/Standard tiers come from lego.com and are cached for a day.</p>
+    <div id="buy-summary"></div>
+    <div class="buy-actions buy-exports">
       <button class="btn ghost" id="btn-copy-bl" type="button">Copy BrickLink wanted-list XML</button>
       <button class="btn ghost" id="btn-copy-csv" type="button">Copy CSV</button>
     </div>

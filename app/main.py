@@ -14,7 +14,7 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from . import db, rebrickable
+from . import db, jobs, lego, rebrickable
 from .checklist import build_checklist, render_checklist_html, render_checklist_pdf
 from .config import APP_PASSCODE, SECRET, BRICKOWL_API_KEY, REBRICKABLE_API_KEY
 
@@ -157,6 +157,45 @@ async def api_reset(request: Request):
     return JSONResponse({"rev": db.get_rev(set_num)})
 
 
+async def api_prices(request: Request):
+    set_num = request.path_params["set_num"]
+    if not db.get_set(set_num):
+        return JSONResponse({"error": "not found"}, status_code=404)
+    if request.method == "POST":
+        body = await request.json() if request.headers.get("content-type", "").startswith("application/json") else {}
+        return JSONResponse(jobs.start_price_job(set_num, force=bool(body.get("force"))))
+    return JSONResponse(jobs.status(f"prices:{set_num}"))
+
+
+async def api_buyplan(request: Request):
+    """What's still needed after owned + found, priced against LEGO with the US fee rules applied."""
+    set_num = request.path_params["set_num"]
+    s = db.get_set(set_num)
+    if not s:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    parts, figs = db.set_items(set_num)
+    count_alt = bool(s.get("count_alt", 1))
+    items = []
+    for p in parts:
+        if p["is_spare"] and not s.get("include_spares"):
+            continue
+        rem = max(0, p["quantity"] - p["owned"] - p["found_exact"] - (p["found_alt"] if count_alt else 0))
+        if rem <= 0:
+            continue
+        sold = p.get("lego_price") is not None and p.get("lego_available")
+        items.append({"key": p["key"], "element_id": p["element_id"], "qty": rem, "price": p.get("lego_price"),
+                      "tier": p.get("lego_tier") if sold else None, "sold_by_lego": bool(sold), "checked": p.get("price_checked_at") is not None})
+    lego_items = [i for i in items if i["sold_by_lego"]]
+    plan = lego.plan_fees(lego_items)
+    return JSONResponse({
+        "lego": plan,
+        "lego_lots": len(lego_items),
+        "not_sold_by_lego": [i for i in items if i["checked"] and not i["sold_by_lego"]],
+        "unpriced": [i for i in items if not i["checked"]],
+        "job": jobs.status(f"prices:{set_num}"),
+    })
+
+
 # ---------- Checklist ----------
 
 async def checklist_html(request: Request):
@@ -198,6 +237,8 @@ routes = [
     Route("/api/sets/{set_num}/progress", api_progress, methods=["GET", "POST"]),
     Route("/api/sets/{set_num}/settings", api_settings, methods=["POST"]),
     Route("/api/sets/{set_num}/reset", api_reset, methods=["POST"]),
+    Route("/api/sets/{set_num}/prices", api_prices, methods=["GET", "POST"]),
+    Route("/api/sets/{set_num}/buyplan", api_buyplan),
     Mount("/static", StaticFiles(directory="app/static"), name="static"),
 ]
 

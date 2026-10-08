@@ -136,11 +136,13 @@
       name: (a, b) => a.title.localeCompare(b.title),
       remaining: (a, b) => sum(b.rows, remaining) - sum(a.rows, remaining) || a.title.localeCompare(b.title),
       recent: (a, b) => maxUpd(b.rows) - maxUpd(a.rows) || a.title.localeCompare(b.title),
+      tier: (a, b) => tierRank(a.rows[0]) - tierRank(b.rows[0]) || a.cat.localeCompare(b.cat) || a.title.localeCompare(b.title),
     }[state.sort] || ((a, b) => 0);
     list.sort(cmp);
     return list;
   };
   const sum = (rows, f) => rows.reduce((n, r) => n + f(r), 0);
+  const tierRank = (it) => it.price_checked_at == null ? 3 : it.lego_tier === 'Bestseller' && it.lego_available ? 0 : it.lego_tier === 'Standard' && it.lego_available ? 1 : 2;
   const maxUpd = (rows) => Math.max(0, ...rows.map((r) => r.updated_at || 0));
 
   // ---------- rendering ----------
@@ -170,10 +172,7 @@
         $('.color-name', r).textContent = it.kind === 'minifig' ? 'Complete minifigure' : it.color_name;
         $('.element', r).textContent = it.kind === 'minifig' ? it.fig_num : (it.element_id ? `Element ${it.element_id}` : `Design ${it.part_num}`);
         if (it.is_spare) $('.meta', r).insertAdjacentHTML('beforeend', '<span class="tag">spare</span>');
-        if (it.lego_price != null) {
-          const pr = $('.price', r); pr.hidden = false;
-          pr.innerHTML = `<b>LEGO:</b> $${it.lego_price.toFixed(2)} each · $${(it.lego_price * remaining(it)).toFixed(2)} needed${it.lego_tier ? ' · ' + it.lego_tier : ''}`;
-        }
+        paintPrice(it, r);
         rows.appendChild(r);
         state.rows.set(it.key, r);
         paintRow(it, r);
@@ -185,12 +184,24 @@
       state.mode === 'have' ? 'Everything is marked as owned. Switch to Trip.' :
       state.mode === 'trip' ? 'Nothing left to find. Switch to Buy.' : 'Nothing left to buy.';
     $('#buy-panel').hidden = state.mode !== 'buy';
+    if (state.mode === 'buy') renderBuyPlan();
     renderSummary();
     window.scrollTo(0, scroll);
   };
 
+  const paintPrice = (it, r) => {
+    const pr = $('.price', r); if (!pr || it.kind === 'minifig') return;
+    pr.hidden = false; pr.className = 'price';
+    if (it.price_checked_at == null) { pr.classList.add('na'); pr.textContent = it.lego_error ? `LEGO: lookup failed` : 'LEGO: price not checked yet'; return; }
+    if (it.lego_price == null || !it.lego_available) { pr.classList.add('na'); pr.textContent = 'Not sold by LEGO Pick a Brick'; return; }
+    const rem = remaining(it);
+    const tier = it.lego_tier ? `<span class="${it.lego_tier === 'Bestseller' ? 'tier-pab' : 'tier-bap'}">${it.lego_tier}</span>` : '';
+    pr.innerHTML = `<b>LEGO:</b> $${it.lego_price.toFixed(2)} each · $${(it.lego_price * rem).toFixed(2)} needed${tier ? ' · ' + tier : ''}${it.lego_limit ? ` · limit ${it.lego_limit}` : ''}`;
+  };
+
   const paintRow = (it, r) => {
     const need = needed(it), rem = remaining(it);
+    paintPrice(it, r);
     const qty = $('.qty', r);
     let have, total, label;
     if (state.mode === 'have') { have = it.owned; total = it.quantity; label = 'owned'; qty.textContent = `×${it.quantity}`; }
@@ -348,6 +359,47 @@
     state.set = res.set; state.rev = res.rev; syncFilterUI(); render();
   };
 
+  // ---------- buy plan ----------
+  const money = (n) => `$${(n || 0).toFixed(2)}`;
+  const renderBuyPlan = async () => {
+    if (state.mode !== 'buy' || !state.setNum) return;
+    let plan; try { plan = await api(`/api/sets/${state.setNum}/buyplan`); } catch { return; }
+    if (!plan) return;
+    const el = $('#buy-summary'); const L = plan.lego;
+    const tierCard = (name, t) => {
+      if (!t) return `<div class="tier"><h3>${name} <span>$0.00</span></h3><small>nothing needed from this list</small></div>`;
+      const pct = Math.min(100, (t.subtotal / t.min) * 100);
+      const verdict = t.fee ? `<span class="warn">$${t.fee.toFixed(2)} service fee</span> · add ${money(t.short)} more to waive it` : `<span class="ok">no service fee</span>`;
+      return `<div class="tier"><h3>${name} <span>${money(t.subtotal)}</span></h3><small>${t.lots} lots · ${t.pieces} pieces · ${name === 'Bestseller' ? 'ships from the US in days' : 'ships from Denmark, up to ~4 weeks'}</small>
+        <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div><small>${verdict}</small></div>`;
+    };
+    const ship = L.shipping ? `<span class="warn">${money(L.shipping)} shipping</span> · ${money(L.free_ship_short)} short of free shipping (sets count too)` : `<span class="ok">free shipping</span>`;
+    el.innerHTML = `
+      <div class="tiers">${tierCard('Bestseller', L.tiers.Bestseller)}${tierCard('Standard', L.tiers.Standard)}</div>
+      <div class="buy-total"><span>Parts <b>${money(L.subtotal)}</b></span><span>Fees <b>${money(L.service_fees)}</b></span><span>${ship}</span><span>Total <b>${money(L.total)}</b></span></div>
+      <p class="hint">${plan.not_sold_by_lego.length} lot${plan.not_sold_by_lego.length === 1 ? '' : 's'} not sold by LEGO (these go to BrickOwl/BrickLink in the next build)${plan.unpriced.length ? ` · ${plan.unpriced.length} not checked yet` : ''}</p>`;
+  };
+  let priceTimer = null;
+  const watchPriceJob = () => {
+    clearInterval(priceTimer);
+    priceTimer = setInterval(async () => {
+      let j; try { j = await api(`/api/sets/${state.setNum}/prices`); } catch { return; }
+      if (!j) return;
+      const st = $('#price-status');
+      if (j.state === 'running') { st.textContent = `Checking lego.com… ${j.done} / ${j.total}${j.errors ? ` (${j.errors} failed)` : ''}`; return; }
+      clearInterval(priceTimer); $('#btn-prices').disabled = false; $('#btn-prices-force').disabled = false;
+      if (j.state === 'failed') st.textContent = j.message || 'Price check failed.';
+      else if (j.state === 'done') st.textContent = `Checked ${j.done} elements${j.not_sold ? ` · ${j.not_sold} not sold by LEGO` : ''}${j.errors ? ` · ${j.errors} failed (${j.last_error})` : ''}.`;
+      await loadSet(); renderBuyPlan();
+    }, 1500);
+  };
+  const startPrices = async (force) => {
+    $('#btn-prices').disabled = true; $('#btn-prices-force').disabled = true;
+    $('#price-status').textContent = 'Starting…';
+    try { await api(`/api/sets/${state.setNum}/prices`, { method: 'POST', body: JSON.stringify({ force }) }); watchPriceJob(); }
+    catch (e) { toast(e.message); $('#btn-prices').disabled = false; $('#btn-prices-force').disabled = false; }
+  };
+
   // ---------- exports ----------
   const buyList = () => visibleItems().filter((i) => remaining(i) > 0 && i.kind === 'part');
   const blXml = () => {
@@ -417,6 +469,8 @@
       await api(`/api/sets/${state.setNum}/reset`, { method: 'POST', body: JSON.stringify({ fields: ['found_exact', 'found_alt'] }) });
       state.rev = -1; await loadSet(); toast('Trip counts reset');
     });
+    $('#btn-prices').addEventListener('click', () => startPrices(false));
+    $('#btn-prices-force').addEventListener('click', () => { if (confirm('Re-check every part against lego.com? Takes about a second per part.')) startPrices(true); });
     $('#btn-copy-bl').addEventListener('click', () => copy(blXml(), 'BrickLink XML'));
     $('#btn-copy-csv').addEventListener('click', () => copy(csv(), 'CSV'));
 
@@ -433,7 +487,7 @@
     });
 
     setMode(state.mode);
-    loadSet().catch((e) => toast(e.message));
+    loadSet().then(async () => { const j = await api(`/api/sets/${state.setNum}/prices`).catch(() => null); if (j && j.state === 'running') watchPriceJob(); }).catch((e) => toast(e.message));
     state.pollTimer = setInterval(poll, 2500);
     window.addEventListener('online', () => { updateNetBanner(); flushQueue(); });
     window.addEventListener('offline', updateNetBanner);

@@ -109,6 +109,20 @@ a { color: var(--green); }
 .buy-panel h2 { margin: 0 0 6px; font-size: 18px; }
 .buy-panel p { margin: 0 0 10px; color: var(--ink-2); font-size: 14px; }
 .buy-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.buy-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.buy-exports { margin-top: 12px; }
+.tiers { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 10px; }
+.tier { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.tier h3 { margin: 0 0 2px; font-size: 14px; display: flex; justify-content: space-between; }
+.tier small { color: var(--ink-2); font-size: 12px; }
+.tier .bar { margin: 6px 0 4px; }
+.tier .ok { color: var(--green); font-weight: 700; }
+.tier .warn { color: var(--red); font-weight: 700; }
+.buy-total { margin-top: 10px; font-size: 14px; display: flex; gap: 16px; flex-wrap: wrap; }
+.buy-total b { font-size: 16px; }
+.price.na { color: var(--ink-3); }
+.price .tier-pab { color: var(--green); font-weight: 700; }
+.price .tier-bap { color: var(--amber-ink); font-weight: 700; }
 
 /* ---------- card grid ---------- */
 .grid { max-width: 1400px; margin: 12px auto 40px; padding: 0 16px; display: grid; gap: 14px; align-items: start; grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); }

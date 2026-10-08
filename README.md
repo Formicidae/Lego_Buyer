@@ -4,10 +4,11 @@ Find the cheapest way to get every piece for a LEGO set: check what you own, hun
 Bricks & Minifigs pick-a-brick wall (with a phone-friendly live checklist two people can update at
 once), then buy whatever is left.
 
-**Phase 1 (this build):** set loading from Rebrickable with part images, the Have / Trip / Buy
-stages, live multi-phone sync, and a printable PDF checklist.
-**Next:** LEGO Pick a Brick prices and bestseller/standard tiers, BrickOwl availability, and the
-buy-plan optimizer.
+**Built so far:** set loading from Rebrickable with part images, the Have / Trip / Buy stages, live
+multi-phone sync with offline tolerance, a printable PDF checklist, and LEGO Pick a Brick prices with
+Bestseller/Standard tiers and the US service-fee / free-shipping math.
+**Next:** BrickOwl availability and the buy-plan optimizer that splits an order between LEGO and
+BrickOwl/BrickLink sellers.
 
 ## Run it on a Raspberry Pi (free, always on)
 
@@ -58,7 +59,11 @@ made while offline, syncing them when the Pi is reachable again.
   substitute. *Mistake?* reveals the undo links. Every open phone updates within a few seconds and
   shows who tapped last. *Filters → Open checklist PDF* prints what is still missing, grouped by
   color so you can walk the wall.
-- **Buy** — what's left after both passes. Copy a BrickLink wanted-list XML or a CSV.
+- **Buy** — what's left after both passes. *Check LEGO prices* looks every remaining element up on
+  lego.com (about a second each, cached for a day) and shows Bestseller vs Standard subtotals against
+  the $14-per-category service-fee minimum and the $35 free-shipping line. Copy a BrickLink
+  wanted-list XML or a CSV for the rest.
+  If lookups fail, run `deploy/probe-lego.py` on the server and share the output.
 - Spare parts and minifigures are excluded by default; toggle them under *Filters*. Minifigures
   are treated as whole figures, not broken into parts.
 - The ↻ button re-fetches the set from Rebrickable (if the inventory was corrected). Counts are
