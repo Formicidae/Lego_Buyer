@@ -27,6 +27,7 @@
       <button class="btn primary" id="btn-update" type="button">Update to latest</button>
       <button class="btn ghost" id="btn-diag" type="button">Run diagnostics</button>
       <button class="btn ghost" id="btn-logs" type="button">Show logs</button>
+      <button class="btn ghost" id="btn-discover" type="button">Find LEGO price query</button>
     </div>
     <p class="hint" id="status">Update pulls the newest code from GitHub and restarts the app (about 20 seconds). Diagnostics checks each outside service.</p>
     <dl id="diag" hidden></dl>
@@ -67,6 +68,13 @@
     } catch (e) { status('Diagnostics failed: ' + e.message); }
   };
   $('#btn-diag').addEventListener('click', runDiag);
+  $('#btn-discover').addEventListener('click', async () => {
+    const pre = $('#out'); pre.hidden = false; pre.textContent = 'Reading lego.com scripts… (20–60 s)'; status('Discovering…');
+    try {
+      const r = await fetch('/api/admin/discover_lego', { method: 'POST' }); const j = await r.json();
+      pre.textContent = JSON.stringify(j, null, 2); status(r.ok ? 'Done — paste this block to Claude if the probe line says FAIL or tier is missing.' : 'Discovery failed.');
+    } catch (e) { pre.textContent = String(e); status('Discovery failed.'); }
+  });
   $('#btn-logs').addEventListener('click', async () => {
     const pre = $('#out'); pre.hidden = false; pre.textContent = 'Loading…';
     pre.textContent = await (await fetch('/api/admin/logs?lines=200')).text();

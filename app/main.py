@@ -381,6 +381,13 @@ def _git(*args):
         return f"(git failed: {e})"
 
 
+def QUERY_CACHE_LEN():
+    try:
+        return len(lego.QUERY_CACHE.read_text())
+    except OSError:
+        return 0
+
+
 def _diagnostics():
     out = {"version": _git("log", "-1", "--format=%h %s (%cd)", "--date=short"), "branch": _git("rev-parse", "--abbrev-ref", "HEAD")}
     out["keys"] = {"rebrickable": bool(REBRICKABLE_API_KEY), "brickowl": bool(BRICKOWL_API_KEY), "passcode": bool(APP_PASSCODE)}
@@ -404,6 +411,7 @@ def _diagnostics():
         out["brickowl"] = f"ok, {len(brickowl.wishlists())} wishlists"
     except Exception as e:
         out["brickowl"] = f"FAIL: {e}"
+    out["lego_query"] = f"cached, {QUERY_CACHE_LEN()} chars" if lego.QUERY_CACHE.exists() else "not discovered yet"
     try:
         r = lego.lookup("6204668")
         out["lego"] = f"ok via {r['source']}: ${r['price']:.2f}" + (f" ({r['tier']})" if r and r.get("tier") else " (tier unknown)") if r else "element 6204668 not found?"
@@ -414,6 +422,20 @@ def _diagnostics():
     except Exception:
         out["tailscale"] = "(tailscale not installed)"
     return out
+
+
+async def api_admin_discover(request: Request):
+    def run():
+        q = lego.discover_query(force=True)
+        try:
+            probe = lego.graphql_lookup("6204668")
+        except Exception as e:
+            probe = f"FAIL: {e}"
+        return {"chars": len(q), "head": q[:600], "variables": lego.query_variables(q, "6204668"), "probe_6204668": probe}
+    try:
+        return JSONResponse(await run_in_threadpool(run))
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 
 async def api_admin_diagnostics(request: Request):
@@ -502,6 +524,7 @@ routes = [
     Route("/api/admin/diagnostics", api_admin_diagnostics),
     Route("/api/admin/logs", api_admin_logs),
     Route("/api/admin/update", api_admin_update, methods=["POST"]),
+    Route("/api/admin/discover_lego", api_admin_discover, methods=["POST"]),
     Route("/s/{set_num}/checklist", checklist_html),
     Route("/s/{set_num}/checklist.pdf", checklist_pdf),
     Route("/api/sets", api_sets, methods=["GET", "POST"]),

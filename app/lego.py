@@ -9,8 +9,11 @@ Fallback: the element product page, which has price and availability in plain HT
 import json
 import re
 import time
+from pathlib import Path
 
 import requests
+
+from .config import DATA_DIR
 
 GRAPHQL_URL = "https://www.lego.com/api/graphql/PickABrickQuery"
 ELEMENT_PAGE = "https://www.lego.com/en-us/product/element-{}"
@@ -23,6 +26,7 @@ HEADERS = {
     "Referer": "https://www.lego.com/en-us/pick-and-build/pick-a-brick",
 }
 
+# Last-resort guess, used only if discovery fails entirely.
 PAB_QUERY = """
 query PickABrickQuery($query: String, $page: Int, $perPage: Int, $sort: SortInput, $includeOutOfStock: Boolean, $filters: [Filter!]) {
   elements(query: $query, page: $page, perPage: $perPage, sort: $sort, includeOutOfStock: $includeOutOfStock, filters: $filters) {
@@ -52,14 +56,129 @@ fragment ElementLeafVariant on ElementVariant {
 }
 """
 
-TIER_NAMES = {"pab": "Bestseller", "bap": "Standard"}
-
-# US fee rules (lego.com help, 2026): per-category service fee waived at $14; shipping free at $35.
-US_FEES = {"category_min": 14.00, "service_fee": 7.00, "free_ship_min": 35.00, "ship_under_25": 4.95, "ship_25_to_35": 6.95}
-
+TIER_NAMES = {"pab": "Bestseller", "bap": "Standard", "bestseller": "Bestseller", "standard": "Standard"}
 
 class LegoError(Exception):
     pass
+
+
+# ---------- Query discovery ----------
+# LEGO doesn't publish its GraphQL schema, and the field names change. The Pick a Brick page's own
+# JavaScript contains the exact query it sends, so we pull it from there and cache it on disk.
+
+QUERY_CACHE = Path(DATA_DIR) / "pab_query.graphql"
+PAB_PAGE = "https://www.lego.com/en-us/pick-and-build/pick-a-brick"
+
+
+class QueryNotFound(LegoError):
+    pass
+
+
+def _extract_js_string(js: str, idx: int) -> str:
+    """Return the JS string literal that contains position idx (handles ", ', and ` quoting)."""
+    i = idx
+    while i > 0:
+        c = js[i]
+        if c in "\"'`" and js[i - 1] != "\\":
+            quote = c
+            break
+        i -= 1
+    else:
+        raise QueryNotFound("couldn't find start of string literal")
+    j = idx
+    while j < len(js) - 1:
+        j += 1
+        if js[j] == quote and js[j - 1] != "\\":
+            break
+    raw = js[i + 1:j]
+    if quote == "`":
+        return raw
+    try:
+        return json.loads('"' + raw.replace('"', '\\"') + '"') if quote == "'" else json.loads('"' + raw + '"')
+    except json.JSONDecodeError:
+        return raw.encode().decode("unicode_escape")
+
+
+def discover_query(force=False) -> str:
+    if not force and QUERY_CACHE.exists():
+        return QUERY_CACHE.read_text()
+    h = {**HEADERS, "Accept": "text/html,*/*"}
+    html = _session.get(PAB_PAGE, headers=h, timeout=30).text
+    srcs = re.findall(r'src="([^"]+/_next/static/[^"]+\.js)"', html)
+    srcs = [u if u.startswith("http") else "https://www.lego.com" + u for u in srcs]
+    if not srcs:
+        raise QueryNotFound("Pick a Brick page had no scripts (blocked?)")
+    for u in srcs:
+        try:
+            js = _session.get(u, headers=h, timeout=30).text
+        except requests.RequestException:
+            continue
+        for m in re.finditer(r"query PickABrickQuery", js):
+            try:
+                q = _extract_js_string(js, m.start())
+            except QueryNotFound:
+                continue
+            if "elements(" in q or "elements (" in q:
+                # Pull in fragments if they live in separate string literals.
+                for frag in set(re.findall(r"\.\.\.(\w+)", q)):
+                    if f"fragment {frag}" in q:
+                        continue
+                    fm = re.search(rf"fragment {frag}\b", js)
+                    if fm:
+                        try:
+                            q += "\n" + _extract_js_string(js, fm.start())
+                        except QueryNotFound:
+                            pass
+                QUERY_CACHE.write_text(q)
+                return q
+    raise QueryNotFound(f"no PickABrickQuery in {len(srcs)} scripts")
+
+
+def query_variables(q: str, element_id: str):
+    """Fill the variables the discovered query declares with what we know."""
+    decl = re.search(r"query PickABrickQuery\s*\(([^)]*)\)", q)
+    names = re.findall(r"\$(\w+)\s*:\s*([^,)]+)", decl.group(1)) if decl else []
+    known = {"query": str(element_id), "page": 1, "perPage": 20, "includeOutOfStock": True, "filters": [], "sort": None}
+    variables = {}
+    for name, typ in names:
+        if name in known and known[name] is not None:
+            variables[name] = known[name]
+        elif typ.strip().endswith("!"):
+            raise QueryNotFound(f"query needs unknown required variable ${name}: {typ.strip()}")
+    return variables
+
+
+def _walk(obj):
+    if isinstance(obj, dict):
+        yield obj
+        for v in obj.values():
+            yield from _walk(v)
+    elif isinstance(obj, list):
+        for v in obj:
+            yield from _walk(v)
+
+
+def _find_in(obj, key):
+    for d in _walk(obj):
+        if key in d and d[key] not in (None, ""):
+            return d[key]
+    return None
+
+
+def _parse_price(obj):
+    p = _find_in(obj, "price")
+    if isinstance(p, dict):
+        if p.get("centAmount") is not None:
+            return p["centAmount"] / 100.0
+        return _parse_money(p.get("formattedAmount") or p.get("formattedValue") or p.get("value"))
+    if isinstance(p, (int, float)):
+        return float(p)
+    if isinstance(p, str):
+        return _parse_money(p)
+    return None
+
+# US fee rules (lego.com help, 2026): per-category service fee waived at $14; shipping free at $35.
+US_FEES = {"category_min": 14.00, "service_fee": 7.00, "free_ship_min": 35.00, "ship_under_25": 4.95, "ship_25_to_35": 6.95}
 
 
 _session = requests.Session()
@@ -67,38 +186,36 @@ _session = requests.Session()
 
 def graphql_lookup(element_id: str, timeout=20):
     """Returns {"price", "tier", "available", "limit", "source": "graphql"} or None if not found."""
-    body = {
-        "operationName": "PickABrickQuery",
-        "variables": {"query": str(element_id), "page": 1, "perPage": 20, "includeOutOfStock": True, "filters": []},
-        "query": PAB_QUERY,
-    }
+    q = discover_query()
+    body = {"operationName": "PickABrickQuery", "variables": query_variables(q, element_id), "query": q}
     r = _session.post(GRAPHQL_URL, headers=HEADERS, data=json.dumps(body), timeout=timeout)
+    if r.status_code == 400 and QUERY_CACHE.exists():
+        # The cached query may be stale; re-discover once.
+        q = discover_query(force=True)
+        body["query"], body["variables"] = q, query_variables(q, element_id)
+        r = _session.post(GRAPHQL_URL, headers=HEADERS, data=json.dumps(body), timeout=timeout)
     if r.status_code != 200:
         raise LegoError(f"GraphQL HTTP {r.status_code}: {r.text[:200]}")
     data = r.json()
     if data.get("errors"):
         raise LegoError("GraphQL errors: " + json.dumps(data["errors"])[:300])
-    results = (((data.get("data") or {}).get("elements") or {}).get("results")) or []
-    for el in results:
-        variants = []
-        if el.get("variant"):
-            variants.append(el["variant"])
-        variants.extend(el.get("variants") or [])
-        for v in variants:
-            if str(v.get("id")) != str(element_id):
+    # Field names vary; find the variant/element whose id matches and read what we need around it.
+    for d in _walk(data.get("data") or {}):
+        if str(d.get("id") or d.get("elementId") or d.get("variantId") or "") == str(element_id) and ("price" in d or "attributes" in d or "variant" in d):
+            price = _parse_price(d)
+            ch = _find_in(d, "deliveryChannel")
+            ch = (ch or "").lower() if isinstance(ch, str) else None
+            stock = _find_in(d, "inStock")
+            if stock is None:  # stock usually sits on the element, one level above the variant
+                for e in _walk(data.get("data") or {}):
+                    if "inStock" in e and any(x is d for x in _walk(e)):
+                        stock = e["inStock"]
+                        break
+            lim = _find_in(d, "maxOrderQuantity") or _find_in(d, "maxQuantity")
+            if price is None:
                 continue
-            price = v.get("price") or {}
-            cents = price.get("centAmount")
-            amount = cents / 100.0 if cents is not None else _parse_money(price.get("formattedAmount"))
-            attrs = v.get("attributes") or {}
-            ch = (attrs.get("deliveryChannel") or "").lower()
-            return {
-                "price": amount,
-                "tier": TIER_NAMES.get(ch, ch or None),
-                "available": bool(el.get("inStock", True)),
-                "limit": attrs.get("maxOrderQuantity"),
-                "source": "graphql",
-            }
+            return {"price": price, "tier": TIER_NAMES.get(ch, ch.title() if ch else None), "available": bool(stock) if stock is not None else True,
+                    "limit": int(lim) if isinstance(lim, (int, float, str)) and str(lim).isdigit() else None, "source": "graphql"}
     return None
 
 
