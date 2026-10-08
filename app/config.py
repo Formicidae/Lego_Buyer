@@ -10,3 +10,7 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 DB_PATH = DATA_DIR / "lego_buyer.sqlite3"
 PORT = int(os.environ.get("PORT", "8000"))
 SECRET = os.environ.get("APP_SECRET", APP_PASSCODE or "dev-secret")
+# PDF engine: if CHROMIUM_PATH points at a chromium/chrome binary (e.g. apt's /usr/bin/chromium on a
+# Raspberry Pi), the checklist PDF is made with `chromium --headless --print-to-pdf`, which needs no
+# Playwright. Otherwise Playwright's bundled Chromium is used (the Docker image).
+CHROMIUM_PATH = os.environ.get("CHROMIUM_PATH", "")

@@ -9,7 +9,7 @@ from starlette.concurrency import run_in_threadpool
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from starlette.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
@@ -36,7 +36,7 @@ def _authed(request: Request) -> bool:
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         path = request.url.path
-        if path.startswith("/static/") or path in ("/login", "/health") or _authed(request):
+        if path.startswith("/static/") or path in ("/login", "/health", "/sw.js", "/manifest.webmanifest") or _authed(request):
             return await call_next(request)
         if path.startswith("/api/"):
             return JSONResponse({"error": "unauthorized"}, status_code=401)
@@ -66,6 +66,22 @@ async def set_page(request: Request):
     if not db.get_set(set_num):
         return RedirectResponse("/", status_code=303)
     return templates.TemplateResponse(request, "index.html", {"set_num": set_num, "sets": db.list_sets()})
+
+
+async def sw(request: Request):
+    # Served from the root so the worker's scope covers the whole app.
+    return FileResponse("app/static/sw.js", media_type="application/javascript", headers={"Cache-Control": "no-cache"})
+
+
+async def manifest(request: Request):
+    return JSONResponse(
+        {
+            "name": "Lego Buyer", "short_name": "Lego Buyer", "start_url": "/", "display": "standalone",
+            "background_color": "#f4f1e8", "theme_color": "#0c2117",
+            "icons": [{"src": "/static/icon.svg", "sizes": "any", "type": "image/svg+xml"}],
+        },
+        media_type="application/manifest+json",
+    )
 
 
 async def health(request: Request):
@@ -172,6 +188,8 @@ routes = [
     Route("/", home),
     Route("/login", login, methods=["GET", "POST"]),
     Route("/health", health),
+    Route("/sw.js", sw),
+    Route("/manifest.webmanifest", manifest),
     Route("/s/{set_num}", set_page),
     Route("/s/{set_num}/checklist", checklist_html),
     Route("/s/{set_num}/checklist.pdf", checklist_pdf),

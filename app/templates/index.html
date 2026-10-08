@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Lego Buyer">
 <title>Lego Buyer</title>
 <link rel="stylesheet" href="/static/style.css">
+<link rel="manifest" href="/manifest.webmanifest">
 </head>
 <body data-set="{{ set_num or '' }}">
 
@@ -49,6 +50,7 @@
 
 <!-- Set workspace -->
 <section id="workspace" hidden>
+  <div class="netbar" id="netbar" hidden></div>
   <nav class="stages">
     <button class="stage" data-mode="have" type="button"><b>1 · Have</b><small>Check against your collection</small></button>
     <button class="stage" data-mode="trip" type="button"><b>2 · Trip</b><small>Find at Bricks &amp; Minifigs</small></button>

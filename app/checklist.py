@@ -1,7 +1,12 @@
 """Printable checklist: the same part cards rendered with print CSS, then turned into a PDF with Chromium."""
+import os
+import subprocess
+import tempfile
 import time
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+from .config import CHROMIUM_PATH
 
 _env = Environment(loader=FileSystemLoader("app/templates"), autoescape=select_autoescape(["html"]))
 
@@ -63,9 +68,32 @@ def render_checklist_html(ctx) -> str:
 
 
 def render_checklist_pdf(ctx) -> bytes:
+    html = render_checklist_html(ctx)
+    if CHROMIUM_PATH:
+        return _pdf_via_chromium_cli(html)
+    return _pdf_via_playwright(html, ctx)
+
+
+def _pdf_via_chromium_cli(html: str) -> bytes:
+    """Headless Chromium from the command line: light enough for a 1 GB Raspberry Pi."""
+    with tempfile.TemporaryDirectory() as td:
+        src, out = os.path.join(td, "checklist.html"), os.path.join(td, "checklist.pdf")
+        with open(src, "w", encoding="utf-8") as f:
+            f.write(html)
+        cmd = [
+            CHROMIUM_PATH, "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage",
+            "--hide-scrollbars", "--no-pdf-header-footer", "--run-all-compositor-stages-before-draw",
+            "--virtual-time-budget=20000",  # lets part images finish loading before printing
+            f"--print-to-pdf={out}", f"--user-data-dir={os.path.join(td, 'profile')}", f"file://{src}",
+        ]
+        subprocess.run(cmd, check=True, timeout=180, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        with open(out, "rb") as f:
+            return f.read()
+
+
+def _pdf_via_playwright(html: str, ctx) -> bytes:
     from playwright.sync_api import sync_playwright
 
-    html = render_checklist_html(ctx)
     with sync_playwright() as pw:
         browser = pw.chromium.launch(args=["--no-sandbox", "--disable-dev-shm-usage"])
         try:

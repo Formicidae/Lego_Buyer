@@ -26,6 +26,44 @@
     if (!r.ok) throw new Error(data.error || `Request failed (${r.status})`);
     return data;
   };
+  // ---------- offline queue ----------
+  // Progress writes that fail for network reasons are queued and replayed in order once the server
+  // is reachable again. The optimistic UI state already reflects them.
+  const qKey = () => `lb_queue:${state.setNum}`;
+  const loadQueue = () => { try { return JSON.parse(localStorage.getItem(qKey()) || '[]'); } catch { return []; } };
+  const saveQueue = (q) => { try { localStorage.setItem(qKey(), JSON.stringify(q)); } catch {} updateNetBanner(); };
+  const isNetworkError = (e) => e instanceof TypeError || /Failed to fetch|NetworkError|Load failed/i.test(String(e && e.message));
+  let flushing = false;
+  const flushQueue = async () => {
+    if (flushing || !state.setNum) return;
+    let q = loadQueue(); if (!q.length) return;
+    flushing = true;
+    try {
+      while (q.length) {
+        const item = q[0];
+        try {
+          const res = await api(`/api/sets/${state.setNum}/progress`, { method: 'POST', body: JSON.stringify(item) });
+          if (!res) return;
+          state.rev = res.rev;
+        } catch (e) {
+          if (isNetworkError(e)) return; // still offline; try again later
+          // Server rejected it (bad key etc.): drop it rather than block the queue.
+        }
+        q.shift(); saveQueue(q);
+      }
+      toast('Synced pending taps');
+      state.rev = -1; await poll();
+    } finally { flushing = false; updateNetBanner(); }
+  };
+  const updateNetBanner = () => {
+    const b = $('#netbar'); if (!b) return;
+    const n = loadQueue().length;
+    const offline = !navigator.onLine || state.serverDown;
+    if (!offline && !n) { b.hidden = true; return; }
+    b.hidden = false;
+    b.textContent = offline ? `Offline — ${n} tap${n === 1 ? '' : 's'} saved on this phone, will sync when back online` : `Syncing ${n} pending tap${n === 1 ? '' : 's'}…`;
+  };
+
   const toast = (msg, ms = 2200) => {
     const t = $('#toast'); t.textContent = msg; t.hidden = false;
     clearTimeout(t._t); t._t = setTimeout(() => (t.hidden = true), ms);
@@ -229,7 +267,10 @@
       state.rev = res.rev; delete res.rev;
       applyProgress(it, res);
       if (state.hideDone && isDone(it)) scheduleRender();
-    } catch (e) { Object.assign(it, before); applyProgress(it, {}); toast(e.message); }
+    } catch (e) {
+      if (isNetworkError(e)) { const q = loadQueue(); q.push({ key: it.key, field, delta, who }); saveQueue(q); state.serverDown = true; updateNetBanner(); return; }
+      Object.assign(it, before); applyProgress(it, {}); toast(e.message);
+    }
   };
   const setVal = async (it, field, value) => {
     const who = ensureWho();
@@ -239,15 +280,20 @@
       if (!res) return;
       state.rev = res.rev; delete res.rev; applyProgress(it, res);
       if (state.hideDone && isDone(it)) scheduleRender();
-    } catch (e) { toast(e.message); }
+    } catch (e) {
+      if (isNetworkError(e)) { const q = loadQueue(); q.push({ key: it.key, field, value, who }); saveQueue(q); state.serverDown = true; updateNetBanner(); return; }
+      toast(e.message);
+    }
   };
   let renderT = null;
   const scheduleRender = () => { clearTimeout(renderT); renderT = setTimeout(render, 700); };
 
   const poll = async () => {
     if (!state.setNum || document.hidden) return;
+    if (loadQueue().length) { await flushQueue(); if (loadQueue().length) return; }
     try {
       const res = await api(`/api/sets/${state.setNum}/progress?rev=${state.rev}`);
+      if (state.serverDown) { state.serverDown = false; updateNetBanner(); }
       if (!res || !res.changed) return;
       state.rev = res.rev;
       if (res.set.loaded_at !== state.set.loaded_at) { await loadSet(); toast('Set was refreshed'); return; }
@@ -260,7 +306,7 @@
         if (changed) { Object.assign(it, p); const el = state.rows.get(it.key); if (el) paintRow(it, el); if (state.hideDone && isDone(it)) structural = true; if (!el) structural = true; }
       }
       if (structural) { syncFilterUI(); render(); } else renderSummary();
-    } catch (e) { /* offline blip; try again next tick */ }
+    } catch (e) { if (isNetworkError(e)) { state.serverDown = true; updateNetBanner(); } }
   };
 
   // ---------- set loading ----------
@@ -270,6 +316,12 @@
     state.set = data.set; state.rev = data.rev;
     state.parts = data.parts.map((p) => ({ ...p, kind: 'part' }));
     state.figs = data.minifigs.map((f) => ({ ...f, kind: 'minifig' }));
+    for (const q of loadQueue()) { // pending offline taps still count
+      const it = findItem(q.key); if (!it) continue;
+      if ('value' in q) it[q.field] = Math.max(0, q.value); else it[q.field] = Math.max(0, it[q.field] + q.delta);
+      it.updated_by = q.who || it.updated_by;
+    }
+    updateNetBanner();
     $('#hdr-small').textContent = `LEGO ${state.set.set_num.replace(/-1$/, '')}`;
     $('#hdr-title').textContent = state.set.name;
     document.title = `${state.set.set_num.replace(/-1$/, '')} · Lego Buyer`;
@@ -383,6 +435,9 @@
     setMode(state.mode);
     loadSet().catch((e) => toast(e.message));
     state.pollTimer = setInterval(poll, 2500);
+    window.addEventListener('online', () => { updateNetBanner(); flushQueue(); });
+    window.addEventListener('offline', updateNetBanner);
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
     document.addEventListener('visibilitychange', () => { if (!document.hidden) poll(); });
   };
 

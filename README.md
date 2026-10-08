@@ -9,7 +9,30 @@ stages, live multi-phone sync, and a printable PDF checklist.
 **Next:** LEGO Pick a Brick prices and bestseller/standard tiers, BrickOwl availability, and the
 buy-plan optimizer.
 
-## Deploy on Railway
+## Run it on a Raspberry Pi (free, always on)
+
+Works on a Pi 4 (any RAM) with Raspberry Pi OS, no monitor needed.
+
+1. **Flash the SD card headless.** In Raspberry Pi Imager pick *Raspberry Pi OS Lite (64-bit)*,
+   click the gear / "Edit settings": hostname `legopi`, your username and password, your Wi-Fi
+   name and password, and under *Services* enable SSH with password authentication. Write the card.
+2. **Boot and connect.** Put the card in, power the Pi, wait ~2 minutes, then from your laptop:
+   `ssh YOURUSER@legopi.local`.
+3. **Install:**
+   ```sh
+   curl -fsSL https://raw.githubusercontent.com/Formicidae/Lego_Buyer/main/deploy/pi-install.sh -o pi-install.sh
+   bash pi-install.sh
+   ```
+   It asks for the Rebrickable and BrickOwl keys and a passcode, installs the app as a service on
+   port 8000, sets up a nightly database backup, and offers to set up **Tailscale Funnel**, which
+   gives the Pi a stable public `https://legopi.<your-tailnet>.ts.net` address so both phones work
+   from the store. The passcode gate protects it.
+4. **Update later:** `bash /opt/lego-buyer/deploy/update.sh`.
+
+Phones keep working through short outages: the app caches the set and part images and queues taps
+made while offline, syncing them when the Pi is reachable again.
+
+## Deploy on Railway (paid alternative, ~$5/month)
 
 1. **Create the service.** Railway → New Project → *Deploy from GitHub repo* → pick this repo.
    The `Dockerfile` is detected automatically. The first build takes a few minutes (the image
