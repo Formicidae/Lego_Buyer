@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c2117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lego Buyer">
+<title>Lego Buyer</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-set="{{ set_num or '' }}">
+
+<header class="topbar">
+  <a class="brand" href="/">
+    <span class="brand-dots"></span>
+    <div><small id="hdr-small">LEGO</small><b id="hdr-title">Lego Buyer</b></div>
+  </a>
+  <div class="topbar-actions">
+    <button class="btn ghost" id="btn-switch" type="button">Switch set</button>
+    <button class="btn ghost icon" id="btn-reload" type="button" title="Re-fetch this set from Rebrickable">&#x21bb;</button>
+    <button class="btn ghost" id="btn-who" type="button" title="Who is tapping on this phone">?</button>
+  </div>
+</header>
+
+<!-- Home: pick or load a set -->
+<section id="home" class="home" hidden>
+  <form id="load-form" class="load-form">
+    <label for="set-input">Load a set</label>
+    <div class="load-row">
+      <input id="set-input" inputmode="numeric" placeholder="Set number, e.g. 75424" autocomplete="off">
+      <button class="btn primary" type="submit" id="btn-load">Load</button>
+    </div>
+    <p class="hint" id="load-status">Pulls the full inventory and part images from Rebrickable.</p>
+  </form>
+  <ul class="set-list" id="set-list">
+    {% for s in sets %}
+    <li>
+      <a href="/s/{{ s.set_num }}">
+        {% if s.img_url %}<img src="{{ s.img_url }}" alt="">{% endif %}
+        <div><b>{{ s.set_num }}</b> {{ s.name }}<br><small>{{ s.num_parts }} pieces · {{ s.lots }} lots{% if s.year %} · {{ s.year }}{% endif %}</small></div>
+      </a>
+      <button class="btn ghost icon danger" data-del="{{ s.set_num }}" title="Remove">&times;</button>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+
+<!-- Set workspace -->
+<section id="workspace" hidden>
+  <nav class="stages">
+    <button class="stage" data-mode="have" type="button"><b>1 · Have</b><small>Check against your collection</small></button>
+    <button class="stage" data-mode="trip" type="button"><b>2 · Trip</b><small>Find at Bricks &amp; Minifigs</small></button>
+    <button class="stage" data-mode="buy" type="button"><b>3 · Buy</b><small>Order the rest</small></button>
+  </nav>
+
+  <div class="toolbar">
+    <div class="search"><span class="search-icon">&#x2315;</span><input id="search" type="search" placeholder="Search name, color, element or design ID"></div>
+    <label class="sort"><span>Sort</span>
+      <select id="sort">
+        <option value="type">Piece type</option>
+        <option value="color">Color</option>
+        <option value="name">Name</option>
+        <option value="remaining">Most needed</option>
+        <option value="recent">Recently tapped</option>
+      </select>
+    </label>
+    <button class="btn ghost" id="btn-filters" type="button">Filters <span class="pill" id="filter-count" hidden></span></button>
+  </div>
+
+  <div class="filters" id="filters" hidden>
+    <label><input type="checkbox" id="f-hide-done" checked> Hide completed</label>
+    <label><input type="checkbox" id="f-spares"> Include spare parts</label>
+    <label><input type="checkbox" id="f-minifigs"> Include minifigures (sourced whole)</label>
+    <label><input type="checkbox" id="f-count-alt" checked> Count "Alt" finds toward needed</label>
+    <div class="filters-actions">
+      <a class="btn ghost" id="link-pdf" target="_blank" rel="noopener">Open checklist PDF</a>
+      <a class="btn ghost" id="link-print" target="_blank" rel="noopener">Print view</a>
+      <button class="btn ghost danger" id="btn-reset-trip" type="button">Reset trip counts</button>
+    </div>
+  </div>
+
+  <div class="summary" id="summary"></div>
+
+  <div class="buy-panel" id="buy-panel" hidden>
+    <h2>Buy plan</h2>
+    <p>Price lookup against LEGO Pick a Brick and BrickOwl comes in the next build. For now, everything still needed after your collection and the store trip is listed below so you can order it by hand.</p>
+    <div class="buy-actions">
+      <button class="btn ghost" id="btn-copy-bl" type="button">Copy BrickLink wanted-list XML</button>
+      <button class="btn ghost" id="btn-copy-csv" type="button">Copy CSV</button>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty" hidden></p>
+</section>
+
+<div class="toast" id="toast" hidden></div>
+
+<template id="tpl-card">
+  <article class="card">
+    <header class="card-head"><small class="design"></small><h3 class="part-name"></h3></header>
+    <div class="rows"></div>
+  </article>
+</template>
+
+<template id="tpl-row">
+  <div class="row">
+    <div class="pic"><span class="qty"></span><img loading="lazy" alt=""></div>
+    <div class="info">
+      <div class="color"><span class="swatch"></span><b class="color-name"></b></div>
+      <div class="meta"><span class="element"></span></div>
+      <div class="price" hidden></div>
+      <div class="bar"><div class="bar-fill"></div></div>
+      <div class="counts"><span class="count-text"></span><span class="last"></span></div>
+      <div class="actions"></div>
+      <div class="mistake"><button class="link mistake-toggle" type="button">Mistake?</button><span class="undo"></span></div>
+    </div>
+  </div>
+</template>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

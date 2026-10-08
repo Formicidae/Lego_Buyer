@@ -1,0 +1,94 @@
+"""Printable checklist: the same part cards rendered with print CSS, then turned into a PDF with Chromium."""
+import time
+
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+_env = Environment(loader=FileSystemLoader("app/templates"), autoescape=select_autoescape(["html"]))
+
+
+def remaining_for(item, count_alt: bool) -> int:
+    found = item["owned"] + item["found_exact"] + (item["found_alt"] if count_alt else 0)
+    return max(0, item["quantity"] - found)
+
+
+def build_checklist(set_info, parts, minifigs, mode="trip"):
+    """mode='trip': only what's still missing, grouped by color for walking a Pick-a-Brick wall.
+    mode='have': every part in the set with a blank to write how many you own."""
+    count_alt = bool(set_info.get("count_alt", 1))
+    items = []
+    for p in parts:
+        if p["is_spare"] and not set_info.get("include_spares"):
+            continue
+        rem = remaining_for(p, count_alt)
+        if mode == "trip" and rem <= 0:
+            continue
+        items.append({**p, "remaining": rem, "kind": "part"})
+    figs = []
+    if set_info.get("include_minifigs"):
+        for f in minifigs:
+            rem = remaining_for(f, count_alt)
+            if mode == "trip" and rem <= 0:
+                continue
+            figs.append({**f, "remaining": rem, "kind": "minifig"})
+
+    if mode == "trip":
+        items.sort(key=lambda p: (p["color_name"], p.get("cat_name") or "", p["part_name"]))
+        groups = []
+        for p in items:
+            if not groups or groups[-1]["color_name"] != p["color_name"]:
+                groups.append({"color_name": p["color_name"], "color_rgb": p["color_rgb"], "items": []})
+            groups[-1]["items"].append(p)
+    else:
+        items.sort(key=lambda p: (p.get("cat_name") or "", p["part_name"], p["color_name"]))
+        groups = []
+        for p in items:
+            cat = p.get("cat_name") or "Other"
+            if not groups or groups[-1]["color_name"] != cat:
+                groups.append({"color_name": cat, "color_rgb": None, "items": []})
+            groups[-1]["items"].append(p)
+
+    return {
+        "set": set_info,
+        "mode": mode,
+        "groups": groups,
+        "minifigs": figs,
+        "total_lots": len(items),
+        "total_pieces": sum(p["remaining"] for p in items),
+        "generated": time.strftime("%b %d, %Y %I:%M %p"),
+    }
+
+
+def render_checklist_html(ctx) -> str:
+    return _env.get_template("checklist.html").render(**ctx)
+
+
+def render_checklist_pdf(ctx) -> bytes:
+    from playwright.sync_api import sync_playwright
+
+    html = render_checklist_html(ctx)
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(args=["--no-sandbox", "--disable-dev-shm-usage"])
+        try:
+            page = browser.new_page()
+            page.set_content(html, wait_until="load")
+            try:
+                # Wait for part images (fetched from Rebrickable's CDN); don't let a slow one block the PDF forever.
+                page.wait_for_load_state("networkidle", timeout=45000)
+            except Exception:
+                pass
+            page.wait_for_timeout(300)
+            return page.pdf(
+                format="Letter",
+                print_background=True,
+                margin={"top": "0.45in", "bottom": "0.5in", "left": "0.4in", "right": "0.4in"},
+                display_header_footer=True,
+                header_template="<div></div>",
+                footer_template=(
+                    "<div style='width:100%;font-size:8px;font-family:sans-serif;color:#777;"
+                    "padding:0 0.4in;display:flex;justify-content:space-between'>"
+                    f"<span>{ctx['set']['set_num']} · {ctx['set']['name']}</span>"
+                    "<span>Page <span class='pageNumber'></span> / <span class='totalPages'></span></span></div>"
+                ),
+            )
+        finally:
+            browser.close()

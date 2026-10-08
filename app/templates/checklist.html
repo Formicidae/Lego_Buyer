@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ set.set_num }} {{ 'Store checklist' if mode == 'trip' else 'Collection checklist' }}</title>
+<style>
+  :root { --ink:#15261c; --ink2:#5b665f; --ink3:#8a938d; --line:#d9d4c7; --green:#1f7a4d; --yellow:#f7c948; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 10.5pt/1.3 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--ink); background:#fff; padding: 0.4in; }
+  @media print { body { padding: 0; } }
+  @page { size: Letter; }
+  h1 { font-size: 18pt; margin: 0; }
+  .sub { color: var(--ink2); margin: 2px 0 0; font-size: 9.5pt; }
+  .head { display:flex; justify-content:space-between; align-items:flex-end; border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-bottom: 10px; }
+  .head .stats { text-align:right; font-size: 9.5pt; color: var(--ink2); }
+  .head .stats b { color: var(--ink); font-size: 13pt; }
+  .group { break-inside: auto; margin-top: 10px; }
+  .group-h { display:flex; align-items:center; gap: 8px; font-weight: 800; font-size: 12pt; padding: 4px 0; border-bottom: 1px solid var(--line); break-after: avoid; margin-bottom: 6px; }
+  .sw { width: 16px; height: 16px; border-radius: 4px; border: 1px solid rgba(0,0,0,.3); }
+  .group-h small { color: var(--ink3); font-weight: 500; font-size: 9pt; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .card { border: 1px solid var(--line); border-radius: 8px; padding: 6px; display: grid; grid-template-columns: 70px 1fr; gap: 6px; break-inside: avoid; position: relative; }
+  .card img { width: 70px; height: 70px; object-fit: contain; display:block; }
+  .qty { position:absolute; top:-5px; left:-5px; background: var(--yellow); border: 1.5px solid #3b2d00; border-radius: 6px; font-weight: 800; font-size: 11pt; padding: 0 5px; line-height: 1.35; }
+  .nm { font-weight: 600; font-size: 9.5pt; line-height: 1.2; }
+  .col { font-weight: 800; font-size: 10.5pt; margin-top: 1px; }
+  .ids { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 8pt; color: var(--ink2); margin-top: 2px; }
+  .boxes { display:flex; gap: 6px; margin-top: 4px; }
+  .box { flex:1; border: 1px solid var(--ink); border-radius: 4px; height: 20px; font-size: 7.5pt; color: var(--ink3); padding: 1px 4px; }
+  .box.alt { border-style: dashed; }
+  .figs .card img { width: 70px; height: 84px; }
+  .foot { margin-top: 12px; font-size: 8.5pt; color: var(--ink3); }
+  .legend { font-size: 8.5pt; color: var(--ink2); margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="head">
+  <div>
+    <h1>{{ set.set_num }} · {{ set.name }}</h1>
+    <p class="sub">{{ 'Bricks & Minifigs pick-a-brick checklist — what is still missing, grouped by color' if mode == 'trip' else 'Collection checklist — every part in the set; write how many you already own' }} · {{ generated }}</p>
+    {% if mode == 'trip' %}<p class="legend">Box 1 = exact part found · dashed box = acceptable alternate (close color or mold). Write the count you grabbed.</p>{% endif %}
+  </div>
+  <div class="stats"><b>{{ total_pieces }}</b> pieces<br><b>{{ total_lots }}</b> lots</div>
+</div>
+
+{% for g in groups %}
+<section class="group">
+  <div class="group-h">{% if g.color_rgb %}<span class="sw" style="background:#{{ g.color_rgb }}"></span>{% endif %}{{ g.color_name }} <small>{{ g['items']|length }} lot{{ '' if g['items']|length == 1 else 's' }}</small></div>
+  <div class="cards">
+    {% for p in g['items'] %}
+    <div class="card">
+      <span class="qty">×{{ p.remaining if mode == 'trip' else p.quantity }}</span>
+      <img src="{{ p.img_url or '' }}" alt="">
+      <div>
+        <div class="nm">{{ p.part_name }}</div>
+        <div class="col">{{ p.color_name }}{% if p.is_spare %} <small>(spare)</small>{% endif %}</div>
+        <div class="ids">{% if p.element_id %}El {{ p.element_id }} · {% endif %}D {{ p.part_num }}</div>
+        <div class="boxes">
+          {% if mode == 'trip' %}<div class="box">exact</div><div class="box alt">alt</div>{% else %}<div class="box">have</div>{% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endfor %}
+
+{% if minifigs %}
+<section class="group figs">
+  <div class="group-h">Minifigures <small>{{ minifigs|length }}</small></div>
+  <div class="cards">
+    {% for f in minifigs %}
+    <div class="card">
+      <span class="qty">×{{ f.remaining if mode == 'trip' else f.quantity }}</span>
+      <img src="{{ f.img_url or '' }}" alt="">
+      <div>
+        <div class="nm">{{ f.name }}</div>
+        <div class="ids">{{ f.fig_num }}</div>
+        <div class="boxes"><div class="box">{{ 'found' if mode == 'trip' else 'have' }}</div></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if not groups and not minifigs %}
+<p>Nothing left on this list.</p>
+{% endif %}
+
+<p class="foot">Generated by Lego Buyer · Part data and images from Rebrickable</p>
+</body>
+</html>

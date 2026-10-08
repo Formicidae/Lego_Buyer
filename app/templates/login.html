@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lego Buyer</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="login-body">
+<form class="login-card" method="post" action="/login">
+  <div class="brand"><span class="brand-dots"></span><div><small>LEGO</small><b>Lego Buyer</b></div></div>
+  <label for="passcode">Passcode</label>
+  <input id="passcode" name="passcode" type="password" autocomplete="current-password" autofocus required>
+  <input type="hidden" name="next" value="{{ next }}">
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <button class="btn primary" type="submit">Open</button>
+</form>
+</body>
+</html>
