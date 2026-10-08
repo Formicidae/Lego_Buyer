@@ -107,14 +107,19 @@ def _samples(js: str, needle: str, url: str, width=350, limit=3):
     return out
 
 
+INPUT_CACHE = Path(DATA_DIR) / "pab_input.json"
+# Field names for the ElementQueryInput object. Overridable via INPUT_CACHE once we see the page's own code.
+DEFAULT_INPUT = {"query": "{element_id}", "page": 1, "perPage": 20, "includeOutOfStock": True, "filters": []}
+
+
 def discover_query(force=False, debug=None) -> str:
-    """debug: optional list; samples around every PickABrickQuery mention are appended to it."""
+    """Find the exact PickABrickQuery document (operation + all fragments) in lego.com's scripts.
+    debug: optional list that receives samples helpful when the extraction fails."""
     if not force and QUERY_CACHE.exists():
         return QUERY_CACHE.read_text()
     h = {**HEADERS, "Accept": "text/html,application/xhtml+xml,*/*;q=0.8", "Accept-Language": "en-US,en;q=0.9"}
     r = _session.get(PAB_PAGE, headers=h, timeout=30)
     html = r.text
-    # Script URLs appear as src="..." attributes and inside Next.js manifests; accept both relative and absolute.
     srcs = re.findall(r'(?:src|href)="((?:https?://[^"]+)?/_next/static/[^"]+\.js)"', html)
     srcs += re.findall(r'"((?:https?://[^"]+)?/_next/static/chunks/[^"]+\.js)"', html)
     seen, ordered = set(), []
@@ -123,54 +128,82 @@ def discover_query(force=False, debug=None) -> str:
         if u not in seen:
             seen.add(u)
             ordered.append(u)
-    # Page-specific chunks are the likeliest home of the query; check them first.
-    ordered.sort(key=lambda u: 0 if "pick" in u.lower() else 1)
-    srcs = ordered
-    if not srcs:
+    if not ordered:
         snippet = re.sub(r"\s+", " ", html[:300])
         raise QueryNotFound(f"Pick a Brick page had no scripts (HTTP {r.status_code}, {len(html)} chars): {snippet}")
-    for u in srcs:
+
+    scripts = {}
+    for u in ordered:
         try:
-            js = _session.get(u, headers=h, timeout=30).text
+            scripts[u] = _session.get(u, headers=h, timeout=30).text
         except requests.RequestException:
             continue
-        if debug is not None:
-            debug.extend(_samples(js, "PickABrickQuery", u))
-            for needle in ("deliveryChannel", "elements(", "kind:\"Document\"", '"kind":"Document"', "OperationDefinition"):
-                if needle in js:
-                    debug.append({"script": u.rsplit("/", 1)[-1], "has": needle})
+
+    if debug is not None:
+        for u, js in scripts.items():
+            debug.extend(_samples(js, "ElementQueryInput", u, width=400, limit=2))
+            debug.extend(_samples(js, "includeOutOfStock", u, width=300, limit=2))
+
+    # 1) the operation itself
+    op = None
+    for u, js in scripts.items():
         for m in re.finditer(r"query PickABrickQuery", js):
             try:
                 q = _extract_js_string(js, m.start())
             except QueryNotFound:
                 continue
-            if "elements(" in q or "elements (" in q:
-                # Pull in fragments if they live in separate string literals.
-                for frag in set(re.findall(r"\.\.\.(\w+)", q)):
-                    if f"fragment {frag}" in q:
-                        continue
-                    fm = re.search(rf"fragment {frag}\b", js)
-                    if fm:
-                        try:
-                            q += "\n" + _extract_js_string(js, fm.start())
-                        except QueryNotFound:
-                            pass
-                QUERY_CACHE.write_text(q)
-                return q
-    raise QueryNotFound(f"no PickABrickQuery in {len(srcs)} scripts; first few: " + ", ".join(u.rsplit("/", 1)[-1] for u in srcs[:5]))
+            if "lements(" in q or "{" in q:
+                op = q
+                break
+        if op:
+            break
+    if not op:
+        raise QueryNotFound(f"no PickABrickQuery in {len(scripts)} scripts; first few: " + ", ".join(u.rsplit("/", 1)[-1] for u in list(scripts)[:5]))
+
+    # 2) every fragment it (transitively) spreads, from any script
+    doc, needed, have = op, set(re.findall(r"\.\.\.(\w+)", op)), set(re.findall(r"fragment (\w+)", op))
+    while needed - have:
+        frag = sorted(needed - have)[0]
+        found = None
+        for u, js in scripts.items():
+            fm = re.search(rf"fragment {frag}\b", js)
+            if fm:
+                try:
+                    found = _extract_js_string(js, fm.start())
+                except QueryNotFound:
+                    found = None
+                if found and found.lstrip().startswith("fragment"):
+                    break
+                found = None
+        if not found:
+            raise QueryNotFound(f"fragment {frag} not found in any script")
+        doc += "\n" + found
+        have.add(frag)
+        needed |= set(re.findall(r"\.\.\.(\w+)", found))
+    QUERY_CACHE.write_text(doc)
+    return doc
 
 
 def query_variables(q: str, element_id: str):
     """Fill the variables the discovered query declares with what we know."""
     decl = re.search(r"query PickABrickQuery\s*\(([^)]*)\)", q)
     names = re.findall(r"\$(\w+)\s*:\s*([^,)]+)", decl.group(1)) if decl else []
-    known = {"query": str(element_id), "page": 1, "perPage": 20, "includeOutOfStock": True, "filters": [], "sort": None}
+    known = {"query": str(element_id), "page": 1, "perPage": 20, "includeOutOfStock": True, "filters": [], "sort": None, "sku": None}
     variables = {}
     for name, typ in names:
-        if name in known and known[name] is not None:
+        typ = typ.strip()
+        if name == "input" or "QueryInput" in typ:
+            shape = DEFAULT_INPUT
+            if INPUT_CACHE.exists():
+                try:
+                    shape = json.loads(INPUT_CACHE.read_text())
+                except json.JSONDecodeError:
+                    pass
+            variables[name] = json.loads(json.dumps(shape).replace("{element_id}", str(element_id)))
+        elif name in known and known[name] is not None:
             variables[name] = known[name]
-        elif typ.strip().endswith("!"):
-            raise QueryNotFound(f"query needs unknown required variable ${name}: {typ.strip()}")
+        elif typ.endswith("!"):
+            raise QueryNotFound(f"query needs unknown required variable ${name}: {typ}")
     return variables
 
 

@@ -435,7 +435,10 @@ async def api_admin_discover(request: Request):
             probe = lego.graphql_lookup("6204668")
         except Exception as e:
             probe = f"FAIL: {e}"
-        return {"chars": len(q), "head": q[:600], "variables": lego.query_variables(q, "6204668"), "probe_6204668": probe}
+        out = {"chars": len(q), "head": q[:500], "variables": lego.query_variables(q, "6204668"), "probe_6204668": probe}
+        if isinstance(probe, str):
+            out["samples"] = debug[:8]
+        return out
     try:
         res = await run_in_threadpool(run)
         return JSONResponse(res, status_code=200 if "error" not in res else 500)
