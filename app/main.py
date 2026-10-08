@@ -150,6 +150,13 @@ async def api_settings(request: Request):
     return JSONResponse({"set": db.get_set(set_num), "rev": db.get_rev(set_num)})
 
 
+async def api_finish_trip(request: Request):
+    set_num = request.path_params["set_num"]
+    body = await request.json()
+    summary = db.finish_trip(set_num, (body.get("who") or "")[:40])
+    return JSONResponse({**summary, "rev": db.get_rev(set_num)})
+
+
 async def api_reset(request: Request):
     set_num = request.path_params["set_num"]
     body = await request.json()
@@ -204,7 +211,7 @@ async def checklist_html(request: Request):
     if not s:
         return RedirectResponse("/", status_code=303)
     mode = request.query_params.get("mode", "trip")
-    ctx = build_checklist(s, *db.set_items(set_num), mode=mode)
+    ctx = build_checklist(s, *db.set_items(set_num), mode=mode, order=request.query_params.get("order", "color"))
     return HTMLResponse(render_checklist_html(ctx))
 
 
@@ -214,7 +221,7 @@ async def checklist_pdf(request: Request):
     if not s:
         return RedirectResponse("/", status_code=303)
     mode = request.query_params.get("mode", "trip")
-    ctx = build_checklist(s, *db.set_items(set_num), mode=mode)
+    ctx = build_checklist(s, *db.set_items(set_num), mode=mode, order=request.query_params.get("order", "color"))
     try:
         pdf = await run_in_threadpool(render_checklist_pdf, ctx)
     except Exception as e:
@@ -237,6 +244,7 @@ routes = [
     Route("/api/sets/{set_num}/progress", api_progress, methods=["GET", "POST"]),
     Route("/api/sets/{set_num}/settings", api_settings, methods=["POST"]),
     Route("/api/sets/{set_num}/reset", api_reset, methods=["POST"]),
+    Route("/api/sets/{set_num}/finish_trip", api_finish_trip, methods=["POST"]),
     Route("/api/sets/{set_num}/prices", api_prices, methods=["GET", "POST"]),
     Route("/api/sets/{set_num}/buyplan", api_buyplan),
     Mount("/static", StaticFiles(directory="app/static"), name="static"),

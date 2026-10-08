@@ -41,7 +41,7 @@
     <p class="sub">{{ 'Bricks & Minifigs pick-a-brick checklist — what is still missing, grouped by color' if mode == 'trip' else 'Collection checklist — every part in the set; write how many you already own' }} · {{ generated }}</p>
     {% if mode == 'trip' %}<p class="legend">Box 1 = exact part found · dashed box = acceptable alternate (close color or mold). Write the count you grabbed.</p>{% endif %}
   </div>
-  <div class="stats"><b>{{ total_pieces }}</b> pieces<br><b>{{ total_lots }}</b> lots</div>
+  <div class="stats"><b>{{ total_pieces }}</b> pieces<br><b>{{ total_lots }}</b> lots{% if priced %}<br><b>${{ '%.2f' % lego_value }}</b> at LEGO prices{% endif %}</div>
 </div>
 
 {% for g in groups %}
@@ -55,7 +55,7 @@
       <div>
         <div class="nm">{{ p.part_name }}</div>
         <div class="col">{{ p.color_name }}{% if p.is_spare %} <small>(spare)</small>{% endif %}</div>
-        <div class="ids">{% if p.element_id %}El {{ p.element_id }} · {% endif %}D {{ p.part_num }}</div>
+        <div class="ids">{% if p.element_id %}El {{ p.element_id }} · {% endif %}D {{ p.part_num }}{% if p.lego_price is not none %} · <b>${{ '%.2f' % p.lego_price }}</b>{% endif %}</div>
         <div class="boxes">
           {% if mode == 'trip' %}<div class="box">exact</div><div class="box alt">alt</div>{% else %}<div class="box">have</div>{% endif %}
         </div>

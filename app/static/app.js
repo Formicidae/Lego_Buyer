@@ -137,6 +137,7 @@
       remaining: (a, b) => sum(b.rows, remaining) - sum(a.rows, remaining) || a.title.localeCompare(b.title),
       recent: (a, b) => maxUpd(b.rows) - maxUpd(a.rows) || a.title.localeCompare(b.title),
       tier: (a, b) => tierRank(a.rows[0]) - tierRank(b.rows[0]) || a.cat.localeCompare(b.cat) || a.title.localeCompare(b.title),
+      price: (a, b) => maxPrice(b.rows) - maxPrice(a.rows) || sum(b.rows, value) - sum(a.rows, value) || a.title.localeCompare(b.title),
     }[state.sort] || ((a, b) => 0);
     list.sort(cmp);
     return list;
@@ -144,6 +145,10 @@
   const sum = (rows, f) => rows.reduce((n, r) => n + f(r), 0);
   const tierRank = (it) => it.price_checked_at == null ? 3 : it.lego_tier === 'Bestseller' && it.lego_available ? 0 : it.lego_tier === 'Standard' && it.lego_available ? 1 : 2;
   const maxUpd = (rows) => Math.max(0, ...rows.map((r) => r.updated_at || 0));
+  const maxPrice = (rows) => Math.max(0, ...rows.map((r) => r.lego_price || 0));
+  const value = (it) => (it.lego_price || 0) * (state.mode === 'have' ? it.quantity : remaining(it));
+  const foundValue = (it) => (it.lego_price || 0) * Math.min(it.found_exact + (countAlt() ? it.found_alt : 0), needed(it));
+  const bucketCost = () => Number(localStorage.getItem('lb_bucket') || 15);
 
   // ---------- rendering ----------
   const tplCard = $('#tpl-card').content;
@@ -259,6 +264,31 @@
       <span class="s-own"><b>${owned}</b> owned</span>
       <span class="s-found"><b>${found}</b> found at store</span>
       <span class="s-rem"><b>${rem}</b> still to buy</span>`;
+    renderBucket(items);
+  };
+  const renderBucket = (items) => {
+    const box = $('#bucket'); if (state.mode !== 'trip') { box.hidden = true; return; }
+    box.hidden = false;
+    const foundPieces = sum(items, (i) => Math.min(i.found_exact + (countAlt() ? i.found_alt : 0), needed(i)));
+    const val = sum(items, foundValue);
+    const priced = items.filter((i) => i.lego_price != null).length;
+    const cost = bucketCost();
+    const txt = $('.bucket-text');
+    txt.classList.toggle('win', val >= cost && cost > 0);
+    $('#bucket-line').innerHTML = `In the bucket: <b>$${val.toFixed(2)}</b> at LEGO prices · ${foundPieces} piece${foundPieces === 1 ? '' : 's'}`;
+    $('#bucket-sub').textContent = !priced ? 'Check LEGO prices in the Buy tab to value the bucket.' :
+      val >= cost ? `Past the $${cost} bucket price — everything from here is a win.` : `$${(cost - val).toFixed(2)} more to beat the $${cost} bucket price.`;
+    $('#btn-finish').disabled = foundPieces === 0;
+  };
+  const finishTrip = async () => {
+    const who = ensureWho();
+    if (!confirm('Finish the trip? Everything marked Exact (and Alt, if counted) moves into your collection and the store counters reset.')) return;
+    try {
+      const r = await api(`/api/sets/${state.setNum}/finish_trip`, { method: 'POST', body: JSON.stringify({ who }) });
+      if (!r) return;
+      state.rev = -1; await loadSet();
+      toast(`Added ${r.pieces} pieces to your collection${r.lego_value ? ` (worth $${r.lego_value.toFixed(2)} at LEGO)` : ''}`, 4000);
+    } catch (e) { toast(e.message); }
   };
 
   const findItem = (key) => state.parts.find((p) => p.key === key) || state.figs.find((f) => f.key === key);
@@ -336,21 +366,21 @@
     $('#hdr-small').textContent = `LEGO ${state.set.set_num.replace(/-1$/, '')}`;
     $('#hdr-title').textContent = state.set.name;
     document.title = `${state.set.set_num.replace(/-1$/, '')} · Lego Buyer`;
-    $('#link-pdf').href = `/s/${state.setNum}/checklist.pdf?mode=${state.mode === 'have' ? 'have' : 'trip'}`;
-    $('#link-print').href = `/s/${state.setNum}/checklist?mode=${state.mode === 'have' ? 'have' : 'trip'}`;
     syncFilterUI();
     render();
   };
 
+  const pdfOrder = () => localStorage.getItem('lb_pdf_order') || 'color';
   const syncFilterUI = () => {
+    $('#pdf-order').value = pdfOrder(); $('#bucket-cost').value = bucketCost();
     $('#f-spares').checked = !!state.set.include_spares;
     $('#f-minifigs').checked = !!state.set.include_minifigs;
     $('#f-count-alt').checked = !!state.set.count_alt;
     $('#f-hide-done').checked = state.hideDone;
     const n = [state.set.include_spares, state.set.include_minifigs, !state.set.count_alt, !state.hideDone].filter(Boolean).length;
     $('#filter-count').hidden = n === 0; $('#filter-count').textContent = n;
-    $('#link-pdf').href = `/s/${state.setNum}/checklist.pdf?mode=${state.mode === 'have' ? 'have' : 'trip'}`;
-    $('#link-print').href = `/s/${state.setNum}/checklist?mode=${state.mode === 'have' ? 'have' : 'trip'}`;
+    $('#link-pdf').href = `/s/${state.setNum}/checklist.pdf?mode=${state.mode === 'have' ? 'have' : 'trip'}&order=${pdfOrder()}`;
+    $('#link-print').href = `/s/${state.setNum}/checklist?mode=${state.mode === 'have' ? 'have' : 'trip'}&order=${pdfOrder()}`;
   };
 
   const saveSetting = async (patch) => {
@@ -469,6 +499,9 @@
       await api(`/api/sets/${state.setNum}/reset`, { method: 'POST', body: JSON.stringify({ fields: ['found_exact', 'found_alt'] }) });
       state.rev = -1; await loadSet(); toast('Trip counts reset');
     });
+    $('#pdf-order').addEventListener('change', (e) => { localStorage.setItem('lb_pdf_order', e.target.value); syncFilterUI(); });
+    $('#bucket-cost').addEventListener('change', (e) => { localStorage.setItem('lb_bucket', String(Math.max(0, Number(e.target.value) || 0))); renderSummary(); });
+    $('#btn-finish').addEventListener('click', finishTrip);
     $('#btn-prices').addEventListener('click', () => startPrices(false));
     $('#btn-prices-force').addEventListener('click', () => { if (confirm('Re-check every part against lego.com? Takes about a second per part.')) startPrices(true); });
     $('#btn-copy-bl').addEventListener('click', () => copy(blXml(), 'BrickLink XML'));

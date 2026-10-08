@@ -16,7 +16,7 @@ def remaining_for(item, count_alt: bool) -> int:
     return max(0, item["quantity"] - found)
 
 
-def build_checklist(set_info, parts, minifigs, mode="trip"):
+def build_checklist(set_info, parts, minifigs, mode="trip", order="color"):
     """mode='trip': only what's still missing, grouped by color for walking a Pick-a-Brick wall.
     mode='have': every part in the set with a blank to write how many you own."""
     count_alt = bool(set_info.get("count_alt", 1))
@@ -36,7 +36,13 @@ def build_checklist(set_info, parts, minifigs, mode="trip"):
                 continue
             figs.append({**f, "remaining": rem, "kind": "minifig"})
 
-    if mode == "trip":
+    for p in items:
+        p["lego_value"] = (p.get("lego_price") or 0) * (p["remaining"] if mode == "trip" else p["quantity"])
+    if order == "price":
+        # Big-ticket parts first, as one flat list.
+        items.sort(key=lambda p: (-(p.get("lego_price") or 0), -p["lego_value"], p["color_name"], p["part_name"]))
+        groups = [{"color_name": "Highest LEGO price first", "color_rgb": None, "items": items}] if items else []
+    elif mode == "trip":
         items.sort(key=lambda p: (p["color_name"], p.get("cat_name") or "", p["part_name"]))
         groups = []
         for p in items:
@@ -60,6 +66,8 @@ def build_checklist(set_info, parts, minifigs, mode="trip"):
         "total_lots": len(items),
         "total_pieces": sum(p["remaining"] for p in items),
         "generated": time.strftime("%b %d, %Y %I:%M %p"),
+        "lego_value": round(sum(p["lego_value"] for p in items), 2),
+        "priced": sum(1 for p in items if p.get("lego_price") is not None),
     }
 
 

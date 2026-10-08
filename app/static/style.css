@@ -105,6 +105,12 @@ a { color: var(--green); }
 .s-rem b { color: var(--red); }
 .s-found b { color: var(--green); }
 
+.bucket { position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; max-width: 1400px; margin: 0 auto; padding: 8px 16px calc(8px + env(safe-area-inset-bottom)); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: linear-gradient(to top, var(--bg) 70%, transparent); }
+.bucket-text { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; flex: 1 1 260px; }
+.bucket-text b { font-size: 18px; }
+.bucket-text small { display: block; color: var(--ink-2); font-size: 12px; }
+.bucket-text.win b { color: var(--green); }
+@media (max-width: 480px) { .bucket { padding-left: 10px; padding-right: 10px; } .bucket .btn { padding: 8px 10px; font-size: 13px; } }
 .buy-panel { max-width: 1400px; margin: 12px auto 0; padding: 14px 16px; }
 .buy-panel h2 { margin: 0 0 6px; font-size: 18px; }
 .buy-panel p { margin: 0 0 10px; color: var(--ink-2); font-size: 14px; }
@@ -125,7 +131,7 @@ a { color: var(--green); }
 .price .tier-bap { color: var(--amber-ink); font-weight: 700; }
 
 /* ---------- card grid ---------- */
-.grid { max-width: 1400px; margin: 12px auto 40px; padding: 0 16px; display: grid; gap: 14px; align-items: start; grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); }
+.grid { max-width: 1400px; margin: 12px auto 120px; padding: 0 16px; display: grid; gap: 14px; align-items: start; grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
 .card-head { background: var(--card-head); border-bottom: 1px solid var(--line); padding: 8px 12px; }
 .design { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; color: var(--ink-3); }
@@ -189,7 +195,13 @@ a { color: var(--green); }
 @media (max-width: 480px) {
   .topbar { padding-left: 12px; padding-right: 12px; }
   .btn.ghost#btn-switch { display: none; }
-  .stages, .toolbar, .grid, .summary, .filters, .buy-panel { padding-left: 10px; padding-right: 10px; }
+  .stages, .toolbar, .grid, .summary, .filters, .bucket { position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; max-width: 1400px; margin: 0 auto; padding: 8px 16px calc(8px + env(safe-area-inset-bottom)); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: linear-gradient(to top, var(--bg) 70%, transparent); }
+.bucket-text { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; flex: 1 1 260px; }
+.bucket-text b { font-size: 18px; }
+.bucket-text small { display: block; color: var(--ink-2); font-size: 12px; }
+.bucket-text.win b { color: var(--green); }
+@media (max-width: 480px) { .bucket { padding-left: 10px; padding-right: 10px; } .bucket .btn { padding: 8px 10px; font-size: 13px; } }
+.buy-panel { padding-left: 10px; padding-right: 10px; }
   .row { grid-template-columns: 96px 1fr; gap: 8px; padding: 10px; }
   .pic img { width: 96px; height: 96px; }
   .stage small { display: none; }

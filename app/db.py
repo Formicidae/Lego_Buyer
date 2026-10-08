@@ -78,6 +78,16 @@ CREATE TABLE IF NOT EXISTS progress (
     PRIMARY KEY (set_num, key)
 );
 
+CREATE TABLE IF NOT EXISTS trips (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    set_num TEXT NOT NULL,
+    finished_at REAL NOT NULL,
+    pieces INTEGER NOT NULL,
+    lots INTEGER NOT NULL,
+    lego_value REAL,
+    finished_by TEXT
+);
+
 CREATE TABLE IF NOT EXISTS revisions (
     set_num TEXT PRIMARY KEY,
     rev INTEGER NOT NULL DEFAULT 0
@@ -371,3 +381,37 @@ def save_price(element_id, result, error=None):
             )
         for r in conn.execute("SELECT DISTINCT set_num FROM set_parts WHERE element_id=?", (element_id,)):
             bump_rev(conn, r["set_num"])
+
+
+def finish_trip(set_num, who=None):
+    """Everything found at the store becomes owned; store counters reset. Returns a summary."""
+    s = get_set(set_num)
+    count_alt = bool(s and s.get("count_alt", 1))
+    parts, figs = set_items(set_num)
+    by_key = {p["key"]: p for p in parts + figs}
+    pieces = lots = 0
+    value = 0.0
+    with tx() as conn:
+        for r in conn.execute("SELECT * FROM progress WHERE set_num=? AND (found_exact > 0 OR found_alt > 0)", (set_num,)).fetchall():
+            found = r["found_exact"] + (r["found_alt"] if count_alt else 0)
+            if found <= 0:
+                continue
+            item = by_key.get(r["key"]) or {}
+            pieces += found
+            lots += 1
+            if item.get("lego_price") is not None:
+                value += item["lego_price"] * found
+            conn.execute(
+                "UPDATE progress SET owned = owned + ?, found_exact = 0, found_alt = 0, updated_at=?, updated_by=? WHERE set_num=? AND key=?",
+                (found, time.time(), who, set_num, r["key"]),
+            )
+        conn.execute(
+            "INSERT INTO trips(set_num, finished_at, pieces, lots, lego_value, finished_by) VALUES(?,?,?,?,?,?)",
+            (set_num, time.time(), pieces, lots, round(value, 2), who),
+        )
+        bump_rev(conn, set_num)
+    return {"pieces": pieces, "lots": lots, "lego_value": round(value, 2)}
+
+
+def trips(set_num):
+    return q("SELECT * FROM trips WHERE set_num=? ORDER BY finished_at DESC", (set_num,))

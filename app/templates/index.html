@@ -67,6 +67,7 @@
         <option value="remaining">Most needed</option>
         <option value="recent">Recently tapped</option>
         <option value="tier">LEGO tier</option>
+        <option value="price">LEGO price (high first)</option>
       </select>
     </label>
     <button class="btn ghost" id="btn-filters" type="button">Filters <span class="pill" id="filter-count" hidden></span></button>
@@ -77,6 +78,10 @@
     <label><input type="checkbox" id="f-spares"> Include spare parts</label>
     <label><input type="checkbox" id="f-minifigs"> Include minifigures (sourced whole)</label>
     <label><input type="checkbox" id="f-count-alt" checked> Count "Alt" finds toward needed</label>
+    <label>PDF order
+      <select id="pdf-order"><option value="color">by color (walk the wall)</option><option value="price">by LEGO price (big tickets first)</option></select>
+    </label>
+    <label>Bucket cost $<input id="bucket-cost" type="number" min="0" step="1" value="15" style="width:64px"></label>
     <div class="filters-actions">
       <a class="btn ghost" id="link-pdf" target="_blank" rel="noopener">Open checklist PDF</a>
       <a class="btn ghost" id="link-print" target="_blank" rel="noopener">Print view</a>
@@ -85,6 +90,10 @@
   </div>
 
   <div class="summary" id="summary"></div>
+  <div class="bucket" id="bucket" hidden>
+    <div class="bucket-text"><span id="bucket-line"></span><small id="bucket-sub"></small></div>
+    <button class="btn primary" id="btn-finish" type="button">Finish trip → add to collection</button>
+  </div>
 
   <div class="buy-panel" id="buy-panel" hidden>
     <div class="buy-head">
