@@ -4,13 +4,16 @@ Wishlist endpoints need only the API key (no catalog approval). Each lot is mapp
 part + color through Rebrickable's own BrickOwl cross-references, so wishlist parts get the same
 images, element IDs and LEGO prices as set parts.
 """
+import os
 import re
+import subprocess
+import tempfile
 import time
 
 import requests
 
 from . import rebrickable
-from .config import BRICKOWL_API_KEY
+from .config import BRICKOWL_API_KEY, CHROMIUM_PATH
 
 BASE = "https://api.brickowl.com/v1"
 
@@ -202,28 +205,44 @@ def _strip_tags(html):
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))
 
 
-def scrape_item(boid):
-    """Public item page: name plus any BrickLink / Rebrickable IDs it shows. Never raises on a parse miss."""
-    r = requests.get(
-        f"https://www.brickowl.com/boid/{boid}",
-        headers={
-            "User-Agent": "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,*/*;q=0.8", "Accept-Language": "en-US,en;q=0.9",
-        },
-        timeout=30, allow_redirects=True,
-    )
-    if r.status_code == 404:
-        raise BrickOwlError(f"BrickOwl has no item {boid}.")
-    if r.status_code == 403:
-        raise BrickOwlError("BrickOwl's website blocks automated page reads (HTTP 403)")
-    if r.status_code != 200:
-        raise BrickOwlError(f"BrickOwl item page HTTP {r.status_code}.")
-    html = r.text
+_UA = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36"
+
+
+def fetch_html(url):
+    """BrickOwl's site refuses plain HTTP clients, so fall back to the real (headless) Chromium we have for PDFs."""
+    try:
+        r = requests.get(url, headers={"User-Agent": _UA, "Accept": "text/html,*/*;q=0.8", "Accept-Language": "en-US,en;q=0.9"}, timeout=30, allow_redirects=True)
+        if r.status_code == 200 and "<title" in r.text.lower():
+            return r.text, r.url, "http"
+        if r.status_code == 404:
+            raise BrickOwlError("BrickOwl has no such item.")
+        status = r.status_code
+    except requests.RequestException as e:
+        status = str(e)
+    if not CHROMIUM_PATH:
+        raise BrickOwlError(f"BrickOwl's website blocks automated page reads (HTTP {status}) and no browser is configured")
+    with tempfile.TemporaryDirectory() as td:
+        cmd = [CHROMIUM_PATH, "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage", f"--user-agent={_UA}",
+               f"--user-data-dir={os.path.join(td, 'p')}", "--virtual-time-budget=8000", "--dump-dom", url]
+        try:
+            out = subprocess.run(cmd, capture_output=True, text=True, timeout=90).stdout
+        except Exception as e:
+            raise BrickOwlError(f"browser read failed: {e}")
+    if not out or len(out) < 500:
+        raise BrickOwlError(f"BrickOwl's website blocks automated page reads (HTTP {status}; browser got nothing)")
+    low = out.lower()
+    if "just a moment" in low or "verify you are human" in low or "access denied" in low:
+        raise BrickOwlError("BrickOwl's website put up a bot check; the browser fallback couldn't get past it")
+    m = re.search(r'<link rel="canonical" href="([^"]+)"', out)
+    return out, (m.group(1) if m else url), "browser"
+
+
+def _parse_item_page(html, url, boid=None):
     text = _strip_tags(html)
     m = re.search(r"<title>(.*?)</title>", html, re.S | re.I)
     name = re.sub(r"\s+", " ", m.group(1)).strip() if m else ""
     name = re.sub(r"\s*[|\-–]\s*Brick Owl.*$", "", name)
-    out = {"boid": str(boid), "name": name, "url": r.url, "bl_id": None, "rb_id": None, "is_minifig": "minifig" in (r.url + name).lower()}
+    out = {"boid": boid, "name": name, "url": url, "bl_id": None, "rb_id": None, "is_minifig": "minifig" in (url + name).lower()}
     mm = _RB_FIG_RE.search(text)
     if mm:
         out["rb_id"] = mm.group(1)
@@ -232,7 +251,33 @@ def scrape_item(boid):
         mb = _BL_FIG_RE.search(near.group(0).replace("BrickLink", ""))
         if mb:
             out["bl_id"] = mb.group(1)
+    if not out["boid"]:
+        mu = re.search(r"-(\d{5,8})(?:[/?#]|$)", url)
+        out["boid"] = mu.group(1) if mu else None
     return out
+
+
+def scrape_item(boid):
+    """Public item page: name plus any BrickLink / Rebrickable IDs it shows."""
+    html, url, how = fetch_html(f"https://www.brickowl.com/boid/{boid}")
+    item = _parse_item_page(html, url, str(boid))
+    item["via"] = how
+    return item
+
+
+def search_item(query):
+    """BrickOwl's own catalog search (handles BrickLink IDs); returns the first hit as an item dict or None."""
+    html, url, how = fetch_html(f"https://www.brickowl.com/search/catalog?query={requests.utils.quote(query)}&jump=1")
+    if "/catalog/" in url and "/search/" not in url:
+        item = _parse_item_page(html, url)  # jump=1 sent us straight to the single result
+    else:
+        m = re.search(r'href="(/catalog/[^"]+-\d{5,8})"[^>]*>([^<]{3,120})<', html)
+        if not m:
+            return None
+        html2, url2, how = fetch_html("https://www.brickowl.com" + m.group(1))
+        item = _parse_item_page(html2, url2)
+    item["via"] = how
+    return item
 
 
 def resolve_minifig(query: str):
@@ -300,9 +345,33 @@ def resolve_minifig(query: str):
                     notes.append(str(e))
         return candidates, notes, source
 
-    # BrickLink id or free text: Rebrickable search.
+    # Free text: Rebrickable name search. BrickLink ids aren't searchable there, so go via BrickOwl's search.
     try:
         add(rebrickable.minifig_search(q))
     except rebrickable.RebrickableError as e:
         notes.append(str(e))
+    if not candidates and re.fullmatch(r"[a-z]{2,5}\d{3,4}[a-z]?", q, re.I):
+        try:
+            item = search_item(q)
+        except BrickOwlError as e:
+            item = None
+            notes.append(str(e))
+        if item:
+            source.update({k: item.get(k) for k in ("name", "boid", "bl_id", "rb_id", "via")})
+            if item.get("rb_id"):
+                try:
+                    info = rebrickable._get(f"/minifigs/{item['rb_id']}/")
+                    add([{"fig_num": info["set_num"], "name": info.get("name"), "num_parts": info.get("num_parts"), "img_url": info.get("set_img_url")}])
+                except rebrickable.RebrickableError as e:
+                    notes.append(str(e))
+            if item.get("name") and not candidates:
+                clean = re.sub(r"^LEGO\s+", "", item["name"], flags=re.I)
+                clean = re.sub(r"\s+Minifigure.*$", "", clean, flags=re.I)
+                source["search"] = clean
+                try:
+                    add(rebrickable.minifig_search(clean))
+                except rebrickable.RebrickableError as e:
+                    notes.append(str(e))
+        elif not notes:
+            notes.append("BrickOwl search found nothing for that ID")
     return candidates, notes, source
