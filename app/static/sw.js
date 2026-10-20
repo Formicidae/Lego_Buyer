@@ -2,8 +2,8 @@
    - app shell + set data: network first, cached copy as fallback
    - part images (Rebrickable CDN): cache first
    - progress polling and all writes: network only (writes are queued by app.js when they fail) */
-const VERSION = 'lb-v1';
-const SHELL = ['/static/app.js', '/static/style.css'];
+const VERSION = 'lb-v2';
+const SHELL = [];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -19,7 +19,8 @@ self.addEventListener('activate', (e) => {
 const networkFirst = async (req) => {
   const cache = await caches.open(VERSION);
   try {
-    const res = await fetch(req);
+    // Bypass the browser's HTTP cache so a fresh deploy is picked up; the SW cache is the offline fallback.
+    const res = await fetch(req, { cache: 'no-cache' });
     if (res.ok) cache.put(req, res.clone());
     return res;
   } catch (err) {

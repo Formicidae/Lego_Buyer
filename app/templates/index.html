@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Lego Buyer">
 <title>Lego Buyer</title>
-<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/style.css?v={{ asset_v }}">
 <link rel="manifest" href="/manifest.webmanifest">
 </head>
 <body data-set="{{ set_num or '' }}" data-view="{{ view_keys or '' }}">
@@ -162,6 +162,6 @@
   </div>
 </template>
 
-<script src="/static/app.js"></script>
+<script src="/static/app.js?v={{ asset_v }}"></script>
 </body>
 </html>

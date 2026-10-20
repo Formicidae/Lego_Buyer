@@ -35,6 +35,18 @@ log = logging.getLogger("lego_buyer")
 
 templates = Jinja2Templates(directory="app/templates")
 
+
+def _asset_version():
+    try:
+        return subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=os.path.join(os.path.dirname(__file__), ".."),
+                              capture_output=True, text=True, timeout=5).stdout.strip() or str(int(time.time()))
+    except Exception:
+        return str(int(time.time()))
+
+
+ASSET_V = _asset_version()
+templates.env.globals["asset_v"] = ASSET_V
+
 COOKIE = "lb_auth"
 
 
@@ -52,7 +64,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         path = request.url.path
         if path.startswith("/static/") or path in ("/login", "/health", "/sw.js", "/manifest.webmanifest") or _authed(request):
-            return await call_next(request)
+            resp = await call_next(request)
+            if path.startswith("/static/") or path == "/sw.js":
+                # Phones cache JS/CSS aggressively; force a revalidation so updates show up on the next load.
+                resp.headers["Cache-Control"] = "no-cache, must-revalidate"
+            return resp
         if path.startswith("/api/"):
             return JSONResponse({"error": "unauthorized"}, status_code=401)
         return RedirectResponse(f"/login?next={path}", status_code=303)
