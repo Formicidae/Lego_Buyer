@@ -331,10 +331,7 @@ def resolve_minifig(query: str):
                 except rebrickable.RebrickableError as e:
                     notes.append(f"Rebrickable {item['rb_id']}: {e}")
             if item.get("bl_id") and not candidates:
-                try:
-                    add(rebrickable.minifig_search(item["bl_id"]))
-                except rebrickable.RebrickableError as e:
-                    notes.append(str(e))
+                add(resolve_bl_id(item["bl_id"], notes, source))
             if item.get("name") and not candidates:
                 clean = re.sub(r"^LEGO\s+", "", item["name"], flags=re.I)
                 clean = re.sub(r"\s+Minifigure.*$", "", clean, flags=re.I)
@@ -350,6 +347,8 @@ def resolve_minifig(query: str):
         add(rebrickable.minifig_search(q))
     except rebrickable.RebrickableError as e:
         notes.append(str(e))
+    if not candidates and re.fullmatch(r"[a-z]{2,5}\d{3,4}[a-z]?", q, re.I):
+        add(resolve_bl_id(q, notes, source))
     if not candidates and re.fullmatch(r"[a-z]{2,5}\d{3,4}[a-z]?", q, re.I):
         try:
             item = search_item(q)
@@ -375,3 +374,76 @@ def resolve_minifig(query: str):
         elif not notes:
             notes.append("BrickOwl search found nothing for that ID")
     return candidates, notes, source
+
+
+# ---------- BrickLink ID -> Rebrickable via Brickset ----------
+
+def brickset_minifig(bl_id):
+    """Brickset lists minifigs by BrickLink ID with their name and the sets they appear in."""
+    try:
+        r = requests.get(f"https://brickset.com/minifigs/{bl_id.lower()}", headers={"User-Agent": _UA, "Accept": "text/html"}, timeout=30)
+    except requests.RequestException as e:
+        raise BrickOwlError(f"Brickset unreachable: {e}")
+    if r.status_code == 404:
+        return None
+    if r.status_code != 200:
+        raise BrickOwlError(f"Brickset HTTP {r.status_code}")
+    html = r.text
+    m = re.search(r"<title>(.*?)</title>", html, re.S | re.I)
+    title = re.sub(r"\s+", " ", m.group(1)).strip() if m else ""
+    # "LEGO minifigures SW0445: Clone Trooper, 501st Legion ... | Brickset"
+    name = re.sub(r"^.*?\b" + re.escape(bl_id) + r"\s*:\s*", "", title, flags=re.I)
+    name = re.sub(r"\s*\|\s*Brickset.*$", "", name).strip()
+    if not name or name.lower() == title.lower():
+        return None
+    sets = []
+    for sm in re.finditer(r"/sets/(\d{3,7}-\d{1,2})\b", html):
+        if sm.group(1) not in sets:
+            sets.append(sm.group(1))
+    return {"bl_id": bl_id.lower(), "name": name, "sets": sets[:12]}
+
+
+def _tokens(s):
+    return set(t for t in re.findall(r"[a-z0-9]+", (s or "").lower()) if t not in ("lego", "minifigure", "minifig", "the", "a", "of", "with", "and"))
+
+
+def rebrickable_figs_in_sets(set_nums, want_name):
+    """Rebrickable minifigs from the given sets, ranked by name similarity to want_name."""
+    want = _tokens(want_name)
+    seen, scored = set(), []
+    for sn in set_nums:
+        try:
+            data = rebrickable._get("/minifigs/", {"in_set_num": sn, "page_size": 50})
+        except rebrickable.RebrickableError:
+            continue
+        time.sleep(1.0)
+        for mf in data.get("results", []):
+            if mf["set_num"] in seen:
+                continue
+            seen.add(mf["set_num"])
+            have = _tokens(mf.get("name"))
+            score = len(want & have) / max(1, len(want | have))
+            scored.append((score, {"fig_num": mf["set_num"], "name": mf.get("name"), "num_parts": mf.get("num_parts"), "img_url": mf.get("set_img_url"), "match": round(score, 2)}))
+    scored.sort(key=lambda x: -x[0])
+    return [c for s, c in scored if s > 0] or [c for s, c in scored]
+
+
+def resolve_bl_id(bl_id, notes, source):
+    """BrickLink minifig id -> Rebrickable candidates, best match first."""
+    try:
+        bs = brickset_minifig(bl_id)
+    except BrickOwlError as e:
+        notes.append(f"Brickset: {e}")
+        return []
+    if not bs:
+        notes.append(f"Brickset doesn't know minifig {bl_id}")
+        return []
+    source.update({"brickset_name": bs["name"], "sets": bs["sets"]})
+    cands = rebrickable_figs_in_sets(bs["sets"], bs["name"]) if bs["sets"] else []
+    if not cands:
+        clean = re.sub(r"\s*[-(].*$", "", bs["name"])
+        try:
+            cands = rebrickable.minifig_search(clean)
+        except rebrickable.RebrickableError as e:
+            notes.append(str(e))
+    return cands

@@ -500,7 +500,7 @@
         $('#fig-status').textContent = r.candidates.length === 1 ? (src.name ? `BrickOwl: ${src.name}. Tap to add.` : 'Tap to add.') : `${r.candidates.length} matches${src.name ? ` for “${src.name}”` : ''} — tap the right one.`;
         for (const c of r.candidates) {
           const b = document.createElement('button'); b.type = 'button'; b.className = 'cand';
-          b.innerHTML = `<img alt="" src="${c.img_url || ''}" onerror="this.style.visibility='hidden'"><div><b></b><small>${c.fig_num} · ${c.num_parts || '?'} parts</small></div>`;
+          b.innerHTML = `<img alt="" src="${c.img_url || ''}" onerror="this.style.visibility='hidden'"><div><b></b><small>${c.fig_num} · ${c.num_parts || '?'} parts${c.match != null ? ` · ${Math.round(c.match * 100)}% name match` : ''}</small></div>`;
           b.querySelector('b').textContent = c.name || c.fig_num;
           b.addEventListener('click', async () => {
             $('#fig-status').textContent = `Loading ${c.fig_num} from Rebrickable…`; box.hidden = true;
