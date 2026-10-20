@@ -23,8 +23,10 @@ def _get(path, **params):
     if not BRICKOWL_API_KEY:
         raise BrickOwlError("BRICKOWL_API_KEY is not set on the server.")
     r = requests.get(f"{BASE}/{path}", params={"key": BRICKOWL_API_KEY, **params}, timeout=30)
-    if r.status_code == 401 or r.status_code == 403:
+    if r.status_code == 401:
         raise BrickOwlError("BrickOwl rejected the API key.")
+    if r.status_code == 403:
+        raise BrickOwlError("this key doesn't have BrickOwl catalog access (BrickOwl grants it on request)")
     if r.status_code >= 400:
         raise BrickOwlError(f"BrickOwl error {r.status_code}: {r.text[:200]}")
     data = r.json()
@@ -202,9 +204,18 @@ def _strip_tags(html):
 
 def scrape_item(boid):
     """Public item page: name plus any BrickLink / Rebrickable IDs it shows. Never raises on a parse miss."""
-    r = requests.get(f"https://www.brickowl.com/boid/{boid}", headers={"User-Agent": "Mozilla/5.0 (LegoBuyer)"}, timeout=30, allow_redirects=True)
+    r = requests.get(
+        f"https://www.brickowl.com/boid/{boid}",
+        headers={
+            "User-Agent": "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,*/*;q=0.8", "Accept-Language": "en-US,en;q=0.9",
+        },
+        timeout=30, allow_redirects=True,
+    )
     if r.status_code == 404:
         raise BrickOwlError(f"BrickOwl has no item {boid}.")
+    if r.status_code == 403:
+        raise BrickOwlError("BrickOwl's website blocks automated page reads (HTTP 403)")
     if r.status_code != 200:
         raise BrickOwlError(f"BrickOwl item page HTTP {r.status_code}.")
     html = r.text

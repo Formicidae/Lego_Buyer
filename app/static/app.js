@@ -491,7 +491,10 @@
         if (!r) return;
         const src = r.source || {};
         if (!r.candidates.length) {
-          $('#fig-status').textContent = `No matching minifigure on Rebrickable${src.name ? ` for “${src.name}”` : ''}.${r.notes.length ? ' ' + r.notes.join(' · ') : ''}`;
+          const numeric = /^\d{5,8}$/.test(q) && !src.name;
+          $('#fig-status').textContent = numeric
+            ? `Couldn't read BrickOwl item ${q} (${r.notes.join('; ')}). Type the figure's name or its BrickLink ID (e.g. sw0445) instead — or ask BrickOwl to enable catalog access on your API key, which also lets the app read item numbers.`
+            : `No matching minifigure on Rebrickable${src.name ? ` for “${src.name}”` : ''}.${r.notes.length ? ' ' + r.notes.join(' · ') : ''}`;
           return;
         }
         $('#fig-status').textContent = r.candidates.length === 1 ? (src.name ? `BrickOwl: ${src.name}. Tap to add.` : 'Tap to add.') : `${r.candidates.length} matches${src.name ? ` for “${src.name}”` : ''} — tap the right one.`;
