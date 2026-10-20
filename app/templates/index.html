@@ -36,6 +36,16 @@
     <p class="hint" id="load-status">Pulls the full inventory and part images from Rebrickable.</p>
   </form>
   <div class="import-form">
+    <label for="fig-input">Add a minifigure</label>
+    <div class="load-row">
+      <input id="fig-input" placeholder="BrickOwl ID (415730), BrickLink ID (sw0001), fig-012345, or a name" autocomplete="off">
+      <button class="btn primary" type="button" id="btn-fig">Find</button>
+    </div>
+    <p class="hint" id="fig-status">Builds a list of the figure's parts, with the whole figure as a unit for sourcing.</p>
+    <div class="fig-cands" id="fig-cands" hidden></div>
+  </div>
+
+  <div class="import-form">
     <label>Or import a BrickOwl wishlist</label>
     <div class="load-row">
       <select id="wl-select"><option value="">Loading your wishlists…</option></select>
@@ -51,8 +61,8 @@
     <li>
       <input type="checkbox" class="pick" value="{{ s.set_num }}" aria-label="select">
       <a href="/s/{{ s.set_num }}">
-        {% if s.img_url %}<img src="{{ s.img_url }}" alt="">{% else %}<span class="list-icon">{{ '♥' if s.kind == 'wishlist' else '▣' }}</span>{% endif %}
-        <div><b>{{ s.set_num if s.kind != 'wishlist' else 'Wishlist' }}</b> {{ s.name }}<br><small>{{ s.num_parts }} pieces · {{ s.lots }} lots{% if s.year %} · {{ s.year }}{% endif %}{% if s.import_notes %} · <span class="warn-text">some lots couldn't be matched</span>{% endif %}</small></div>
+        {% if s.img_url %}<img src="{{ s.img_url }}" alt="">{% else %}<span class="list-icon">{{ '♥' if s.kind == 'wishlist' else ('☺' if s.kind == 'minifig' else '▣') }}</span>{% endif %}
+        <div><b>{{ 'Wishlist' if s.kind == 'wishlist' else ('Minifig' if s.kind == 'minifig' else s.set_num) }}</b> {{ s.name }}<br><small>{{ s.num_parts }} pieces · {{ s.lots }} lots{% if s.year %} · {{ s.year }}{% endif %}{% if s.import_notes %} · <span class="warn-text">some lots couldn't be matched</span>{% endif %}</small></div>
       </a>
       <button class="btn ghost icon danger" data-del="{{ s.set_num }}" title="Remove">&times;</button>
     </li>

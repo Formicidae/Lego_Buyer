@@ -183,3 +183,115 @@ def fetch_wishlist(wishlist_id, on_progress=None):
         "source_id": str(info["wishlist_id"]),
     }
     return list_info, list(merged.values()), [], cats, colors, problems
+
+
+# ---------- Minifigures: BrickOwl ID -> Rebrickable minifig ----------
+
+_BL_FIG_RE = re.compile(r"\b([a-z]{2,5}\d{3,4}[a-z]?)\b")
+_RB_FIG_RE = re.compile(r"\b(fig-\d{6})\b")
+
+
+def catalog_lookup(boid):
+    """Needs BrickOwl 'catalog approval' on the key; raises BrickOwlError otherwise."""
+    return _get("catalog/lookup", boid=str(boid))
+
+
+def _strip_tags(html):
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))
+
+
+def scrape_item(boid):
+    """Public item page: name plus any BrickLink / Rebrickable IDs it shows. Never raises on a parse miss."""
+    r = requests.get(f"https://www.brickowl.com/boid/{boid}", headers={"User-Agent": "Mozilla/5.0 (LegoBuyer)"}, timeout=30, allow_redirects=True)
+    if r.status_code == 404:
+        raise BrickOwlError(f"BrickOwl has no item {boid}.")
+    if r.status_code != 200:
+        raise BrickOwlError(f"BrickOwl item page HTTP {r.status_code}.")
+    html = r.text
+    text = _strip_tags(html)
+    m = re.search(r"<title>(.*?)</title>", html, re.S | re.I)
+    name = re.sub(r"\s+", " ", m.group(1)).strip() if m else ""
+    name = re.sub(r"\s*[|\-–]\s*Brick Owl.*$", "", name)
+    out = {"boid": str(boid), "name": name, "url": r.url, "bl_id": None, "rb_id": None, "is_minifig": "minifig" in (r.url + name).lower()}
+    mm = _RB_FIG_RE.search(text)
+    if mm:
+        out["rb_id"] = mm.group(1)
+    near = re.search(r"BrickLink[^.]{0,120}", text, re.I)
+    if near:
+        mb = _BL_FIG_RE.search(near.group(0).replace("BrickLink", ""))
+        if mb:
+            out["bl_id"] = mb.group(1)
+    return out
+
+
+def resolve_minifig(query: str):
+    """Turn whatever the user typed into Rebrickable minifig candidates.
+    Accepts a Rebrickable fig id (fig-000123), a BrickOwl item number (415730), a BrickLink id (sw0001), or a name."""
+    q = query.strip()
+    notes, candidates, seen = [], [], set()
+
+    def add(cands):
+        for c in cands:
+            if c["fig_num"] not in seen:
+                seen.add(c["fig_num"])
+                candidates.append(c)
+
+    if re.fullmatch(r"fig-\d+", q, re.I):
+        try:
+            info = rebrickable._get(f"/minifigs/{q.lower()}/")
+            add([{"fig_num": info["set_num"], "name": info.get("name"), "num_parts": info.get("num_parts"), "img_url": info.get("set_img_url")}])
+        except rebrickable.RebrickableError as e:
+            notes.append(str(e))
+        return candidates, notes, {"query": q}
+
+    source = {"query": q}
+    if re.fullmatch(r"\d{5,8}", q):
+        # BrickOwl item number. Try the API (needs catalog approval), then the public page.
+        item = None
+        try:
+            data = catalog_lookup(q)
+            ids = data.get("ids") or data.get("item_ids") or []
+            item = {"boid": q, "name": data.get("name") or "", "bl_id": None, "rb_id": None, "is_minifig": (data.get("type") or "").lower() == "minifigure"}
+            for i in ids if isinstance(ids, list) else []:
+                t, v = (i.get("type") or "").lower(), str(i.get("id") or "")
+                if "rebrickable" in t and v:
+                    item["rb_id"] = v if v.startswith("fig-") else f"fig-{v.zfill(6)}"
+                elif t in ("bl_item_no", "bricklink") and v:
+                    item["bl_id"] = v
+            source["via"] = "api"
+        except BrickOwlError as e:
+            notes.append(f"BrickOwl API lookup: {e}")
+            try:
+                item = scrape_item(q)
+                source["via"] = "page"
+            except BrickOwlError as e2:
+                notes.append(str(e2))
+        if item:
+            source.update({k: item.get(k) for k in ("name", "bl_id", "rb_id", "is_minifig")})
+            if item.get("rb_id"):
+                try:
+                    info = rebrickable._get(f"/minifigs/{item['rb_id']}/")
+                    add([{"fig_num": info["set_num"], "name": info.get("name"), "num_parts": info.get("num_parts"), "img_url": info.get("set_img_url")}])
+                except rebrickable.RebrickableError as e:
+                    notes.append(f"Rebrickable {item['rb_id']}: {e}")
+            if item.get("bl_id") and not candidates:
+                try:
+                    add(rebrickable.minifig_search(item["bl_id"]))
+                except rebrickable.RebrickableError as e:
+                    notes.append(str(e))
+            if item.get("name") and not candidates:
+                clean = re.sub(r"^LEGO\s+", "", item["name"], flags=re.I)
+                clean = re.sub(r"\s+Minifigure.*$", "", clean, flags=re.I)
+                source["search"] = clean
+                try:
+                    add(rebrickable.minifig_search(clean))
+                except rebrickable.RebrickableError as e:
+                    notes.append(str(e))
+        return candidates, notes, source
+
+    # BrickLink id or free text: Rebrickable search.
+    try:
+        add(rebrickable.minifig_search(q))
+    except rebrickable.RebrickableError as e:
+        notes.append(str(e))
+    return candidates, notes, source

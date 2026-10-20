@@ -53,7 +53,9 @@ made while offline, syncing them when the Pi is reachable again.
 
 ## Using it
 
-- **Lists.** A list is a LEGO set (loaded by number) or a BrickOwl wishlist (imported from your
+- **Lists.** A list is a LEGO set (loaded by number), a minifigure (by BrickOwl item number,
+  BrickLink ID, Rebrickable `fig-` ID, or name; the figure's parts plus the whole figure as a unit),
+  or a BrickOwl wishlist (imported from your
   account; lots are matched to Rebrickable parts so they get the same pictures and LEGO prices).
   On the home page, tick several lists and *Open selected together* for one combined store
   checklist. Finds are credited to the lists in the order you ticked them, and every list keeps its

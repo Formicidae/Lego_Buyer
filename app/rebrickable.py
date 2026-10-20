@@ -66,16 +66,8 @@ def part_categories():
     return _categories_cache["data"]
 
 
-def fetch_set(set_num: str):
-    """Returns (set_info, parts, minifigs, categories, colors)."""
-    info = _get(f"/sets/{set_num}/")
-    time.sleep(1.0)
-    raw_parts = _paged(f"/sets/{set_num}/parts/", {"inc_part_details": 1, "inc_color_details": 1})
-    time.sleep(1.0)
-    raw_figs = _paged(f"/sets/{set_num}/minifigs/")
-    time.sleep(1.0)
-    cats = part_categories()
-
+def _convert_parts(raw_parts):
+    """Rebrickable inventory rows -> our part dicts (duplicates merged) and the colors they use."""
     parts, colors = [], {}
     for rp in raw_parts:
         part, color = rp.get("part") or {}, rp.get("color") or {}
@@ -116,7 +108,44 @@ def fetch_set(set_num: str):
             merged[k]["quantity"] += p["quantity"]
         else:
             merged[k] = p
-    parts = list(merged.values())
+    return list(merged.values()), colors
+
+
+
+def minifig_search(q: str, limit=12):
+    """Rebrickable minifigs matching a search term (name, or sometimes an external ID)."""
+    data = _get("/minifigs/", {"search": q, "page_size": limit, "ordering": "-num_parts"})
+    return [
+        {"fig_num": m["set_num"], "name": m.get("name"), "num_parts": m.get("num_parts"), "img_url": m.get("set_img_url")}
+        for m in data.get("results", [])
+    ]
+
+
+def fetch_minifig(fig_num: str):
+    """A minifigure as a list: its parts, plus the figure itself as a whole unit."""
+    info = _get(f"/minifigs/{fig_num}/")
+    time.sleep(1.0)
+    raw_parts = _paged(f"/minifigs/{fig_num}/parts/", {"inc_part_details": 1, "inc_color_details": 1})
+    time.sleep(1.0)
+    parts, colors = _convert_parts(raw_parts)
+    figs = [{"fig_num": info["set_num"], "name": info.get("name", fig_num), "quantity": 1, "img_url": info.get("set_img_url")}]
+    list_info = {
+        "set_num": info["set_num"], "name": info.get("name", fig_num), "year": None, "num_parts": info.get("num_parts"),
+        "set_img_url": info.get("set_img_url"), "kind": "minifig", "source_id": info["set_num"],
+    }
+    return list_info, parts, figs, part_categories(), colors
+
+
+def fetch_set(set_num: str):
+    """Returns (set_info, parts, minifigs, categories, colors)."""
+    info = _get(f"/sets/{set_num}/")
+    time.sleep(1.0)
+    raw_parts = _paged(f"/sets/{set_num}/parts/", {"inc_part_details": 1, "inc_color_details": 1})
+    time.sleep(1.0)
+    raw_figs = _paged(f"/sets/{set_num}/minifigs/")
+    time.sleep(1.0)
+    cats = part_categories()
+    parts, colors = _convert_parts(raw_parts)
 
     figs = [
         {

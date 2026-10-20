@@ -130,8 +130,11 @@ async def api_sets(request: Request):
         if raw.lower().startswith("bo-"):
             return JSONResponse({"job": jobs.start_wishlist_import(raw[3:]), "set": db.get_set(raw)})
         try:
-            set_num = rebrickable.normalize_set_num(raw)
-            set_info, parts, figs, cats, colors = await run_in_threadpool(rebrickable.fetch_set, set_num)
+            if raw.lower().startswith("fig-"):
+                set_info, parts, figs, cats, colors = await run_in_threadpool(rebrickable.fetch_minifig, raw.lower())
+            else:
+                set_num = rebrickable.normalize_set_num(raw)
+                set_info, parts, figs, cats, colors = await run_in_threadpool(rebrickable.fetch_set, set_num)
         except rebrickable.RebrickableError as e:
             return JSONResponse({"error": str(e)}, status_code=400)
         except Exception as e:  # network etc.
@@ -346,6 +349,17 @@ async def view_checklist_pdf(request: Request):
     return Response(pdf, media_type="application/pdf", headers={"Content-Disposition": f'inline; filename="combined-{mode}-checklist-{time.strftime("%Y%m%d")}.pdf"'})
 
 
+async def api_minifig_resolve(request: Request):
+    q = (request.query_params.get("q") or "").strip()
+    if not q:
+        return JSONResponse({"error": "type an ID or a name"}, status_code=400)
+    try:
+        cands, notes, source = await run_in_threadpool(brickowl.resolve_minifig, q)
+    except Exception as e:
+        return JSONResponse({"error": f"Lookup failed: {e}"}, status_code=502)
+    return JSONResponse({"candidates": cands, "notes": notes, "source": source})
+
+
 # ---------- BrickOwl ----------
 
 async def api_bo_wishlists(request: Request):
@@ -526,6 +540,7 @@ routes = [
     Route("/api/views/{keys}/finish_trip", api_view_finish_trip, methods=["POST"]),
     Route("/api/views/{keys}/prices", api_view_prices, methods=["GET", "POST"]),
     Route("/api/views/{keys}/buyplan", api_view_buyplan),
+    Route("/api/minifigs/resolve", api_minifig_resolve),
     Route("/api/brickowl/wishlists", api_bo_wishlists),
     Route("/api/brickowl/import", api_bo_import, methods=["POST"]),
     Route("/api/jobs/{name}", api_job),

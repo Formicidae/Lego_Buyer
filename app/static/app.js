@@ -305,7 +305,7 @@
 
   // ---------- updates ----------
   const applyProgress = (it, row) => { Object.assign(it, row); const el = state.rows.get(it.key); if (el) paintRow(it, el); renderSummary(); };
-  const viewName = () => state.isView ? 'Combined' : (state.set.kind === 'wishlist' ? 'Wishlist' : `LEGO ${state.set.set_num.replace(/-1$/, '')}`);
+  const viewName = () => state.isView ? 'Combined' : state.set.kind === 'wishlist' ? 'Wishlist' : state.set.kind === 'minifig' ? `Minifig ${state.set.set_num}` : `LEGO ${state.set.set_num.replace(/-1$/, '')}`;
 
   const tap = async (it, field, delta) => {
     const who = ensureWho();
@@ -481,6 +481,35 @@
     const sync = () => { $('#btn-combine').disabled = order.length < 2; $('#btn-combine').textContent = order.length < 2 ? 'Open selected together' : `Open ${order.length} together`; };
     picks.forEach((c) => c.addEventListener('change', () => { if (c.checked) order.push(c.value); else order.splice(order.indexOf(c.value), 1); sync(); }));
     $('#btn-combine').addEventListener('click', () => { if (order.length >= 2) location.href = `/v/${order.join(',')}`; });
+    const figGo = async () => {
+      const q = $('#fig-input').value.trim(); if (!q) return;
+      $('#btn-fig').disabled = true; $('#fig-status').textContent = 'Looking up…'; const box = $('#fig-cands'); box.hidden = true; box.replaceChildren();
+      try {
+        const r = await api(`/api/minifigs/resolve?q=${encodeURIComponent(q)}`);
+        if (!r) return;
+        const src = r.source || {};
+        if (!r.candidates.length) {
+          $('#fig-status').textContent = `No matching minifigure on Rebrickable${src.name ? ` for “${src.name}”` : ''}.${r.notes.length ? ' ' + r.notes.join(' · ') : ''}`;
+          return;
+        }
+        $('#fig-status').textContent = r.candidates.length === 1 ? (src.name ? `BrickOwl: ${src.name}. Tap to add.` : 'Tap to add.') : `${r.candidates.length} matches${src.name ? ` for “${src.name}”` : ''} — tap the right one.`;
+        for (const c of r.candidates) {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'cand';
+          b.innerHTML = `<img alt="" src="${c.img_url || ''}" onerror="this.style.visibility='hidden'"><div><b></b><small>${c.fig_num} · ${c.num_parts || '?'} parts</small></div>`;
+          b.querySelector('b').textContent = c.name || c.fig_num;
+          b.addEventListener('click', async () => {
+            $('#fig-status').textContent = `Loading ${c.fig_num} from Rebrickable…`; box.hidden = true;
+            try { const res = await api('/api/sets', { method: 'POST', body: JSON.stringify({ set_num: c.fig_num }) }); if (res) location.href = `/s/${res.set.set_num}`; }
+            catch (e) { $('#fig-status').textContent = e.message; }
+          });
+          box.appendChild(b);
+        }
+        box.hidden = false;
+      } catch (e) { $('#fig-status').textContent = e.message; }
+      finally { $('#btn-fig').disabled = false; }
+    };
+    $('#btn-fig').addEventListener('click', figGo);
+    $('#fig-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); figGo(); } });
     const sel = $('#wl-select');
     try {
       const r = await api('/api/brickowl/wishlists');
