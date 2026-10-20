@@ -127,6 +127,7 @@ async def api_sets(request: Request):
     if request.method == "POST":
         body = await request.json()
         raw = (body.get("set_num") or "").strip()
+        log.info("load list: %r", raw)
         if raw.lower().startswith("bo-"):
             return JSONResponse({"job": jobs.start_wishlist_import(raw[3:]), "set": db.get_set(raw)})
         try:
@@ -351,12 +352,16 @@ async def view_checklist_pdf(request: Request):
 
 async def api_minifig_resolve(request: Request):
     q = (request.query_params.get("q") or "").strip()
+    log.info("minifig resolve: q=%r", q)
     if not q:
         return JSONResponse({"error": "type an ID or a name"}, status_code=400)
+    t0 = time.time()
     try:
         cands, notes, source = await run_in_threadpool(brickowl.resolve_minifig, q)
     except Exception as e:
+        log.exception("minifig resolve: q=%r failed", q)
         return JSONResponse({"error": f"Lookup failed: {e}"}, status_code=502)
+    log.info("minifig resolve: q=%r -> %d candidates in %.1fs; source=%s; notes=%s", q, len(cands), time.time() - t0, source, notes)
     return JSONResponse({"candidates": cands, "notes": notes, "source": source})
 
 

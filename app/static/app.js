@@ -482,7 +482,9 @@
     picks.forEach((c) => c.addEventListener('change', () => { if (c.checked) order.push(c.value); else order.splice(order.indexOf(c.value), 1); sync(); }));
     $('#btn-combine').addEventListener('click', () => { if (order.length >= 2) location.href = `/v/${order.join(',')}`; });
     const figGo = async () => {
-      const q = $('#fig-input').value.trim(); if (!q) return;
+      const q = $('#fig-input').value.trim();
+      console.log('minifig find clicked:', JSON.stringify(q));
+      if (!q) { $('#fig-status').textContent = 'Type an ID or a name first.'; return; }
       $('#btn-fig').disabled = true; $('#fig-status').textContent = 'Looking up…'; const box = $('#fig-cands'); box.hidden = true; box.replaceChildren();
       try {
         const r = await api(`/api/minifigs/resolve?q=${encodeURIComponent(q)}`);
@@ -505,7 +507,7 @@
           box.appendChild(b);
         }
         box.hidden = false;
-      } catch (e) { $('#fig-status').textContent = e.message; }
+      } catch (e) { console.error('minifig find failed', e); $('#fig-status').textContent = 'Lookup failed: ' + e.message; }
       finally { $('#btn-fig').disabled = false; }
     };
     $('#btn-fig').addEventListener('click', figGo);
