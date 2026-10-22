@@ -21,7 +21,7 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from . import brickowl, db, jobs, lego, rebrickable, views
+from . import bricklink, brickowl, db, jobs, lego, rebrickable, sourcing, views
 from .checklist import build_checklist, render_checklist_html, render_checklist_pdf
 from .config import APP_PASSCODE, SECRET, BRICKOWL_API_KEY, REBRICKABLE_API_KEY, DATA_DIR, CHROMIUM_PATH
 
@@ -235,7 +235,7 @@ def _buyplan(s, parts, job):
             continue
         sold = p.get("lego_price") is not None and p.get("lego_available")
         items.append({"key": p["key"], "element_id": p["element_id"], "qty": rem, "price": p.get("lego_price"),
-                      "tier": p.get("lego_tier") if sold else None, "sold_by_lego": bool(sold), "checked": p.get("price_checked_at") is not None})
+                      "tier": p.get("tier") if sold else None, "sold_by_lego": bool(sold), "checked": p.get("price_checked_at") is not None})
     lego_items = [i for i in items if i["sold_by_lego"]]
     plan = lego.plan_fees(lego_items)
     return {
@@ -254,6 +254,120 @@ async def api_buyplan(request: Request):
         return JSONResponse({"error": "not found"}, status_code=404)
     parts, figs = db.set_items(set_num)
     return JSONResponse(_buyplan(s, parts, jobs.status(f"prices:{set_num}")))
+
+
+# ---------- Sourcing (set or view) ----------
+
+def _target(ident):
+    """'75424-1' -> (info, parts, [set_num]); 'v:a,b' -> (view info, merged parts, [a, b])."""
+    if ident.startswith("v:"):
+        keys = views.parse_keys(ident[2:])
+        info = views.view_info(keys)
+        if not info:
+            return None, [], []
+        parts, _ = views.items(keys)
+        return info, parts, keys
+    info = db.get_set(ident)
+    if not info:
+        return None, [], []
+    parts, _ = db.set_items(ident)
+    return info, parts, [ident]
+
+
+async def api_sourcing(request: Request):
+    info, parts, keys = _target(request.path_params["ident"])
+    if not info:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    items = sourcing.needed_items(info, parts)
+    opts = {}
+    try:
+        opts["market_shipping"] = float(request.query_params.get("ship", "5"))
+    except ValueError:
+        pass
+    ident = request.path_params["ident"]
+    sc = sourcing.scenarios(items, opts) + sourcing.cart_scenarios(items, db.carts(ident), opts)
+    sc.sort(key=lambda x: x["total"])
+    bl_job = jobs.status(f"blprices:{keys[0]}")
+    bo_ok, bo_skipped = sourcing.brickowl_wishlist_items(items)
+    return JSONResponse({
+        "items": items, "scenarios": sc, "bricklink_configured": bricklink.configured(), "bl_job": bl_job,
+        "bo_push": jobs.status(f"bopush:{keys[0]}"), "bo_skipped": [i["key"] for i in bo_skipped],
+        "unpriced_lego": sum(1 for i in items if not i["lego_checked"]), "unpriced_bl": sum(1 for i in items if not i["bl_checked"]),
+    })
+
+
+async def api_sourcing_bl(request: Request):
+    info, parts, keys = _target(request.path_params["ident"])
+    if not info:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    if not bricklink.configured():
+        return JSONResponse({"error": "BrickLink API credentials are not set. Add BRICKLINK_CONSUMER_KEY, BRICKLINK_CONSUMER_SECRET, BRICKLINK_TOKEN and BRICKLINK_TOKEN_SECRET to /etc/lego-buyer.env and restart."}, status_code=400)
+    body = await request.json() if request.headers.get("content-type", "").startswith("application/json") else {}
+    items = sourcing.needed_items(info, parts)
+    needed_keys = {i["key"] for i in items}
+    want = [p for p in parts if p["key"] in needed_keys] if not info.get("kind") == "view" else [p for p in parts if p["key"] in needed_keys]
+    for k in keys:
+        jobs.start_bricklink_job(k, want, force=bool(body.get("force")))
+    return JSONResponse(jobs.status(f"blprices:{keys[0]}"))
+
+
+async def api_sourcing_bo(request: Request):
+    """Create/replace a BrickOwl wishlist with the parts chosen for the marketplace."""
+    info, parts, keys = _target(request.path_params["ident"])
+    if not info:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    body = await request.json()
+    items = sourcing.needed_items(info, parts)
+    chosen = set(body.get("keys") or [i["key"] for i in items])
+    ok, skipped = sourcing.brickowl_wishlist_items([i for i in items if i["key"] in chosen])
+    if not ok:
+        return JSONResponse({"error": "none of the chosen parts have BrickOwl IDs"}, status_code=400)
+    name = (body.get("name") or f"Lego Buyer: {info['name']}")[:60]
+    return JSONResponse({**jobs.start_brickowl_push(keys[0], name, ok), "skipped": [i["key"] for i in skipped]})
+
+
+async def api_carts(request: Request):
+    """Imported cart configurations. POST body: {source, name, stores:[{name, subtotal, shipping, lots}], keys:[...], url}."""
+    ident = request.path_params["ident"]
+    if request.method == "GET":
+        return JSONResponse({"carts": db.carts(ident)})
+    if request.method == "DELETE":
+        db.delete_cart(int(request.query_params.get("id", "0")))
+        return JSONResponse({"ok": True})
+    body = await request.json()
+    stores = body.get("stores") or []
+    try:
+        parts_total = float(body.get("parts_total") if body.get("parts_total") is not None else sum(float(s.get("subtotal") or 0) for s in stores))
+        ship_total = float(body.get("shipping_total") if body.get("shipping_total") is not None else sum(float(s.get("shipping") or 0) for s in stores))
+    except (TypeError, ValueError):
+        return JSONResponse({"error": "subtotal/shipping must be numbers"}, status_code=400)
+    name = (body.get("name") or time.strftime("%b %d %H:%M"))[:60]
+    cid = db.add_cart(ident, (body.get("source") or "BrickOwl")[:20], name, stores, body.get("keys") or [], parts_total, ship_total,
+                      body.get("lots_covered"), body.get("lots_missing"), body.get("url"))
+    log.info("cart imported: %s %s %s total=%.2f", ident, body.get("source"), name, parts_total + ship_total)
+    return JSONResponse({"id": cid})
+
+
+async def api_sourcing_xml(request: Request):
+    info, parts, keys = _target(request.path_params["ident"])
+    if not info:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    items = sourcing.needed_items(info, parts)
+    chosen = request.query_params.get("keys")
+    if chosen:
+        ks = set(chosen.split(","))
+        items = [i for i in items if i["key"] in ks]
+    return Response(sourcing.bricklink_xml(items), media_type="application/xml",
+                    headers={"Content-Disposition": f'attachment; filename="wanted-{time.strftime("%Y%m%d")}.xml"'})
+
+
+async def api_tier(request: Request):
+    body = await request.json()
+    eid, tier = str(body.get("element_id") or ""), body.get("tier")
+    if not eid or tier not in (None, "", "Bestseller", "Standard"):
+        return JSONResponse({"error": "bad request"}, status_code=400)
+    db.set_manual_tier(eid, tier or None)
+    return JSONResponse({"ok": True})
 
 
 # ---------- Combined views (mirror the set endpoints) ----------
@@ -427,6 +541,14 @@ def _diagnostics():
     out = {"version": _git("log", "-1", "--format=%h %s (%cd)", "--date=short"), "branch": _git("rev-parse", "--abbrev-ref", "HEAD")}
     out["keys"] = {"rebrickable": bool(REBRICKABLE_API_KEY), "brickowl": bool(BRICKOWL_API_KEY), "passcode": bool(APP_PASSCODE)}
     out["pdf_engine"] = f"system chromium ({CHROMIUM_PATH})" if CHROMIUM_PATH else "playwright"
+    if bricklink.configured():
+        try:
+            g = bricklink.price_guide("PART", "3001", color_id=5)
+            out["bricklink"] = f"ok: 2x4 red brick avg ${g['avg']:.2f}, {g['lots']} lots"
+        except Exception as e:
+            out["bricklink"] = f"FAIL: {e}"
+    else:
+        out["bricklink"] = "no API credentials (BRICKLINK_* in /etc/lego-buyer.env)"
     try:
         du = shutil.disk_usage(DATA_DIR)
         out["disk_free_mb"] = du.free // 1_000_000
@@ -562,6 +684,12 @@ routes = [
     Route("/api/views/{keys}/prices", api_view_prices, methods=["GET", "POST"]),
     Route("/api/views/{keys}/buyplan", api_view_buyplan),
     Route("/api/minifigs/resolve", api_minifig_resolve),
+    Route("/api/sourcing/{ident}", api_sourcing),
+    Route("/api/sourcing/{ident}/bricklink", api_sourcing_bl, methods=["POST"]),
+    Route("/api/sourcing/{ident}/brickowl", api_sourcing_bo, methods=["POST"]),
+    Route("/api/sourcing/{ident}/wanted.xml", api_sourcing_xml),
+    Route("/api/sourcing/{ident}/carts", api_carts, methods=["GET", "POST", "DELETE"]),
+    Route("/api/tier", api_tier, methods=["POST"]),
     Route("/api/brickowl/wishlists", api_bo_wishlists),
     Route("/api/brickowl/import", api_bo_import, methods=["POST"]),
     Route("/api/jobs/{name}", api_job),

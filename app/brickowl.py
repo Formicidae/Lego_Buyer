@@ -447,3 +447,49 @@ def resolve_bl_id(bl_id, notes, source):
         except rebrickable.RebrickableError as e:
             notes.append(str(e))
     return cands
+
+
+# ---------- Push a buy list into a BrickOwl wishlist (needs only the API key) ----------
+
+def _post(path, **params):
+    if not BRICKOWL_API_KEY:
+        raise BrickOwlError("BRICKOWL_API_KEY is not set on the server.")
+    r = requests.post(f"{BASE}/{path}", data={"key": BRICKOWL_API_KEY, **params}, timeout=30)
+    data = r.json() if r.content else {}
+    if r.status_code >= 400 or (isinstance(data, dict) and data.get("error")):
+        raise BrickOwlError(str((data or {}).get("error") or f"HTTP {r.status_code}"))
+    return data
+
+
+def push_wishlist(name, items, on_progress=None):
+    """Create (or replace) a wishlist called `name` with the given {boid, color_id, qty} items.
+    Returns (wishlist_id, problems)."""
+    existing = {w["name"]: w["wishlist_id"] for w in wishlists()}
+    wid = existing.get(name)
+    if wid:
+        for lot in wishlist_lots(wid):
+            lid = lot.get("lot_id") or lot.get("id")
+            if lid:
+                try:
+                    _post("wishlist/delete_lot", wishlist_id=wid, lot_id=lid)
+                except BrickOwlError:
+                    pass
+                time.sleep(0.15)
+    else:
+        res = _post("wishlist/create_list", name=name, description="Made by Lego Buyer", public=0)
+        wid = str(res.get("wishlist_id") or res.get("id") or "")
+        if not wid:
+            raise BrickOwlError(f"BrickOwl didn't return a wishlist id: {res}")
+    problems = []
+    for n, it in enumerate(items):
+        try:
+            res = _post("wishlist/create_lot", wishlist_id=wid, boid=it["boid"], color_id=it["color_id"])
+            lid = res.get("lot_id") or res.get("id")
+            if lid and it["qty"] > 1:
+                _post("wishlist/update", wishlist_id=wid, lot_id=lid, minimum_quantity=it["qty"])
+        except BrickOwlError as e:
+            problems.append(f"{it.get('name') or it['boid']}: {e}")
+        time.sleep(0.15)
+        if on_progress:
+            on_progress(n + 1, len(items))
+    return str(wid), problems

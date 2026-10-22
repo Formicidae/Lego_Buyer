@@ -2,7 +2,7 @@
 import threading
 import time
 
-from . import brickowl, db, lego
+from . import bricklink, brickowl, db, lego
 
 _jobs = {}
 _lock = threading.Lock()
@@ -73,6 +73,76 @@ def start_wishlist_import(wishlist_id):
             db.replace_set(info, parts, figs, cats, colors)
             with _lock:
                 _jobs[name].update({"state": "done", "finished": time.time(), "lots": len(parts), "problems": problems})
+        except Exception as e:
+            with _lock:
+                _jobs[name].update({"state": "failed", "message": str(e)})
+
+    threading.Thread(target=run, name=name, daemon=True).start()
+    return status(name)
+
+
+def start_bricklink_job(set_num, parts, force=False):
+    """Price-guide lookups for the parts still needed (one call per part+color, cached a day)."""
+    name = f"blprices:{set_num}"
+    with _lock:
+        cur = _jobs.get(name)
+        if cur and cur.get("state") == "running":
+            return dict(cur)
+        _jobs[name] = {"state": "running", "done": 0, "total": 0, "errors": 0, "started": time.time(), "last_error": None}
+
+    def run():
+        try:
+            todo = db.parts_to_price_bricklink(set_num, max_age_hours=0 if force else 24)
+            by_key = {(p["part_num"], p["color_id"]): p for p in parts}
+            todo = [t for t in todo if (t["part_num"], t["color_id"]) in by_key]
+            with _lock:
+                _jobs[name]["total"] = len(todo)
+            for t in todo:
+                p = by_key[(t["part_num"], t["color_id"])]
+                bl_no, bl_col = bricklink.ids_for(p)
+                try:
+                    g = bricklink.price_guide("PART", bl_no, color_id=bl_col)
+                    db.save_bl_price(t["part_num"], t["color_id"], g["qty_avg"] or g["avg"], g["qty"], g["lots"])
+                except bricklink.BrickLinkError as e:
+                    db.save_bl_price(t["part_num"], t["color_id"], None, 0, 0)
+                    with _lock:
+                        _jobs[name]["errors"] += 1
+                        _jobs[name]["last_error"] = str(e)
+                with _lock:
+                    _jobs[name]["done"] += 1
+                    j = _jobs[name]
+                    if j["done"] >= 5 and j["errors"] == j["done"]:
+                        j.update({"state": "failed", "message": "BrickLink isn't answering: " + (j["last_error"] or "")})
+                        return
+                time.sleep(0.4)
+            with _lock:
+                _jobs[name].update({"state": "done", "finished": time.time()})
+        except Exception as e:
+            with _lock:
+                _jobs[name].update({"state": "failed", "message": str(e)})
+
+    threading.Thread(target=run, name=name, daemon=True).start()
+    return status(name)
+
+
+def start_brickowl_push(set_num, list_name, items):
+    name = f"bopush:{set_num}"
+    with _lock:
+        cur = _jobs.get(name)
+        if cur and cur.get("state") == "running":
+            return dict(cur)
+        _jobs[name] = {"state": "running", "done": 0, "total": len(items), "started": time.time()}
+
+    def progress(done, total):
+        with _lock:
+            _jobs[name].update({"done": done, "total": total})
+
+    def run():
+        try:
+            wid, problems = brickowl.push_wishlist(list_name, items, on_progress=progress)
+            with _lock:
+                _jobs[name].update({"state": "done", "wishlist_id": wid, "problems": problems,
+                                    "url": f"https://www.brickowl.com/mywishlist/{wid}", "finished": time.time()})
         except Exception as e:
             with _lock:
                 _jobs[name].update({"state": "failed", "message": str(e)})

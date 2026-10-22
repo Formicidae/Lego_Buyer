@@ -201,7 +201,7 @@
       state.mode === 'have' ? 'Everything is marked as owned. Switch to Trip.' :
       state.mode === 'trip' ? 'Nothing left to find. Switch to Buy.' : 'Nothing left to buy.';
     $('#buy-panel').hidden = state.mode !== 'buy';
-    if (state.mode === 'buy') renderBuyPlan();
+    if (state.mode === 'buy' && !state._fromSourcing) { renderBuyPlan(); if (!state._srcPending) { state._srcPending = true; setTimeout(() => { state._srcPending = false; renderSourcing(); }, 50); } }
     renderSummary();
     window.scrollTo(0, scroll);
   };
@@ -210,10 +210,18 @@
     const pr = $('.price', r); if (!pr || it.kind === 'minifig') return;
     pr.hidden = false; pr.className = 'price';
     if (it.price_checked_at == null) { pr.classList.add('na'); pr.textContent = it.lego_error ? `LEGO: lookup failed` : 'LEGO: price not checked yet'; return; }
-    if (it.lego_price == null || !it.lego_available) { pr.classList.add('na'); pr.textContent = 'Not sold by LEGO Pick a Brick'; return; }
+    if (it.lego_price == null || !it.lego_available) {
+      pr.classList.add('na');
+      const bl = it.bl_checked_at ? (it.bl_price != null ? ` · BL ~$${it.bl_price.toFixed(2)}` : ' · BL: none listed') : '';
+      pr.innerHTML = `Not sold by LEGO Pick a Brick${bl}${state.chosen && state.chosen.market && state.chosen.market.has(it.key) ? ' <span class="src-tag src-market">marketplace</span>' : ''}`;
+      return;
+    }
     const rem = remaining(it);
-    const tier = it.lego_tier ? `<span class="${it.lego_tier === 'Bestseller' ? 'tier-pab' : 'tier-bap'}">${it.lego_tier}</span>` : '';
-    pr.innerHTML = `<b>LEGO:</b> $${it.lego_price.toFixed(2)} each · $${(it.lego_price * rem).toFixed(2)} needed${tier ? ' · ' + tier : ''}${it.lego_limit ? ` · limit ${it.lego_limit}` : ''}`;
+    const t = it.tier || it.lego_tier;
+    const tier = `<button type="button" class="tier-btn ${t === 'Bestseller' ? 'tier-pab' : t === 'Standard' ? 'tier-bap' : ''}" data-tier="${it.element_id || ''}" title="Tap to change Bestseller / Standard">${t || 'tier?'}</button>`;
+    const bl = it.bl_checked_at ? (it.bl_price != null ? ` · <span class="bl">BL ~$${it.bl_price.toFixed(2)}</span>` : ' · <span class="bl">BL: none listed</span>') : '';
+    const src = state.chosen && state.chosen.market && state.chosen.market.has(it.key) ? ' <span class="src-tag src-market">marketplace</span>' : state.chosen && state.chosen.lego && state.chosen.lego.has(it.key) ? ' <span class="src-tag src-lego">LEGO</span>' : '';
+    pr.innerHTML = `<b>LEGO:</b> $${it.lego_price.toFixed(2)} each · $${(it.lego_price * rem).toFixed(2)} needed · ${tier}${it.lego_limit ? ` · limit ${it.lego_limit}` : ''}${bl}${src}`;
   };
 
   const paintRow = (it, r) => {
@@ -426,8 +434,65 @@
     el.innerHTML = `
       <div class="tiers">${tierCard('Bestseller', L.tiers.Bestseller)}${tierCard('Standard', L.tiers.Standard)}</div>
       <div class="buy-total"><span>Parts <b>${money(L.subtotal)}</b></span><span>Fees <b>${money(L.service_fees)}</b></span><span>${ship}</span><span>Total <b>${money(L.total)}</b></span></div>
-      <p class="hint">${plan.not_sold_by_lego.length} lot${plan.not_sold_by_lego.length === 1 ? '' : 's'} not sold by LEGO (these go to BrickOwl/BrickLink in the next build)${plan.unpriced.length ? ` · ${plan.unpriced.length} not checked yet` : ''}</p>`;
+      <p class="hint">${plan.not_sold_by_lego.length} lot${plan.not_sold_by_lego.length === 1 ? '' : 's'} not sold by LEGO · see “Where to buy” below${plan.unpriced.length ? ` · ${plan.unpriced.length} not checked yet` : ''}</p>`;
   };
+  const cycleTier = async (eid, cur) => {
+    const next = cur === 'Bestseller' ? 'Standard' : cur === 'Standard' ? '' : 'Bestseller';
+    try {
+      await api('/api/tier', { method: 'POST', body: JSON.stringify({ element_id: eid, tier: next }) });
+      for (const it of state.parts) if (it.element_id === eid) { it.tier = next || null; it.tier_manual = next || null; const el = state.rows.get(it.key); if (el) paintPrice(it, el); }
+      renderBuyPlan(); renderSourcing();
+    } catch (e) { toast(e.message); }
+  };
+
+  // ---------- sourcing (LEGO vs marketplace) ----------
+  const shipEst = () => Number(localStorage.getItem('lb_ship') || 5);
+  let srcData = null;
+  const renderSourcing = async () => {
+    if (state.mode !== 'buy' || !state.setNum) return;
+    const ident = state.isView ? `v:${viewKeys}` : state.setNum;
+    try { srcData = await api(`/api/sourcing/${ident}?ship=${shipEst()}`); } catch (e) { $('#src-status').textContent = e.message; return; }
+    if (!srcData) return;
+    const box = $('#scenarios'); box.replaceChildren();
+    const best = srcData.scenarios[0];
+    const chosenName = localStorage.getItem('lb_scenario:' + ident) || best.name;
+    const chosen = srcData.scenarios.find((s) => s.name === chosenName) || best;
+    state.chosen = { lego: new Set(chosen.lego_keys), market: new Set(chosen.market_keys) };
+    for (const sc of srcData.scenarios) {
+      const d = document.createElement('div'); d.className = 'scenario' + (sc === best ? ' best' : '') + (sc === chosen ? ' chosen' : '');
+      const L = sc.lego; const M = sc.market;
+      const stores = sc.imported ? `<div class="stores">${sc.stores.map((st) => `${st.name}: ${money(st.subtotal)} + ${money(st.shipping)} ship`).join(' · ')}${sc.url ? ` · <a href="${sc.url}" target="_blank" rel="noopener">open</a>` : ''} · <a href="#" data-delcart="${sc.cart_id}">remove</a></div>` : '';
+      d.innerHTML = `<h3><span>${sc.name}${sc === best ? ' · cheapest' : ''}</span><b>${money(sc.total)}</b></h3><small>${sc.note}</small>
+        <div class="lines">
+          ${L ? `<span>LEGO: ${money(L.subtotal)} parts + ${money(L.service_fees)} fees + ${money(L.shipping)} ship (${sc.lego_keys.length} lots)</span>` : '<span>LEGO: nothing</span>'}
+          <span>Marketplace: ${money(M.parts)} parts + ${money(M.shipping)} ship (${M.lots} lots${M.unpriced ? `, ${M.unpriced} unpriced` : ''})</span>
+        </div>${stores}`;
+      d.querySelector('[data-delcart]')?.addEventListener('click', async (e) => { e.preventDefault(); e.stopPropagation(); if (confirm('Remove this imported cart?')) { await api(`/api/sourcing/${ident}/carts?id=${sc.cart_id}`, { method: 'DELETE' }); renderSourcing(); } });
+      d.addEventListener('click', () => { localStorage.setItem('lb_scenario:' + ident, sc.name); renderSourcing(); render(); });
+      box.appendChild(d);
+    }
+    const j = srcData.bl_job;
+    $('#src-status').textContent = !srcData.bricklink_configured
+      ? 'No BrickLink API keys yet: marketplace prices are unknown, so the comparison only counts LEGO. Add BRICKLINK_* keys to /etc/lego-buyer.env to enable (free with a BrickLink account).'
+      : j.state === 'running' ? `Checking BrickLink… ${j.done} / ${j.total}`
+      : srcData.unpriced_bl ? `${srcData.unpriced_bl} parts have no BrickLink price yet — tap Check BrickLink prices.`
+      : `Marketplace prices from the BrickLink price guide (new, current listings). Tap a scenario to choose it; cards show which side each part landed on.`;
+    $('#btn-bl-prices').disabled = !srcData.bricklink_configured || j.state === 'running';
+    const mk = chosen.market_keys;
+    $('#link-bl-xml').href = `/api/sourcing/${ident}/wanted.xml?keys=${encodeURIComponent(mk.join(','))}`;
+    $('#btn-bo-push').disabled = mk.length === 0;
+    $('#btn-bo-push').textContent = `Send ${mk.length} marketplace lot${mk.length === 1 ? '' : 's'} to a BrickOwl wishlist`;
+    const bp = srcData.bo_push;
+    if (bp.state === 'done') $('#bo-status').innerHTML = `Wishlist ready on BrickOwl: <a href="${bp.url}" target="_blank" rel="noopener">open it</a> and use BrickOwl's “Buy” to build the cart.${bp.problems && bp.problems.length ? ` ${bp.problems.length} lot(s) couldn't be added.` : ''}`;
+    else if (bp.state === 'running') $('#bo-status').textContent = `Sending to BrickOwl… ${bp.done} / ${bp.total}`;
+    else if (bp.state === 'failed') $('#bo-status').textContent = bp.message;
+    else if (srcData.bo_skipped.length) $('#bo-status').textContent = `${srcData.bo_skipped.length} lot(s) have no BrickOwl ID on Rebrickable and would be left out of the wishlist.`;
+    else $('#bo-status').textContent = '';
+    state._fromSourcing = true; render(); state._fromSourcing = false;
+  };
+  let srcTimer = null;
+  const watchJob = (check) => { clearInterval(srcTimer); srcTimer = setInterval(async () => { await renderSourcing(); if (check()) { clearInterval(srcTimer); await loadSet(); } }, 2000); };
+
   let priceTimer = null;
   const watchPriceJob = () => {
     clearInterval(priceTimer);
@@ -597,8 +662,43 @@
     $('#bucket-cost').addEventListener('change', (e) => { localStorage.setItem('lb_bucket', String(Math.max(0, Number(e.target.value) || 0))); renderSummary(); });
     $('#btn-finish').addEventListener('click', finishTrip);
     $('#btn-prices').addEventListener('click', () => startPrices(false));
+    $('#ship-est').value = shipEst();
+    $('#ship-est').addEventListener('change', (e) => { localStorage.setItem('lb_ship', String(Math.max(0, Number(e.target.value) || 0))); renderSourcing(); });
+    $('#btn-bl-prices').addEventListener('click', async () => {
+      const ident = state.isView ? `v:${viewKeys}` : state.setNum;
+      try { await api(`/api/sourcing/${ident}/bricklink`, { method: 'POST', body: JSON.stringify({}) }); watchJob(() => srcData && srcData.bl_job.state !== 'running'); }
+      catch (e) { toast(e.message, 6000); }
+    });
+    $('#btn-bo-push').addEventListener('click', async () => {
+      if (!srcData) return;
+      const ident = state.isView ? `v:${viewKeys}` : state.setNum;
+      const keys = [...state.chosen.market];
+      if (!confirm(`Create/replace a BrickOwl wishlist with these ${keys.length} lots?`)) return;
+      try { await api(`/api/sourcing/${ident}/brickowl`, { method: 'POST', body: JSON.stringify({ keys }) }); watchJob(() => srcData && srcData.bo_push.state !== 'running'); }
+      catch (e) { toast(e.message, 6000); }
+    });
+    $('#ci-save').addEventListener('click', async () => {
+      const ident = state.isView ? `v:${viewKeys}` : state.setNum;
+      const stores = $('#ci-stores').value.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => {
+        const parts = l.split(/[,\t]/).map((x) => x.trim());
+        return { name: parts[0] || 'store', subtotal: Number(String(parts[1] || '0').replace(/[^0-9.]/g, '')) || 0, shipping: Number(String(parts[2] || '0').replace(/[^0-9.]/g, '')) || 0 };
+      });
+      if (!stores.length) { toast('Enter at least one store line'); return; }
+      try {
+        await api(`/api/sourcing/${ident}/carts`, { method: 'POST', body: JSON.stringify({ source: $('#ci-source').value, name: $('#ci-name').value.trim() || `${stores.length} store${stores.length === 1 ? '' : 's'}`, stores, keys: state.chosen ? [...state.chosen.market] : [], lots_missing: Number($('#ci-missing').value) || 0 }) });
+        $('#ci-stores').value = ''; $('#ci-name').value = ''; toast('Cart added'); renderSourcing();
+      } catch (e) { toast(e.message); }
+    });
+    $('#grid').addEventListener('click', (e) => {
+      const b = e.target.closest('.tier-btn'); if (!b || !b.dataset.tier) return;
+      e.preventDefault(); e.stopPropagation();
+      const it = state.parts.find((p) => p.element_id === b.dataset.tier); if (it) cycleTier(b.dataset.tier, it.tier || it.lego_tier || '');
+    });
     $('#btn-prices-force').addEventListener('click', () => { if (confirm('Re-check every part against lego.com? Takes about a second per part.')) startPrices(true); });
-    $('#btn-copy-bl').addEventListener('click', () => copy(blXml(), 'BrickLink XML'));
+    $('#btn-copy-bl').addEventListener('click', async () => {
+      if (srcData && state.chosen) { const ident = state.isView ? `v:${viewKeys}` : state.setNum; const r = await fetch(`/api/sourcing/${ident}/wanted.xml?keys=${encodeURIComponent([...state.chosen.market].join(','))}`); copy(await r.text(), 'BrickLink XML'); return; }
+      copy(blXml(), 'BrickLink XML');
+    });
     $('#btn-copy-csv').addEventListener('click', () => copy(csv(), 'CSV'));
 
     // Clicking a row's picture also acts as the primary tap (handy with one thumb at the wall).

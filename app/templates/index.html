@@ -128,10 +128,36 @@
     </div>
     <p class="hint" id="price-status">Prices and Bestseller/Standard tiers come from lego.com and are cached for a day.</p>
     <div id="buy-summary"></div>
+
+    <div class="buy-head" style="margin-top:18px">
+      <h2>Where to buy</h2>
+      <div class="buy-actions">
+        <button class="btn ghost" id="btn-bl-prices" type="button" title="Look up each part on the BrickLink price guide">Check BrickLink prices</button>
+      </div>
+    </div>
+    <p class="hint" id="src-status">Compares LEGO against marketplace prices (BrickLink price guide, also used as the BrickOwl estimate).</p>
+    <label class="hint">Marketplace shipping estimate $<input id="ship-est" type="number" min="0" step="0.5" value="5" style="width:60px"></label>
+    <div id="scenarios" class="scenarios"></div>
     <div class="buy-actions buy-exports">
-      <button class="btn ghost" id="btn-copy-bl" type="button">Copy BrickLink wanted-list XML</button>
+      <button class="btn primary" id="btn-bo-push" type="button">Send marketplace parts to a BrickOwl wishlist</button>
+      <a class="btn ghost" id="link-bl-xml" href="#" download>Download BrickLink wanted list</a>
+      <button class="btn ghost" id="btn-copy-bl" type="button">Copy XML</button>
       <button class="btn ghost" id="btn-copy-csv" type="button">Copy CSV</button>
     </div>
+    <p class="hint" id="bo-status"></p>
+
+    <details class="cart-import">
+      <summary>Add a cart configuration by hand</summary>
+      <p class="hint">After BrickOwl or BrickLink builds a cart from the wishlist, enter each store's subtotal and shipping here and it joins the comparison above.</p>
+      <div class="cart-form">
+        <label>Source <select id="ci-source"><option>BrickOwl</option><option>BrickLink</option></select></label>
+        <label>Name <input id="ci-name" placeholder="e.g. 3 stores, all new"></label>
+        <textarea id="ci-stores" rows="4" placeholder="One store per line:  store name, subtotal, shipping&#10;BrickCity, 12.40, 4.25&#10;Owl Bricks, 3.10, 3.00"></textarea>
+        <label>Lots not covered <input id="ci-missing" type="number" min="0" value="0" style="width:64px"></label>
+        <button class="btn primary" id="ci-save" type="button">Add to comparison</button>
+      </div>
+    </details>
+    <div id="carts-list"></div>
   </div>
 
   <div class="grid" id="grid"></div>

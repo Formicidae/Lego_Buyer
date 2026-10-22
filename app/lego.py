@@ -296,9 +296,17 @@ def page_lookup(element_id: str, timeout=20):
         return None
     avail = _AVAIL_RE.search(html)
     lim = _LIMIT_RE.search(html)
+    tier = None
+    tm = re.search(r"deliveryChannel\\?[\"']?\s*:\s*\\?[\"'](pab|bap|bestseller|standard)", html, re.I)
+    if tm:
+        tier = TIER_NAMES.get(tm.group(1).lower())
+    elif re.search(r">\s*Bestseller\s*<", html):
+        tier = "Bestseller"
+    elif re.search(r">\s*Standard\s*<", html) and "Pick a Brick" in html:
+        tier = "Standard"
     return {
         "price": float(m.group(1)),
-        "tier": None,
+        "tier": tier,
         "available": bool(avail and not re.search(r"out of stock|sold out", avail.group(0), re.I)),
         "limit": int(lim.group(1)) if lim else None,
         "source": "page",

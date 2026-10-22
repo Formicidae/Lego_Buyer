@@ -10,6 +10,24 @@ Bestseller/Standard tiers and the US service-fee / free-shipping math.
 **Next:** BrickOwl availability and the buy-plan optimizer that splits an order between LEGO and
 BrickOwl/BrickLink sellers.
 
+## Where to buy (Buy tab)
+
+- **LEGO Pick a Brick**: *Check LEGO prices* fills price, stock and the Bestseller/Standard tier.
+  When LEGO doesn't say which tier a part is, tap the tier on the card to set it by hand (it's
+  remembered for that element everywhere).
+- **Marketplace prices**: with BrickLink API credentials (free: bricklink.com/v3/api.page; add
+  `BRICKLINK_CONSUMER_KEY`, `BRICKLINK_CONSUMER_SECRET`, `BRICKLINK_TOKEN`, `BRICKLINK_TOKEN_SECRET`
+  to `/etc/lego-buyer.env`), *Check BrickLink prices* pulls the price guide for each needed part.
+- **Scenarios**: LEGO where possible / all marketplace / cheapest per part, each fully costed with
+  LEGO's fee and shipping rules. Tap one to choose it; cards show which side each part landed on.
+- **BrickOwl**: *Send … to a BrickOwl wishlist* creates (or replaces) a wishlist in your BrickOwl
+  account with the marketplace parts; open it on BrickOwl and let their cart builder pick stores.
+- **BrickLink**: download or copy the wanted-list XML for the marketplace parts and upload it on
+  BrickLink.
+- **Imported carts**: once BrickOwl/BrickLink has built a cart, enter each store's subtotal and
+  shipping (or POST to `/api/sourcing/{list}/carts`) and it appears as a scenario next to the
+  LEGO options.
+
 ## Run it on a Raspberry Pi (free, always on)
 
 Works on a Pi 4 (any RAM) with Raspberry Pi OS, no monitor needed.

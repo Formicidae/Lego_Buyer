@@ -145,6 +145,31 @@ a { color: var(--green); }
 .buy-total { margin-top: 10px; font-size: 14px; display: flex; gap: 16px; flex-wrap: wrap; }
 .buy-total b { font-size: 16px; }
 .price.na { color: var(--ink-3); }
+.price .tier-btn { border: 1px dashed var(--line); background: transparent; border-radius: 6px; padding: 0 6px; font: inherit; cursor: pointer; color: var(--ink-2); }
+.price .tier-btn.tier-pab { color: var(--green); border-color: #cfe5d8; font-weight: 700; }
+.price .tier-btn.tier-bap { color: var(--amber-ink); border-color: #efe3b8; font-weight: 700; }
+.price .bl { color: var(--ink-2); }
+.scenarios { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 10px; }
+.scenario { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; cursor: pointer; }
+.scenario.best { border-color: var(--green); box-shadow: inset 0 0 0 1.5px var(--green); }
+.scenario.chosen { background: var(--green-2); }
+.scenario h3 { margin: 0; font-size: 14px; display: flex; justify-content: space-between; }
+.scenario h3 b { font-size: 16px; }
+.scenario small { color: var(--ink-2); font-size: 12px; display: block; }
+.scenario .lines { margin-top: 6px; font-size: 12px; color: var(--ink-2); display: grid; gap: 2px; }
+.cart-import { margin-top: 14px; font-size: 14px; }
+.cart-import summary { cursor: pointer; font-weight: 700; }
+.cart-form { display: grid; gap: 8px; margin-top: 8px; }
+.cart-form label { display: flex; gap: 8px; align-items: center; }
+.cart-form input, .cart-form select, .cart-form textarea { padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; font: inherit; background: var(--card); }
+.cart-form textarea { width: 100%; font-family: var(--mono); font-size: 12px; }
+.carts { display: grid; gap: 6px; margin-top: 10px; }
+.cart-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; font-size: 13px; }
+.cart-row small { color: var(--ink-2); display: block; }
+.scenario .stores { margin-top: 4px; font-size: 11px; color: var(--ink-3); }
+.src-tag { font-size: 11px; border-radius: 6px; padding: 0 6px; font-weight: 700; }
+.src-lego { background: var(--green-2); color: var(--green); }
+.src-market { background: var(--amber); color: var(--amber-ink); }
 .price .tier-pab { color: var(--green); font-weight: 700; }
 .price .tier-bap { color: var(--amber-ink); font-weight: 700; }
 

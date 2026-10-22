@@ -88,6 +88,23 @@ CREATE TABLE IF NOT EXISTS trips (
     finished_by TEXT
 );
 
+-- Cart configurations imported from BrickOwl/BrickLink (their cart builders), for comparison.
+CREATE TABLE IF NOT EXISTS carts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ident TEXT NOT NULL,
+    source TEXT NOT NULL,
+    name TEXT NOT NULL,
+    stores TEXT NOT NULL,
+    keys_json TEXT NOT NULL,
+    parts_total REAL NOT NULL,
+    shipping_total REAL NOT NULL,
+    total REAL NOT NULL,
+    lots_covered INTEGER,
+    lots_missing INTEGER,
+    url TEXT,
+    created_at REAL NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS revisions (
     set_num TEXT PRIMARY KEY,
     rev INTEGER NOT NULL DEFAULT 0
@@ -110,6 +127,11 @@ MIGRATIONS = [
     "ALTER TABLE set_parts ADD COLUMN lego_available INTEGER",
     "ALTER TABLE set_parts ADD COLUMN lego_limit INTEGER",
     "ALTER TABLE set_parts ADD COLUMN lego_error TEXT",
+    "ALTER TABLE set_parts ADD COLUMN tier_manual TEXT",
+    "ALTER TABLE set_parts ADD COLUMN bl_price REAL",
+    "ALTER TABLE set_parts ADD COLUMN bl_qty INTEGER",
+    "ALTER TABLE set_parts ADD COLUMN bl_lots INTEGER",
+    "ALTER TABLE set_parts ADD COLUMN bl_checked_at REAL",
 ]
 
 
@@ -292,6 +314,7 @@ def set_items(set_num):
     for p in parts:
         p["key"] = f"p:{p['id']}"
         p["external_ids"] = json.loads(p["external_ids"] or "{}")
+        p["tier"] = p.get("tier_manual") or p.get("lego_tier")  # what the UI and the fee math use
         p.update(_prog_fields(prog.get(p["key"])))
     for f in figs:
         f["key"] = f"f:{f['id']}"
@@ -420,3 +443,56 @@ def finish_trip(set_num, who=None):
 
 def trips(set_num):
     return q("SELECT * FROM trips WHERE set_num=? ORDER BY finished_at DESC", (set_num,))
+
+
+def set_manual_tier(element_id, tier):
+    """Hand-set Bestseller/Standard (or clear) for an element, across every list that has it."""
+    with tx() as conn:
+        conn.execute("UPDATE set_parts SET tier_manual=? WHERE element_id=?", (tier or None, element_id))
+        for r in conn.execute("SELECT DISTINCT set_num FROM set_parts WHERE element_id=?", (element_id,)):
+            bump_rev(conn, r["set_num"])
+
+
+def parts_to_price_bricklink(set_num, max_age_hours=24):
+    cutoff = time.time() - max_age_hours * 3600
+    return q(
+        "SELECT DISTINCT part_num, color_id, external_ids FROM set_parts WHERE set_num=? AND is_spare=0 "
+        "AND (bl_checked_at IS NULL OR bl_checked_at < ?)",
+        (set_num, cutoff),
+    )
+
+
+def save_bl_price(part_num, color_id, price, qty, lots):
+    with tx() as conn:
+        conn.execute(
+            "UPDATE set_parts SET bl_price=?, bl_qty=?, bl_lots=?, bl_checked_at=? WHERE part_num=? AND color_id=?",
+            (price, qty, lots, time.time(), part_num, color_id),
+        )
+        for r in conn.execute("SELECT DISTINCT set_num FROM set_parts WHERE part_num=? AND color_id=?", (part_num, color_id)):
+            bump_rev(conn, r["set_num"])
+
+
+# ---------- Imported carts ----------
+
+def carts(ident):
+    rows = q("SELECT * FROM carts WHERE ident=? ORDER BY created_at DESC", (ident,))
+    for r in rows:
+        r["stores"] = json.loads(r["stores"] or "[]")
+        r["keys"] = json.loads(r.pop("keys_json") or "[]")
+    return rows
+
+
+def add_cart(ident, source, name, stores, keys, parts_total, shipping_total, lots_covered=None, lots_missing=None, url=None):
+    with tx() as conn:
+        cur = conn.execute(
+            "INSERT INTO carts(ident, source, name, stores, keys_json, parts_total, shipping_total, total, lots_covered, lots_missing, url, created_at) "
+            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+            (ident, source, name, json.dumps(stores), json.dumps(keys), round(parts_total, 2), round(shipping_total, 2),
+             round(parts_total + shipping_total, 2), lots_covered, lots_missing, url, time.time()),
+        )
+        return cur.lastrowid
+
+
+def delete_cart(cart_id):
+    with tx() as conn:
+        conn.execute("DELETE FROM carts WHERE id=?", (cart_id,))
