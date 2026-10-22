@@ -83,11 +83,18 @@
     if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
     return `${Math.floor(s / 86400)}d ago`;
   };
+  // Who is tapping: a stored name, or a quiet per-phone default. Never prompts during a tap.
   const ensureWho = () => {
     if (state.who) return state.who;
-    const n = (prompt('Your name (shown next to parts you tap):') || '').trim().slice(0, 40);
-    if (n) { state.who = n; localStorage.setItem('lb_who', n); $('#btn-who').textContent = n; }
-    return state.who;
+    let d = '';
+    try { d = localStorage.getItem('lb_device') || ''; } catch {}
+    if (!d) { d = 'Phone ' + Math.random().toString(36).slice(2, 5).toUpperCase(); try { localStorage.setItem('lb_device', d); } catch {} }
+    return d;
+  };
+  const askName = () => {
+    const n = (prompt('Name shown next to parts you tap:', state.who || '') || '').trim().slice(0, 40);
+    if (n) { state.who = n; try { localStorage.setItem('lb_who', n); } catch {} }
+    $('#btn-who').textContent = state.who || ensureWho();
   };
 
   // ---------- items ----------
@@ -536,8 +543,8 @@
   };
 
   const init = () => {
-    $('#btn-who').textContent = state.who || '?';
-    $('#btn-who').addEventListener('click', () => { state.who = ''; localStorage.removeItem('lb_who'); ensureWho(); $('#btn-who').textContent = state.who || '?'; });
+    $('#btn-who').textContent = state.who || ensureWho();
+    $('#btn-who').addEventListener('click', askName);
     $('#btn-switch').addEventListener('click', () => (location.href = '/'));
 
     // Home
