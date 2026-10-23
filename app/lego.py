@@ -144,7 +144,7 @@ def discover_query(force=False, debug=None) -> str:
             debug.extend(_samples(js, "ElementQueryInput", u, width=400, limit=2))
             debug.extend(_samples(js, "includeOutOfStock", u, width=300, limit=2))
 
-    # 1) the operation itself
+    # 1) the operation itself (+ the default input object that usually follows it)
     op = None
     for u, js in scripts.items():
         for m in re.finditer(r"query PickABrickQuery", js):
@@ -154,9 +154,20 @@ def discover_query(force=False, debug=None) -> str:
                 continue
             if "lements(" in q or "{" in q:
                 op = q
+                tail = js[m.start(): m.start() + len(q) + 1200]
+                dm = re.search(r"=\s*(\{page:\d+,perPage:\d+.*?\})", tail)
+                if dm:
+                    raw = dm.group(1)
+                    if debug is not None:
+                        debug.append({"default_input_raw": raw})
+                    parsed = _js_object_to_json(raw)
+                    if parsed is not None:
+                        INPUT_CACHE.write_text(json.dumps(parsed))
                 break
         if op:
             break
+    # Template placeholders (${x.y}) stand for fragments we resolve by name below.
+    op = re.sub(r"\$\{[^}]*\}", "", op)
     if not op:
         raise QueryNotFound(f"no PickABrickQuery in {len(scripts)} scripts; first few: " + ", ".join(u.rsplit("/", 1)[-1] for u in list(scripts)[:5]))
 
@@ -182,6 +193,30 @@ def discover_query(force=False, debug=None) -> str:
         needed |= set(re.findall(r"\.\.\.(\w+)", found))
     QUERY_CACHE.write_text(doc)
     return doc
+
+
+def _js_object_to_json(src: str):
+    """Best-effort: turn a small JS object literal ({page:1,perPage:24,query:"",filters:[]}) into Python."""
+    t = src
+    t = re.sub(r"([{,]\s*)([A-Za-z_$][\w$]*)\s*:", r'\1"\2":', t)   # quote bare keys
+    t = t.replace("!0", "true").replace("!1", "false").replace("void 0", "null").replace("undefined", "null")
+    t = re.sub(r"'([^']*)'", r'"\1"', t)
+    t = re.sub(r",\s*([}\]])", r"\1", t)
+    try:
+        obj = json.loads(t)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(obj, dict):
+        return None
+    # Whatever the free-text field is called, that's where the element id goes.
+    for k in ("query", "q", "search", "searchTerm", "text", "term"):
+        if k in obj:
+            obj[k] = "{element_id}"
+            break
+    else:
+        obj["query"] = "{element_id}"
+    obj.setdefault("page", 1)
+    return obj
 
 
 def query_variables(q: str, element_id: str):

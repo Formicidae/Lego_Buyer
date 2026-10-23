@@ -636,9 +636,17 @@ async def api_admin_discover(request: Request):
             probe = lego.graphql_lookup("6204668")
         except Exception as e:
             probe = f"FAIL: {e}"
-        out = {"chars": len(q), "head": q[:500], "variables": lego.query_variables(q, "6204668"), "probe_6204668": probe}
+        out = {"chars": len(q), "head": q[:300], "variables": lego.query_variables(q, "6204668"), "probe_6204668": probe,
+               "default_input": next((d["default_input_raw"] for d in debug if "default_input_raw" in d), None)}
         if isinstance(probe, str):
             out["samples"] = debug[:8]
+            # Show the raw GraphQL answer too, so a field mismatch is visible.
+            try:
+                body = {"operationName": "PickABrickQuery", "variables": lego.query_variables(q, "6204668"), "query": q}
+                r = lego._session.post(lego.GRAPHQL_URL, headers=lego.HEADERS, data=json.dumps(body), timeout=20)
+                out["raw_response"] = r.text[:1200]
+            except Exception as e:
+                out["raw_response"] = str(e)
         out["element_page"] = lego.page_tier_probe("6204668")
         return out
     try:
