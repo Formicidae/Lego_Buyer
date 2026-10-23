@@ -57,7 +57,8 @@ def scenarios(items, opts=None):
         M = _market_cost(market_items, opts)
         total = (L["total"] if L else 0) + M["total"]
         return {"name": name, "note": note, "lego": L, "market": M, "lego_keys": [i["key"] for i in lego_items],
-                "market_keys": [i["key"] for i in market_items], "total": round(total, 2)}
+                "market_keys": [i["key"] for i in market_items], "total": round(total, 2),
+                "incomplete": M["unpriced"] > 0}  # marketplace lots with no price make the total a floor, not an estimate
 
     out = [
         build("LEGO where possible", lego_ok, lego_no, "Everything LEGO sells from Pick a Brick; the rest from one marketplace order."),
@@ -82,7 +83,7 @@ def scenarios(items, opts=None):
                 cheap_lego = [i for i in cheap_lego if (i["tier"] or "Unknown") != tier_name]
                 cheap_market += moved
     out.append(build("Cheapest per part", cheap_lego, cheap_market, "Each part from whichever is cheaper, with LEGO categories dropped when the fee would exceed the parts."))
-    out.sort(key=lambda s: s["total"])
+    out.sort(key=lambda s: (s.get("incomplete", False), s["total"]))
     return out
 
 

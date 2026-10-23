@@ -286,7 +286,7 @@ async def api_sourcing(request: Request):
         pass
     ident = request.path_params["ident"]
     sc = sourcing.scenarios(items, opts) + sourcing.cart_scenarios(items, db.carts(ident), opts)
-    sc.sort(key=lambda x: x["total"])
+    sc.sort(key=lambda x: (bool(x.get("incomplete")), x["total"]))
     bl_job = jobs.status(f"blprices:{keys[0]}")
     bo_ok, bo_skipped = sourcing.brickowl_wishlist_items(items)
     return JSONResponse({

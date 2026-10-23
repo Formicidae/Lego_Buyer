@@ -454,7 +454,7 @@
     try { srcData = await api(`/api/sourcing/${ident}?ship=${shipEst()}`); } catch (e) { $('#src-status').textContent = e.message; return; }
     if (!srcData) return;
     const box = $('#scenarios'); box.replaceChildren();
-    const best = srcData.scenarios[0];
+    const best = srcData.scenarios.find((s) => !s.incomplete) || srcData.scenarios[0];
     const chosenName = localStorage.getItem('lb_scenario:' + ident) || best.name;
     const chosen = srcData.scenarios.find((s) => s.name === chosenName) || best;
     state.chosen = { lego: new Set(chosen.lego_keys), market: new Set(chosen.market_keys) };
@@ -462,7 +462,7 @@
       const d = document.createElement('div'); d.className = 'scenario' + (sc === best ? ' best' : '') + (sc === chosen ? ' chosen' : '');
       const L = sc.lego; const M = sc.market;
       const stores = sc.imported ? `<div class="stores">${sc.stores.map((st) => `${st.name}: ${money(st.subtotal)} + ${money(st.shipping)} ship`).join(' · ')}${sc.url ? ` · <a href="${sc.url}" target="_blank" rel="noopener">open</a>` : ''} · <a href="#" data-delcart="${sc.cart_id}">remove</a></div>` : '';
-      d.innerHTML = `<h3><span>${sc.name}${sc === best ? ' · cheapest' : ''}</span><b>${money(sc.total)}</b></h3><small>${sc.note}</small>
+      d.innerHTML = `<h3><span>${sc.name}${sc === best ? ' · cheapest' : ''}</span><b>${sc.incomplete ? 'from ' : ''}${money(sc.total)}</b></h3><small>${sc.note}${sc.incomplete ? ` <b>Incomplete:</b> ${sc.market.unpriced} marketplace lot(s) have no price yet, so this is only a floor.` : ''}</small>
         <div class="lines">
           ${L ? `<span>LEGO: ${money(L.subtotal)} parts + ${money(L.service_fees)} fees + ${money(L.shipping)} ship (${sc.lego_keys.length} lots)</span>` : '<span>LEGO: nothing</span>'}
           <span>Marketplace: ${money(M.parts)} parts + ${money(M.shipping)} ship (${M.lots} lots${M.unpriced ? `, ${M.unpriced} unpriced` : ''})</span>
