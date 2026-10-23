@@ -146,9 +146,20 @@
     </div>
     <p class="hint" id="bo-status"></p>
 
+    <details class="cart-import" open>
+      <summary>Import a BrickOwl cart</summary>
+      <p class="hint">On BrickOwl's <b>Buy Wishlist</b> page, tick the stores you want, then either select-all + copy the page and paste it here, or print it to PDF and upload the PDF. Each configuration becomes a scenario above.</p>
+      <div class="cart-form">
+        <label>Name <input id="bo-cart-name" placeholder="e.g. 3 stores, North America"></label>
+        <textarea id="bo-cart-text" rows="4" placeholder="Paste the Buy Wishlist page text here…"></textarea>
+        <label>or PDF <input id="bo-cart-file" type="file" accept=".pdf,.txt"></label>
+        <button class="btn primary" id="bo-cart-import" type="button">Import cart</button>
+        <span class="hint" id="bo-cart-status"></span>
+      </div>
+    </details>
     <details class="cart-import">
       <summary>Add a cart configuration by hand</summary>
-      <p class="hint">After BrickOwl or BrickLink builds a cart from the wishlist, enter each store's subtotal and shipping here and it joins the comparison above.</p>
+      <p class="hint">Enter each store's subtotal and shipping yourself (works for BrickLink carts too).</p>
       <div class="cart-form">
         <label>Source <select id="ci-source"><option>BrickOwl</option><option>BrickLink</option></select></label>
         <label>Name <input id="ci-name" placeholder="e.g. 3 stores, all new"></label>

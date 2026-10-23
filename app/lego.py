@@ -378,3 +378,17 @@ def plan_fees(items, fees=US_FEES):
         "total": round(total + service + shipping, 2), "free_ship_min": fees["free_ship_min"],
         "free_ship_short": round(max(0.0, fees["free_ship_min"] - total), 2),
     }
+
+
+def page_tier_probe(element_id):
+    """What the element page says that could identify the tier; for tuning the scraper."""
+    try:
+        r = _session.get(ELEMENT_PAGE.format(element_id), headers={**HEADERS, "Accept": "text/html"}, timeout=20)
+    except requests.RequestException as e:
+        return {"error": str(e)}
+    html = r.text
+    out = {"status": r.status_code, "chars": len(html), "snippets": []}
+    for needle in ("deliveryChannel", "Bestseller", "bestseller", "Standard", "shipsFrom", "fulfil", "__NEXT_DATA__", "apollo", "ELEMENT"):
+        for m in list(re.finditer(re.escape(needle), html))[:2]:
+            out["snippets"].append({"needle": needle, "context": html[max(0, m.start() - 160): m.end() + 160]})
+    return out

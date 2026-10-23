@@ -21,7 +21,7 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from . import bricklink, brickowl, db, jobs, lego, rebrickable, sourcing, views
+from . import bricklink, brickowl, cartparse, db, jobs, lego, rebrickable, sourcing, views
 from .checklist import build_checklist, render_checklist_html, render_checklist_pdf
 from .config import APP_PASSCODE, SECRET, BRICKOWL_API_KEY, REBRICKABLE_API_KEY, DATA_DIR, CHROMIUM_PATH
 
@@ -348,6 +348,50 @@ async def api_carts(request: Request):
     return JSONResponse({"id": cid})
 
 
+async def api_cart_import(request: Request):
+    """Import BrickOwl's "Buy Wishlist" page: multipart with a 'file' (PDF or .txt) or form/json 'text'."""
+    ident = request.path_params["ident"]
+    info, parts, keys = _target(ident)
+    if not info:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    ctype = request.headers.get("content-type", "")
+    text, name, source = "", "", "BrickOwl"
+    if ctype.startswith("multipart/form-data"):
+        form = await request.form()
+        up = form.get("file")
+        name = (form.get("name") or "")[:60]
+        source = (form.get("source") or "BrickOwl")[:20]
+        if up is not None and getattr(up, "filename", None):
+            data = await up.read()
+            if up.filename.lower().endswith(".pdf") or data[:5] == b"%PDF-":
+                try:
+                    text = cartparse.pdf_text(data)
+                except ValueError as e:
+                    return JSONResponse({"error": str(e)}, status_code=400)
+            else:
+                text = data.decode("utf-8", "replace")
+        else:
+            text = form.get("text") or ""
+    else:
+        body = await request.json()
+        text, name, source = body.get("text") or "", (body.get("name") or "")[:60], (body.get("source") or "BrickOwl")[:20]
+    parsed = cartparse.parse_buy_wishlist(text)
+    if not parsed["stores"]:
+        return JSONResponse({"error": "Couldn't find any store rows. Paste the whole Buy Wishlist page (or print it to PDF and upload that)."}, status_code=400)
+    items = sourcing.needed_items(info, parts)
+    chosen_keys = body_keys = None
+    if ctype.startswith("multipart/form-data"):
+        body_keys = form.get("keys")
+    chosen_keys = [k for k in (body_keys or "").split(",") if k] if body_keys else [i["key"] for i in items if i["lego_price"] is None]
+    label = name or f"{len(parsed['stores'])} store{'s' if len(parsed['stores']) != 1 else ''} · {time.strftime('%b %d %H:%M')}"
+    parts_total = round(sum(st["subtotal"] for st in parsed["stores"]), 2)
+    ship_total = round(sum(st["shipping"] for st in parsed["stores"]), 2)
+    cid = db.add_cart(ident, source, label, parsed["stores"], chosen_keys, parts_total, ship_total,
+                      parsed["lots_covered"], parsed["lots_missing"], parsed["url"])
+    log.info("cart imported from page: %s %s stores=%d total=%.2f missing=%s", ident, label, len(parsed["stores"]), parsed["total"], parsed["lots_missing"])
+    return JSONResponse({"id": cid, "stores": parsed["stores"], "total": parsed["total"], "lots_covered": parsed["lots_covered"], "lots_missing": parsed["lots_missing"]})
+
+
 async def api_sourcing_xml(request: Request):
     info, parts, keys = _target(request.path_params["ident"])
     if not info:
@@ -587,7 +631,7 @@ async def api_admin_discover(request: Request):
         try:
             q = lego.discover_query(force=True, debug=debug)
         except lego.QueryNotFound as e:
-            return {"error": str(e), "samples": debug[:12]}
+            return {"error": str(e), "samples": debug[:12], "element_page": lego.page_tier_probe("6204668")}
         try:
             probe = lego.graphql_lookup("6204668")
         except Exception as e:
@@ -595,6 +639,7 @@ async def api_admin_discover(request: Request):
         out = {"chars": len(q), "head": q[:500], "variables": lego.query_variables(q, "6204668"), "probe_6204668": probe}
         if isinstance(probe, str):
             out["samples"] = debug[:8]
+        out["element_page"] = lego.page_tier_probe("6204668")
         return out
     try:
         res = await run_in_threadpool(run)
@@ -689,6 +734,7 @@ routes = [
     Route("/api/sourcing/{ident}/brickowl", api_sourcing_bo, methods=["POST"]),
     Route("/api/sourcing/{ident}/wanted.xml", api_sourcing_xml),
     Route("/api/sourcing/{ident}/carts", api_carts, methods=["GET", "POST", "DELETE"]),
+    Route("/api/sourcing/{ident}/carts/import", api_cart_import, methods=["POST"]),
     Route("/api/tier", api_tier, methods=["POST"]),
     Route("/api/brickowl/wishlists", api_bo_wishlists),
     Route("/api/brickowl/import", api_bo_import, methods=["POST"]),

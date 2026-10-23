@@ -677,6 +677,24 @@
       try { await api(`/api/sourcing/${ident}/brickowl`, { method: 'POST', body: JSON.stringify({ keys }) }); watchJob(() => srcData && srcData.bo_push.state !== 'running'); }
       catch (e) { toast(e.message, 6000); }
     });
+    $('#bo-cart-import').addEventListener('click', async () => {
+      const ident = state.isView ? `v:${viewKeys}` : state.setNum;
+      const fd = new FormData();
+      const f = $('#bo-cart-file').files[0];
+      if (f) fd.append('file', f); else fd.append('text', $('#bo-cart-text').value);
+      fd.append('name', $('#bo-cart-name').value.trim());
+      if (state.chosen) fd.append('keys', [...state.chosen.market].join(','));
+      if (!f && !$('#bo-cart-text').value.trim()) { $('#bo-cart-status').textContent = 'Paste the page text or choose the PDF first.'; return; }
+      $('#bo-cart-status').textContent = 'Reading…';
+      try {
+        const r = await fetch(`/api/sourcing/${ident}/carts/import`, { method: 'POST', body: fd });
+        const j = await r.json();
+        if (!r.ok) { $('#bo-cart-status').textContent = j.error || 'Import failed'; return; }
+        $('#bo-cart-status').textContent = `Imported ${j.stores.length} store${j.stores.length === 1 ? '' : 's'}, $${j.total.toFixed(2)} incl. shipping${j.lots_missing ? `, ${j.lots_missing} lot(s) unallocated` : ''}.`;
+        $('#bo-cart-text').value = ''; $('#bo-cart-file').value = ''; $('#bo-cart-name').value = '';
+        renderSourcing();
+      } catch (e) { $('#bo-cart-status').textContent = e.message; }
+    });
     $('#ci-save').addEventListener('click', async () => {
       const ident = state.isView ? `v:${viewKeys}` : state.setNum;
       const stores = $('#ci-stores').value.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => {
