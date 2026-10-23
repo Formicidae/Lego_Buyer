@@ -318,6 +318,35 @@ _AVAIL_RE = re.compile(r"Available now|in stock|Out of stock|Sold out|Coming soo
 _LIMIT_RE = re.compile(r"Limit\s+(\d+)")
 
 
+_SHIP_SENTENCE = re.compile(r"shipping cost of \$\s*[0-9]+\.[0-9]{2}|Orders (?:up to|from) \$[0-9.]+|ship free", re.I)
+
+
+def _page_price(html: str):
+    """The element's own price, never the shipping figures LEGO prints on every page."""
+    # Structured data first: JSON-LD offers, or the page's embedded product JSON.
+    for pat in (r'"offers"\s*:\s*\{[^}]*?"price"\s*:\s*"?([0-9]+\.[0-9]{2})',
+                r'"price"\s*:\s*\{[^{}]*?"(?:formattedAmount|formattedValue)"\s*:\s*"\$?\s*([0-9]+\.[0-9]{2})',
+                r'"price"\s*:\s*\{[^{}]*?"centAmount"\s*:\s*([0-9]+)',
+                r'data-test="product-price"[^>]*>\s*\$?\s*([0-9]+\.[0-9]{2})',
+                r'itemprop="price"[^>]*content="([0-9]+\.[0-9]{2})"'):
+        m = re.search(pat, html)
+        if m:
+            v = float(m.group(1))
+            return v / 100.0 if "centAmount" in pat else v
+    # Fallback: a dollar amount that is not inside a shipping sentence, taken from before the delivery blurb.
+    cut = html
+    for marker in ("Deliveries and Returns", "Standard shipping", "shipping-handling"):
+        i = cut.find(marker)
+        if i > 0:
+            cut = cut[:i]
+    for m in re.finditer(r"\$\s*([0-9]+\.[0-9]{2})", cut):
+        ctx = cut[max(0, m.start() - 60): m.end() + 20]
+        if _SHIP_SENTENCE.search(ctx):
+            continue
+        return float(m.group(1))
+    return None
+
+
 def page_lookup(element_id: str, timeout=20):
     """Scrape the element product page. No tier information."""
     r = _session.get(ELEMENT_PAGE.format(element_id), headers={**HEADERS, "Accept": "text/html"}, timeout=timeout)
@@ -326,9 +355,10 @@ def page_lookup(element_id: str, timeout=20):
     if r.status_code != 200:
         raise LegoError(f"Element page HTTP {r.status_code}")
     html = r.text
-    m = _PRICE_RE.search(html) or re.search(r"\$\s*([0-9]+\.[0-9]{2})", html)
-    if not m:
+    price = _page_price(html)
+    if price is None:
         return None
+    m = None
     avail = _AVAIL_RE.search(html)
     lim = _LIMIT_RE.search(html)
     tier = None
@@ -340,7 +370,7 @@ def page_lookup(element_id: str, timeout=20):
     elif re.search(r">\s*Standard\s*<", html) and "Pick a Brick" in html:
         tier = "Standard"
     return {
-        "price": float(m.group(1)),
+        "price": price,
         "tier": tier,
         "available": bool(avail and not re.search(r"out of stock|sold out", avail.group(0), re.I)),
         "limit": int(lim.group(1)) if lim else None,

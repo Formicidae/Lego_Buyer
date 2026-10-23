@@ -143,6 +143,8 @@ def init():
                 conn.execute(m)
             except sqlite3.OperationalError:
                 pass  # column already exists
+        # Earlier builds could mistake LEGO's shipping figures ($4.95 / $6.95) for a part price; forget those so they get re-checked.
+        conn.execute("UPDATE set_parts SET lego_price=NULL, lego_available=NULL, price_checked_at=NULL WHERE lego_price IN (4.95, 6.95) AND lego_tier IS NULL")
 
 
 @contextmanager
