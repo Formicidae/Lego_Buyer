@@ -320,7 +320,7 @@
 
   // ---------- updates ----------
   const applyProgress = (it, row) => { Object.assign(it, row); const el = state.rows.get(it.key); if (el) paintRow(it, el); renderSummary(); };
-  const viewName = () => state.isView ? 'Combined' : state.set.kind === 'wishlist' ? 'Wishlist' : state.set.kind === 'minifig' ? `Minifig ${state.set.set_num}` : `LEGO ${state.set.set_num.replace(/-1$/, '')}`;
+  const viewName = () => state.isView ? 'Combined' : state.set.kind === 'wishlist' ? 'Wishlist' : state.set.kind === 'partlist' ? state.set.name : state.set.kind === 'minifig' ? `Minifig ${state.set.set_num}` : `LEGO ${state.set.set_num.replace(/-1$/, '')}`;
 
   const tap = async (it, field, delta) => {
     const who = ensureWho();
@@ -543,7 +543,7 @@
   const waitJob = (name) => new Promise((resolve) => {
     const t = setInterval(async () => {
       const j = await api(`/api/jobs/${name}`).catch(() => null);
-      if (!j || j.state === 'running') { if (j && $('#wl-status')) $('#wl-status').textContent = `Importing… ${j.done} / ${j.total} lots (Rebrickable allows about one lookup a second)`; return; }
+      if (!j || j.state === 'running') { const el = $(name.startsWith('import:pl-') ? '#pl-status' : '#wl-status'); if (j && el) el.textContent = `Importing… ${j.done} / ${j.total} lots (Rebrickable allows about one lookup a second)`; return; }
       clearInterval(t); resolve(j);
     }, 1500);
   });
@@ -587,6 +587,34 @@
     };
     $('#btn-fig').addEventListener('click', figGo);
     $('#fig-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); figGo(); } });
+    const plSel = $('#pl-select');
+    const fillPartlists = async () => {
+      try {
+        const r = await api('/api/partlists');
+        plSel.innerHTML = '';
+        if (!r || !r.partlists.length) { plSel.innerHTML = '<option value="">No bundled parts lists in this build</option>'; return; }
+        let running = null;
+        for (const p of r.partlists) {
+          const o = document.createElement('option'); o.value = p.slug;
+          const st = p.job && p.job.state === 'running' ? ` — importing ${p.job.done}/${p.job.total}` : p.imported ? ' — imported' : '';
+          o.textContent = `${p.name} (${p.num_parts} pieces, ${p.lots} lots)${st}`; plSel.appendChild(o);
+          if (p.job && p.job.state === 'running') running = p;
+        }
+        $('#btn-import-pl').disabled = false;
+        if (running) { $('#pl-status').textContent = `Importing ${running.name}… ${running.job.done} / ${running.job.total}`; setTimeout(fillPartlists, 3000); }
+      } catch (e) { plSel.innerHTML = `<option value="">${e.message}</option>`; }
+    };
+    fillPartlists();
+    $('#btn-import-pl').addEventListener('click', async () => {
+      const slug = plSel.value; if (!slug) return;
+      $('#btn-import-pl').disabled = true; $('#pl-status').textContent = 'Starting import… one Rebrickable lookup per lot, so a big list takes a few minutes.';
+      try {
+        await api('/api/partlists', { method: 'POST', body: JSON.stringify({ slug }) });
+        const j = await waitJob(`import:pl-${slug}`);
+        if (j.state === 'failed') { $('#pl-status').textContent = j.message || 'Import failed'; $('#btn-import-pl').disabled = false; return; }
+        location.href = `/s/pl-${slug}`;
+      } catch (e) { $('#pl-status').textContent = e.message; $('#btn-import-pl').disabled = false; }
+    });
     const sel = $('#wl-select');
     try {
       const r = await api('/api/brickowl/wishlists');
@@ -636,7 +664,8 @@
 
     $('#btn-reload').addEventListener('click', async () => {
       const wl = state.set && state.set.kind === 'wishlist';
-      if (!confirm(wl ? 'Re-import this wishlist from BrickOwl? Your counts are kept.' : 'Re-fetch this set from Rebrickable? Your counts are kept.')) return;
+      const pl = state.set && state.set.kind === 'partlist';
+      if (!confirm(wl ? 'Re-import this wishlist from BrickOwl? Your counts are kept.' : pl ? 'Re-import this parts list (looks every element up on Rebrickable again)? Your counts are kept.' : 'Re-fetch this set from Rebrickable? Your counts are kept.')) return;
       toast('Reloading…', 6000);
       try {
         const r = await api('/api/sets', { method: 'POST', body: JSON.stringify({ set_num: state.setNum }) });

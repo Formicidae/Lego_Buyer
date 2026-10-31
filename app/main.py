@@ -21,7 +21,7 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from . import bricklink, brickowl, cartparse, db, jobs, lego, rebrickable, sourcing, views
+from . import bricklink, brickowl, cartparse, db, jobs, lego, partlists, rebrickable, sourcing, views
 from .checklist import build_checklist, render_checklist_html, render_checklist_pdf
 from .config import APP_PASSCODE, SECRET, BRICKOWL_API_KEY, REBRICKABLE_API_KEY, DATA_DIR, CHROMIUM_PATH
 
@@ -146,6 +146,8 @@ async def api_sets(request: Request):
         log.info("load list: %r", raw)
         if raw.lower().startswith("bo-"):
             return JSONResponse({"job": jobs.start_wishlist_import(raw[3:]), "set": db.get_set(raw)})
+        if raw.lower().startswith(partlists.PREFIX):
+            return JSONResponse({"job": jobs.start_partlist_import(raw[len(partlists.PREFIX):]), "set": db.get_set(raw)})
         try:
             if raw.lower().startswith("fig-"):
                 set_info, parts, figs, cats, colors = await run_in_threadpool(rebrickable.fetch_minifig, raw.lower())
@@ -558,6 +560,22 @@ async def api_bo_import(request: Request):
     return JSONResponse(jobs.start_wishlist_import(wid))
 
 
+async def api_partlists(request: Request):
+    """Parts lists bundled with the app (app/partlists/*.json), with whether each is already imported."""
+    if request.method == "POST":
+        body = await request.json()
+        slug = str(body.get("slug") or "").strip()
+        if not slug or not (partlists.DIR / f"{slug}.json").is_file():
+            return JSONResponse({"error": "unknown parts list"}, status_code=400)
+        return JSONResponse(jobs.start_partlist_import(slug))
+    out = []
+    for pl in partlists.available():
+        pl["imported"] = bool(db.get_set(pl["set_num"]))
+        pl["job"] = jobs.status(f"import:{pl['set_num']}")
+        out.append(pl)
+    return JSONResponse({"partlists": out})
+
+
 async def api_job(request: Request):
     return JSONResponse(jobs.status(request.path_params["name"]))
 
@@ -746,6 +764,7 @@ routes = [
     Route("/api/tier", api_tier, methods=["POST"]),
     Route("/api/brickowl/wishlists", api_bo_wishlists),
     Route("/api/brickowl/import", api_bo_import, methods=["POST"]),
+    Route("/api/partlists", api_partlists, methods=["GET", "POST"]),
     Route("/api/jobs/{name}", api_job),
     Route("/api/admin/diagnostics", api_admin_diagnostics),
     Route("/api/admin/logs", api_admin_logs),
@@ -767,6 +786,10 @@ routes = [
 @contextlib.asynccontextmanager
 async def lifespan(app):
     db.init()
+    try:
+        jobs.autoimport_partlists()
+    except Exception as e:  # never block startup on this
+        log.warning("partlist autoimport skipped: %s", e)
     yield
 
 

@@ -73,8 +73,14 @@ made while offline, syncing them when the Pi is reachable again.
 
 - **Lists.** A list is a LEGO set (loaded by number), a minifigure (by BrickOwl item number,
   BrickLink ID, Rebrickable `fig-` ID, or name; the figure's parts plus the whole figure as a unit),
-  or a BrickOwl wishlist (imported from your
-  account; lots are matched to Rebrickable parts so they get the same pictures and LEGO prices).
+  a BrickOwl wishlist (imported from your
+  account; lots are matched to Rebrickable parts so they get the same pictures and LEGO prices),
+  or a **bundled parts list**: a hand-made list of LEGO element IDs shipped in `app/partlists/`,
+  for things like the numbered bags missing from a second-hand set. Each element is looked up on
+  Rebrickable (about one a second), so a big list takes a few minutes. Lists marked `autoimport`
+  are imported automatically the first time the server starts after an update; the rest can be
+  picked from the home page. Included so far: 75382 UCS TIE Interceptor bags 1–11 (1,153 pieces,
+  pilot as a whole figure) and 75305 Scout Trooper Helmet bag 1 (101 pieces).
   On the home page, tick several lists and *Open selected together* for one combined store
   checklist. Finds are credited to the lists in the order you ticked them, and every list keeps its
   own counts, so opening one list afterwards shows exactly what it still needs.
@@ -112,6 +118,7 @@ uvicorn app.main:app --reload
 app/main.py         Starlette app: routes, passcode auth
 app/db.py           SQLite schema + queries (sets, parts, minifigs, progress, revisions)
 app/rebrickable.py  Rebrickable API client
+app/partlists.py    Bundled element-ID lists (app/partlists/*.json) → list rows via Rebrickable
 app/checklist.py    Printable checklist → HTML → PDF (Chromium)
 app/templates/      index.html (the app), checklist.html (print), login.html
 app/static/         app.js, style.css (no build step)

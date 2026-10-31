@@ -2,7 +2,7 @@
 import threading
 import time
 
-from . import bricklink, brickowl, db, lego
+from . import bricklink, brickowl, db, lego, partlists
 
 _jobs = {}
 _lock = threading.Lock()
@@ -79,6 +79,54 @@ def start_wishlist_import(wishlist_id):
 
     threading.Thread(target=run, name=name, daemon=True).start()
     return status(name)
+
+
+def start_partlist_import(slug):
+    """Import a bundled parts list (app/partlists/<slug>.json); one Rebrickable call per element."""
+    set_num = partlists.PREFIX + slug
+    name = f"import:{set_num}"
+    with _lock:
+        cur = _jobs.get(name)
+        if cur and cur.get("state") == "running":
+            return dict(cur)
+        _jobs[name] = {"state": "running", "done": 0, "total": 0, "started": time.time(), "set_num": set_num}
+
+    def progress(done, total):
+        with _lock:
+            _jobs[name].update({"done": done, "total": total})
+
+    def run():
+        try:
+            info, parts, figs, cats, colors, problems = partlists.fetch_partlist(slug, on_progress=progress)
+            info["import_notes"] = "\n".join(problems) if problems else None
+            db.replace_set(info, parts, figs, cats, colors)
+            with _lock:
+                _jobs[name].update({"state": "done", "finished": time.time(), "lots": len(parts), "problems": problems})
+        except Exception as e:
+            with _lock:
+                _jobs[name].update({"state": "failed", "message": str(e)})
+
+    threading.Thread(target=run, name=name, daemon=True).start()
+    return status(name)
+
+
+def autoimport_partlists():
+    """At startup: import bundled lists marked autoimport that aren't in the database yet (one at a time,
+    so Rebrickable's rate limit is respected)."""
+    from .config import REBRICKABLE_API_KEY
+    if not REBRICKABLE_API_KEY:
+        return
+    todo = [pl["slug"] for pl in partlists.available() if pl["autoimport"] and not db.get_set(pl["set_num"])]
+    if not todo:
+        return
+
+    def run():
+        for slug in todo:
+            start_partlist_import(slug)
+            while status(f"import:{partlists.PREFIX}{slug}").get("state") == "running":
+                time.sleep(2)
+
+    threading.Thread(target=run, name="autoimport", daemon=True).start()
 
 
 def start_bricklink_job(set_num, parts, force=False):

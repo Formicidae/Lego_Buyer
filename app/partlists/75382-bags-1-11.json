@@ -1,0 +1,2431 @@
+{
+ "slug": "75382-bags-1-11",
+ "name": "75382 TIE Interceptor \u2013 bags 1\u201311",
+ "set_num": "75382-1",
+ "description": "Everything in numbered bags 1\u201311 of the UCS TIE Interceptor (the cockpit, hidden core, stand and pilot), taken from the official building instructions. Bags 12\u201322 are not included.",
+ "bags": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11
+ ],
+ "autoimport": true,
+ "minifigs": [
+  {
+   "match": "TIE Pilot",
+   "quantity": 1,
+   "elements": [
+    "6487885",
+    "6405216",
+    "6405194",
+    "6118815",
+    "6360207"
+   ]
+  }
+ ],
+ "items": [
+  {
+   "element_id": "6105963",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Black 1/2 Circle Plate 2X6"
+  },
+  {
+   "element_id": "6172383",
+   "quantity": 2,
+   "bags": {
+    "9": 2
+   },
+   "category": "standard",
+   "guess": "Black 1/4 Circle Tile 1X1"
+  },
+  {
+   "element_id": "6000650",
+   "quantity": 11,
+   "bags": {
+    "1": 4,
+    "9": 7
+   },
+   "category": "standard",
+   "guess": "Black Angular Plate 1.5 Bot. 1X2 2/2"
+  },
+  {
+   "element_id": "473326",
+   "quantity": 1,
+   "bags": {
+    "10": 1
+   },
+   "category": "standard",
+   "guess": "Black Brick 1X1 W. 4 Knobs"
+  },
+  {
+   "element_id": "246526",
+   "quantity": 2,
+   "bags": {
+    "10": 2
+   },
+   "category": "standard",
+   "guess": "Black Brick 1X16"
+  },
+  {
+   "element_id": "370326",
+   "quantity": 2,
+   "bags": {
+    "10": 2
+   },
+   "category": "standard",
+   "guess": "Black Brick 1X16 \u00d84.9"
+  },
+  {
+   "element_id": "6039869",
+   "quantity": 2,
+   "bags": {
+    "3": 2
+   },
+   "category": "standard",
+   "guess": "Black Brick 1X4X1 Inv. Bow"
+  },
+  {
+   "element_id": "4617860",
+   "quantity": 1,
+   "bags": {
+    "10": 1
+   },
+   "category": "standard",
+   "guess": "Black Brick 2X10"
+  },
+  {
+   "element_id": "300326",
+   "quantity": 1,
+   "bags": {
+    "10": 1
+   },
+   "category": "standard",
+   "guess": "Black Brick 2X2"
+  },
+  {
+   "element_id": "4584274",
+   "quantity": 8,
+   "bags": {
+    "1": 8
+   },
+   "category": "standard",
+   "guess": "Black Brick 2X2 W. Angle 45 Degrees"
+  },
+  {
+   "element_id": "4181144",
+   "quantity": 3,
+   "bags": {
+    "10": 3
+   },
+   "category": "standard",
+   "guess": "Black Brick 2X6"
+  },
+  {
+   "element_id": "4160025",
+   "quantity": 4,
+   "bags": {
+    "1": 4
+   },
+   "category": "standard",
+   "guess": "Black Corner Plate 45 Deg. 4X4"
+  },
+  {
+   "element_id": "306926",
+   "quantity": 6,
+   "bags": {
+    "10": 6
+   },
+   "category": "standard",
+   "guess": "Black Flat Tile 1X2"
+  },
+  {
+   "element_id": "243126",
+   "quantity": 1,
+   "bags": {
+    "10": 1
+   },
+   "category": "standard",
+   "guess": "Black Flat Tile 1X4"
+  },
+  {
+   "element_id": "6013867",
+   "quantity": 2,
+   "bags": {
+    "10": 2
+   },
+   "category": "standard",
+   "guess": "Black Flat Tile 2X2 Inv."
+  },
+  {
+   "element_id": "4560182",
+   "quantity": 4,
+   "bags": {
+    "10": 4
+   },
+   "category": "standard",
+   "guess": "Black Flat Tile 2X4"
+  },
+  {
+   "element_id": "6156991",
+   "quantity": 17,
+   "bags": {
+    "1": 9,
+    "2": 2,
+    "4": 2,
+    "9": 2,
+    "10": 2
+   },
+   "category": "standard",
+   "guess": "Black Gold Ingot"
+  },
+  {
+   "element_id": "6141554",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Black Left Plate 2X2 27 Deg."
+  },
+  {
+   "element_id": "6157554",
+   "quantity": 2,
+   "bags": {
+    "2": 2
+   },
+   "category": "standard",
+   "guess": "Black Plate 1X1 Round W/3.2 Shaft"
+  },
+  {
+   "element_id": "393826",
+   "quantity": 1,
+   "bags": {
+    "4": 1
+   },
+   "category": "standard",
+   "guess": "Black Plate 1X2 (Rocking)"
+  },
+  {
+   "element_id": "4140588",
+   "quantity": 1,
+   "bags": {
+    "2": 1
+   },
+   "category": "standard",
+   "guess": "Black Plate 1X2 W. Stick"
+  },
+  {
+   "element_id": "6092585",
+   "quantity": 17,
+   "bags": {
+    "2": 3,
+    "4": 2,
+    "7": 6,
+    "8": 6
+   },
+   "category": "standard",
+   "guess": "Black Plate 1X2 W/ 1 Knob"
+  },
+  {
+   "element_id": "366626",
+   "quantity": 5,
+   "bags": {
+    "3": 4,
+    "4": 1
+   },
+   "category": "standard",
+   "guess": "Black Plate 1X6"
+  },
+  {
+   "element_id": "383226",
+   "quantity": 1,
+   "bags": {
+    "1": 1
+   },
+   "category": "standard",
+   "guess": "Black Plate 2X10"
+  },
+  {
+   "element_id": "6001494",
+   "quantity": 1,
+   "bags": {
+    "10": 1
+   },
+   "category": "standard",
+   "guess": "Black Plate 2X14"
+  },
+  {
+   "element_id": "6174243",
+   "quantity": 2,
+   "bags": {
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Black Plate 2X2 Corner 45 Deg."
+  },
+  {
+   "element_id": "4565323",
+   "quantity": 1,
+   "bags": {
+    "10": 1
+   },
+   "category": "standard",
+   "guess": "Black Plate 2X2 W 1 Knob"
+  },
+  {
+   "element_id": "302126",
+   "quantity": 2,
+   "bags": {
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Black Plate 2X3"
+  },
+  {
+   "element_id": "302026",
+   "quantity": 2,
+   "bags": {
+    "10": 2
+   },
+   "category": "standard",
+   "guess": "Black Plate 2X4",
+   "note": "used 2x in step 235 (bag 10); not on PDF inventory page, Brickset lists 1"
+  },
+  {
+   "element_id": "379526",
+   "quantity": 4,
+   "bags": {
+    "10": 2,
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Black Plate 2X6"
+  },
+  {
+   "element_id": "6174917",
+   "quantity": 2,
+   "bags": {
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Black Plate 3X3"
+  },
+  {
+   "element_id": "4243819",
+   "quantity": 4,
+   "bags": {
+    "11": 4
+   },
+   "category": "standard",
+   "guess": "Black Plate 4X4"
+  },
+  {
+   "element_id": "6141556",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Black Right Plate 2X2 27Deg"
+  },
+  {
+   "element_id": "4504382",
+   "quantity": 4,
+   "bags": {
+    "3": 2,
+    "10": 2
+   },
+   "category": "standard",
+   "guess": "Black Roof Tile 1X1X2/3 Abs"
+  },
+  {
+   "element_id": "6069000",
+   "quantity": 4,
+   "bags": {
+    "4": 4
+   },
+   "category": "standard",
+   "guess": "Black Roof Tile 1X2 45\u00b0 W 1/3 Plate"
+  },
+  {
+   "element_id": "329826",
+   "quantity": 8,
+   "bags": {
+    "10": 8
+   },
+   "category": "standard",
+   "guess": "Black Roof Tile 2X3/25\u00b0"
+  },
+  {
+   "element_id": "614126",
+   "quantity": 4,
+   "bags": {
+    "9": 4
+   },
+   "category": "standard",
+   "guess": "Black Round Plate 1X1"
+  },
+  {
+   "element_id": "6405194",
+   "quantity": 1,
+   "bags": {
+    "10": 1
+   },
+   "category": "minifig",
+   "guess": "Black TIE Pilot helmet"
+  },
+  {
+   "element_id": "6405216",
+   "quantity": 1,
+   "bags": {
+    "10": 1
+   },
+   "category": "minifig",
+   "guess": "Black TIE Pilot legs (printed)"
+  },
+  {
+   "element_id": "6487885",
+   "quantity": 1,
+   "bags": {
+    "10": 1
+   },
+   "category": "minifig",
+   "guess": "Black TIE Pilot torso (printed) w/ arms & hands"
+  },
+  {
+   "element_id": "654126",
+   "quantity": 4,
+   "bags": {
+    "10": 4
+   },
+   "category": "standard",
+   "guess": "Black Technic Brick 1X1"
+  },
+  {
+   "element_id": "370026",
+   "quantity": 4,
+   "bags": {
+    "1": 4
+   },
+   "category": "standard",
+   "guess": "Black Technic Brick 1X2 \u00d84.9"
+  },
+  {
+   "element_id": "370526",
+   "quantity": 4,
+   "bags": {
+    "3": 4
+   },
+   "category": "standard",
+   "guess": "Black Technic axle 4"
+  },
+  {
+   "element_id": "6279875",
+   "quantity": 10,
+   "bags": {
+    "10": 10
+   },
+   "category": "standard",
+   "guess": "Black Technic pin w/ friction (2M)"
+  },
+  {
+   "element_id": "6360207",
+   "quantity": 1,
+   "bags": {
+    "10": 1
+   },
+   "category": "minifig",
+   "guess": "Black blaster pistol"
+  },
+  {
+   "element_id": "6472397",
+   "quantity": 1,
+   "bags": {
+    "10": 1
+   },
+   "category": "printed",
+   "guess": "Black tile 8x16 printed UCS info plaque",
+   "note": "loose in box, not in a numbered bag"
+  },
+  {
+   "element_id": "370123",
+   "quantity": 2,
+   "bags": {
+    "1": 2
+   },
+   "category": "standard",
+   "guess": "Blue Technic brick 1x4"
+  },
+  {
+   "element_id": "6299413",
+   "quantity": 8,
+   "bags": {
+    "1": 4,
+    "3": 4
+   },
+   "category": "standard",
+   "guess": "Blue Technic pin 3L / axle pin"
+  },
+  {
+   "element_id": "6482573",
+   "quantity": 2,
+   "bags": {
+    "3": 2
+   },
+   "category": "standard",
+   "guess": "Blue brick 1x1 w/ stud on side"
+  },
+  {
+   "element_id": "6313131",
+   "quantity": 6,
+   "bags": {
+    "4": 2,
+    "9": 4
+   },
+   "category": "standard",
+   "guess": "Blue plate 1x2 w/ clip / rounded"
+  },
+  {
+   "element_id": "6280384",
+   "quantity": 2,
+   "bags": {
+    "3": 2
+   },
+   "category": "standard",
+   "guess": "Blue plate 1x6"
+  },
+  {
+   "element_id": "6353192",
+   "quantity": 4,
+   "bags": {
+    "4": 4
+   },
+   "category": "standard",
+   "guess": "Bright Pink brick 1x2 w/ 2 studs on side"
+  },
+  {
+   "element_id": "4640844",
+   "quantity": 1,
+   "bags": {
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray Technic axle connector w/ pin"
+  },
+  {
+   "element_id": "4522933",
+   "quantity": 2,
+   "bags": {
+    "10": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray Technic beam 1x15"
+  },
+  {
+   "element_id": "4211137",
+   "quantity": 4,
+   "bags": {
+    "3": 4
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray Technic brick 1x16"
+  },
+  {
+   "element_id": "6350724",
+   "quantity": 1,
+   "bags": {
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray Technic pin/axle connector"
+  },
+  {
+   "element_id": "6359933",
+   "quantity": 4,
+   "bags": {
+    "1": 2,
+    "8": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray bar w/ clip (hinge arm)"
+  },
+  {
+   "element_id": "6253695",
+   "quantity": 2,
+   "bags": {
+    "2": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray blaster / mechanical arm greeble"
+  },
+  {
+   "element_id": "6299338",
+   "quantity": 4,
+   "bags": {
+    "3": 2,
+    "4": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray bracket 1x1-1x1 (studs on side)"
+  },
+  {
+   "element_id": "6336390",
+   "quantity": 4,
+   "bags": {
+    "9": 4
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray bracket 1x2 inverted w/ 2 studs"
+  },
+  {
+   "element_id": "6117972",
+   "quantity": 5,
+   "bags": {
+    "1": 4,
+    "4": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray bracket 1x2-2x2 (studs on side)"
+  },
+  {
+   "element_id": "6401023",
+   "quantity": 2,
+   "bags": {
+    "3": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray brick 1x1"
+  },
+  {
+   "element_id": "4558955",
+   "quantity": 2,
+   "bags": {
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray brick 1x1 w/ 2 studs on sides"
+  },
+  {
+   "element_id": "4211044",
+   "quantity": 8,
+   "bags": {
+    "1": 8
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray brick 1x1 w/ stud on side (headlight)"
+  },
+  {
+   "element_id": "6214341",
+   "quantity": 2,
+   "bags": {
+    "4": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray brick 1x2 w/ 2 pin holes (Technic)"
+  },
+  {
+   "element_id": "4210725",
+   "quantity": 1,
+   "bags": {
+    "1": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray brick 1x4 w/ studs on side"
+  },
+  {
+   "element_id": "6100030",
+   "quantity": 2,
+   "bags": {
+    "7": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray brick round 1x1"
+  },
+  {
+   "element_id": "6215212",
+   "quantity": 8,
+   "bags": {
+    "7": 4,
+    "8": 4
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray curved slope 1x3 w/ 2 studs"
+  },
+  {
+   "element_id": "6267487",
+   "quantity": 2,
+   "bags": {
+    "10": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray curved slope 2x2 (no studs)"
+  },
+  {
+   "element_id": "6071261",
+   "quantity": 1,
+   "bags": {
+    "4": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray curved slope 2x2 inverted"
+  },
+  {
+   "element_id": "6439170",
+   "quantity": 4,
+   "bags": {
+    "7": 2,
+    "8": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray curved wedge/saddle piece 2x2"
+  },
+  {
+   "element_id": "6092111",
+   "quantity": 10,
+   "bags": {
+    "3": 2,
+    "9": 6,
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray grille slope 1x2"
+  },
+  {
+   "element_id": "4210631",
+   "quantity": 2,
+   "bags": {
+    "10": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray grille tile 1x2"
+  },
+  {
+   "element_id": "6267482",
+   "quantity": 1,
+   "bags": {
+    "10": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray inverted slope 1x4 w/ 2 studs"
+  },
+  {
+   "element_id": "4211076",
+   "quantity": 1,
+   "bags": {
+    "1": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray inverted slope 2x2 double (roof)"
+  },
+  {
+   "element_id": "4211399",
+   "quantity": 4,
+   "bags": {
+    "6": 4
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 1x1"
+  },
+  {
+   "element_id": "6330189",
+   "quantity": 2,
+   "bags": {
+    "10": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 1x1 w/ clip"
+  },
+  {
+   "element_id": "6308000",
+   "quantity": 4,
+   "bags": {
+    "9": 4
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 1x1 w/ clip on side"
+  },
+  {
+   "element_id": "4210719",
+   "quantity": 9,
+   "bags": {
+    "4": 2,
+    "7": 2,
+    "8": 2,
+    "11": 3
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 1x2"
+  },
+  {
+   "element_id": "6335388",
+   "quantity": 2,
+   "bags": {
+    "2": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 1x2 w/ 2 clips"
+  },
+  {
+   "element_id": "6310268",
+   "quantity": 4,
+   "bags": {
+    "7": 2,
+    "8": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 1x2 w/ 2 clips (horizontal)"
+  },
+  {
+   "element_id": "6336989",
+   "quantity": 2,
+   "bags": {
+    "9": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 1x2 w/ clip on side"
+  },
+  {
+   "element_id": "6221607",
+   "quantity": 15,
+   "bags": {
+    "1": 4,
+    "2": 2,
+    "4": 4,
+    "8": 4,
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 1x2 w/ pin hole (rounded)"
+  },
+  {
+   "element_id": "6281996",
+   "quantity": 2,
+   "bags": {
+    "10": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 1x2 w/ round hinge"
+  },
+  {
+   "element_id": "4211133",
+   "quantity": 1,
+   "bags": {
+    "4": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 1x3"
+  },
+  {
+   "element_id": "4521187",
+   "quantity": 2,
+   "bags": {
+    "9": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 1x3 w/ hinge/rounded"
+  },
+  {
+   "element_id": "4211001",
+   "quantity": 1,
+   "bags": {
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 1x4"
+  },
+  {
+   "element_id": "6254045",
+   "quantity": 4,
+   "bags": {
+    "2": 2,
+    "4": 1,
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 1x4 w/ 2 studs (jumper 1x4)"
+  },
+  {
+   "element_id": "4210998",
+   "quantity": 1,
+   "bags": {
+    "3": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 1x8"
+  },
+  {
+   "element_id": "6325190",
+   "quantity": 6,
+   "bags": {
+    "2": 2,
+    "4": 4
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 1x? quarter-circle/arch (bow plate)"
+  },
+  {
+   "element_id": "4210796",
+   "quantity": 1,
+   "bags": {
+    "10": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 2x12"
+  },
+  {
+   "element_id": "6164073",
+   "quantity": 14,
+   "bags": {
+    "4": 4,
+    "5": 4,
+    "6": 4,
+    "9": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 2x2"
+  },
+  {
+   "element_id": "4210635",
+   "quantity": 11,
+   "bags": {
+    "1": 4,
+    "9": 7
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 2x2 corner"
+  },
+  {
+   "element_id": "6210270",
+   "quantity": 2,
+   "bags": {
+    "9": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 2x2 oval w/ 2 studs"
+  },
+  {
+   "element_id": "6325254",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 2x2 stack (4 plates 2x2?)"
+  },
+  {
+   "element_id": "6192346",
+   "quantity": 7,
+   "bags": {
+    "2": 2,
+    "3": 2,
+    "10": 3
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 2x2 w/ 2 studs (jumper 2x2)"
+  },
+  {
+   "element_id": "6457961",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 2x2 w/ bar (hinge?)"
+  },
+  {
+   "element_id": "6266207",
+   "quantity": 1,
+   "bags": {
+    "2": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 2x2 w/ bar/handle"
+  },
+  {
+   "element_id": "6336990",
+   "quantity": 2,
+   "bags": {
+    "4": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 2x2 w/ clip on side"
+  },
+  {
+   "element_id": "6258991",
+   "quantity": 1,
+   "bags": {
+    "2": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 2x2 w/ clips/bars"
+  },
+  {
+   "element_id": "6265730",
+   "quantity": 1,
+   "bags": {
+    "2": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 2x2 w/ hole/pin"
+  },
+  {
+   "element_id": "4211094",
+   "quantity": 4,
+   "bags": {
+    "9": 1,
+    "10": 1,
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 2x3"
+  },
+  {
+   "element_id": "6469445",
+   "quantity": 8,
+   "bags": {
+    "4": 8
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 2x3 w/ holes/pins"
+  },
+  {
+   "element_id": "6123814",
+   "quantity": 4,
+   "bags": {
+    "3": 4
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 2x3 w/ pin holes (round end)"
+  },
+  {
+   "element_id": "4211065",
+   "quantity": 12,
+   "bags": {
+    "1": 2,
+    "2": 2,
+    "7": 2,
+    "8": 2,
+    "10": 4
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 2x4"
+  },
+  {
+   "element_id": "6039176",
+   "quantity": 2,
+   "bags": {
+    "8": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate 3x3"
+  },
+  {
+   "element_id": "6186675",
+   "quantity": 4,
+   "bags": {
+    "10": 4
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate round 1x1"
+  },
+  {
+   "element_id": "6231765",
+   "quantity": 6,
+   "bags": {
+    "2": 4,
+    "7": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate round 1x1 w/ open stud"
+  },
+  {
+   "element_id": "6420741",
+   "quantity": 2,
+   "bags": {
+    "9": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray plate round 1x2 w/ hole"
+  },
+  {
+   "element_id": "6472395",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray round 6x6 dish/hatch (cockpit roof)"
+  },
+  {
+   "element_id": "4528323",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray round plate 4x4"
+  },
+  {
+   "element_id": "6508152",
+   "quantity": 1,
+   "bags": {
+    "2": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray round plate/dish 2x2"
+  },
+  {
+   "element_id": "6284070",
+   "quantity": 1,
+   "bags": {
+    "2": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray round tile 1x1 (w/ hole)"
+  },
+  {
+   "element_id": "4504378",
+   "quantity": 2,
+   "bags": {
+    "4": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray slope 30 1x1 (cheese)"
+  },
+  {
+   "element_id": "4567887",
+   "quantity": 1,
+   "bags": {
+    "2": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray slope 45 2x2"
+  },
+  {
+   "element_id": "4211052",
+   "quantity": 4,
+   "bags": {
+    "7": 2,
+    "8": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray tile 1x2"
+  },
+  {
+   "element_id": "6318582",
+   "quantity": 2,
+   "bags": {
+    "1": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray tile 2x6"
+  },
+  {
+   "element_id": "6143423",
+   "quantity": 1,
+   "bags": {
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray wedge plate 2x2 (left) 45"
+  },
+  {
+   "element_id": "6143417",
+   "quantity": 1,
+   "bags": {
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray wedge plate 2x2 (right) 45"
+  },
+  {
+   "element_id": "6491608",
+   "quantity": 8,
+   "bags": {
+    "1": 6,
+    "8": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray wedge plate 2x2 pointed (triangular slope)"
+  },
+  {
+   "element_id": "6214807",
+   "quantity": 14,
+   "bags": {
+    "2": 14
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray wedge plate 2x2 triangular"
+  },
+  {
+   "element_id": "6181713",
+   "quantity": 1,
+   "bags": {
+    "1": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray wedge plate 2x3 pointed (left)"
+  },
+  {
+   "element_id": "6181720",
+   "quantity": 1,
+   "bags": {
+    "1": 1
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray wedge plate 2x3 pointed (right)"
+  },
+  {
+   "element_id": "6436425",
+   "quantity": 2,
+   "bags": {
+    "4": 2
+   },
+   "category": "standard",
+   "guess": "Dark Bluish Gray wedge/curved panel 2x2"
+  },
+  {
+   "element_id": "6382577",
+   "quantity": 2,
+   "bags": {
+    "4": 2
+   },
+   "category": "standard",
+   "guess": "Dark Orange brick 1x1"
+  },
+  {
+   "element_id": "4528604",
+   "quantity": 6,
+   "bags": {
+    "7": 4,
+    "8": 2
+   },
+   "category": "standard",
+   "guess": "Dark Tan plate 1x2"
+  },
+  {
+   "element_id": "302128",
+   "quantity": 6,
+   "bags": {
+    "5": 2,
+    "6": 2,
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Green plate 2x3"
+  },
+  {
+   "element_id": "6424859",
+   "quantity": 4,
+   "bags": {
+    "5": 2,
+    "6": 2
+   },
+   "category": "standard",
+   "guess": "Green plate round 2x2 w/ hole / wedge"
+  },
+  {
+   "element_id": "6473925",
+   "quantity": 8,
+   "bags": {
+    "7": 4,
+    "8": 4
+   },
+   "category": "standard",
+   "guess": "Green wedge plate 2x2 (corner)"
+  },
+  {
+   "element_id": "6276969",
+   "quantity": 4,
+   "bags": {
+    "3": 4
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray Technic brick 2x2 w/ pin holes (round)"
+  },
+  {
+   "element_id": "6217791",
+   "quantity": 3,
+   "bags": {
+    "11": 3
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray Technic connector / clip piece"
+  },
+  {
+   "element_id": "4211807",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray Technic pin 2M w/ friction + cross hole"
+  },
+  {
+   "element_id": "6448793",
+   "quantity": 4,
+   "bags": {
+    "11": 4
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray brick 1x1 w/ stud on side"
+  },
+  {
+   "element_id": "6335328",
+   "quantity": 6,
+   "bags": {
+    "6": 4,
+    "8": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray brick 1x1 w/ stud on side (headlight)"
+  },
+  {
+   "element_id": "6004990",
+   "quantity": 10,
+   "bags": {
+    "7": 4,
+    "8": 4,
+    "9": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray brick 1x2 w/ 2 pin holes"
+  },
+  {
+   "element_id": "4654582",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray brick 1x2 w/ 2 studs on side"
+  },
+  {
+   "element_id": "6383177",
+   "quantity": 1,
+   "bags": {
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray brick 1x2 w/ pin hole"
+  },
+  {
+   "element_id": "4211640",
+   "quantity": 1,
+   "bags": {
+    "1": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray brick 2x2 w/ pin holes/studs on sides"
+  },
+  {
+   "element_id": "4211412",
+   "quantity": 2,
+   "bags": {
+    "4": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray brick round 1x1"
+  },
+  {
+   "element_id": "6249550",
+   "quantity": 4,
+   "bags": {
+    "5": 2,
+    "6": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray brick round half 2x4x? (cylinder half)"
+  },
+  {
+   "element_id": "4529240",
+   "quantity": 2,
+   "bags": {
+    "4": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray cone 1x1"
+  },
+  {
+   "element_id": "6250597",
+   "quantity": 7,
+   "bags": {
+    "5": 2,
+    "6": 2,
+    "9": 1,
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray curved slope 1x1"
+  },
+  {
+   "element_id": "6225139",
+   "quantity": 13,
+   "bags": {
+    "7": 8,
+    "8": 5
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray curved slope 1x2"
+  },
+  {
+   "element_id": "6285778",
+   "quantity": 26,
+   "bags": {
+    "5": 12,
+    "6": 12,
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray curved slope 1x2 w/ stud (arch)"
+  },
+  {
+   "element_id": "4622803",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray curved slope 1x4 w/ 2 studs"
+  },
+  {
+   "element_id": "6028813",
+   "quantity": 31,
+   "bags": {
+    "4": 1,
+    "7": 12,
+    "8": 16,
+    "9": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray curved slope 2x1 (w/ lip)"
+  },
+  {
+   "element_id": "6225142",
+   "quantity": 13,
+   "bags": {
+    "7": 8,
+    "8": 5
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray curved slope 2x1 inverted / w/ clip"
+  },
+  {
+   "element_id": "6227184",
+   "quantity": 4,
+   "bags": {
+    "9": 4
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray curved slope 2x2 (half cylinder)"
+  },
+  {
+   "element_id": "6102357",
+   "quantity": 27,
+   "bags": {
+    "4": 2,
+    "7": 12,
+    "8": 12,
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray curved slope 2x2 (lip)"
+  },
+  {
+   "element_id": "6407412",
+   "quantity": 4,
+   "bags": {
+    "9": 4
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray curved slope 2x2 quarter"
+  },
+  {
+   "element_id": "6177078",
+   "quantity": 2,
+   "bags": {
+    "4": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray curved slope 2x2 w/ cutout"
+  },
+  {
+   "element_id": "6132207",
+   "quantity": 3,
+   "bags": {
+    "9": 3
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray curved slope 2x2 w/ lip (3 wide?)"
+  },
+  {
+   "element_id": "4211350",
+   "quantity": 6,
+   "bags": {
+    "4": 4,
+    "9": 1,
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray grille tile 1x2"
+  },
+  {
+   "element_id": "6116470",
+   "quantity": 1,
+   "bags": {
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray hose/bar w/ connector"
+  },
+  {
+   "element_id": "6326748",
+   "quantity": 6,
+   "bags": {
+    "1": 4,
+    "7": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray minifig posing stand / round plate w/ bar"
+  },
+  {
+   "element_id": "6507791",
+   "quantity": 2,
+   "bags": {
+    "4": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray oval tile 2x3"
+  },
+  {
+   "element_id": "4211066",
+   "quantity": 11,
+   "bags": {
+    "4": 2,
+    "5": 4,
+    "6": 4,
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray panel 1x2x1 (w/ corners)"
+  },
+  {
+   "element_id": "4251149",
+   "quantity": 6,
+   "bags": {
+    "3": 2,
+    "11": 4
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 1x12"
+  },
+  {
+   "element_id": "4211398",
+   "quantity": 15,
+   "bags": {
+    "4": 2,
+    "9": 7,
+    "11": 6
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 1x2"
+  },
+  {
+   "element_id": "6066097",
+   "quantity": 12,
+   "bags": {
+    "5": 4,
+    "6": 4,
+    "11": 4
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 1x2 w/ 1 stud (jumper)"
+  },
+  {
+   "element_id": "6225230",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 1x2 w/ Technic hole/ring on top"
+  },
+  {
+   "element_id": "4515369",
+   "quantity": 18,
+   "bags": {
+    "4": 6,
+    "7": 6,
+    "8": 6
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 1x2 w/ bar handle (rounded)"
+  },
+  {
+   "element_id": "6335378",
+   "quantity": 1,
+   "bags": {
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 1x2 w/ clip"
+  },
+  {
+   "element_id": "6043656",
+   "quantity": 4,
+   "bags": {
+    "1": 4
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 1x2 w/ clip and stud"
+  },
+  {
+   "element_id": "6319336",
+   "quantity": 4,
+   "bags": {
+    "6": 4
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 1x2 w/ clip on end"
+  },
+  {
+   "element_id": "6144138",
+   "quantity": 2,
+   "bags": {
+    "3": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 1x2 w/ clip/stud"
+  },
+  {
+   "element_id": "4211429",
+   "quantity": 18,
+   "bags": {
+    "3": 4,
+    "6": 4,
+    "7": 4,
+    "8": 2,
+    "11": 4
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 1x3"
+  },
+  {
+   "element_id": "6343852",
+   "quantity": 10,
+   "bags": {
+    "5": 4,
+    "6": 4,
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 1x3 w/ 2 studs (jumper)"
+  },
+  {
+   "element_id": "4211445",
+   "quantity": 2,
+   "bags": {
+    "4": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 1x4"
+  },
+  {
+   "element_id": "6211969",
+   "quantity": 6,
+   "bags": {
+    "5": 2,
+    "6": 2,
+    "8": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 1x4 w/ 2 studs (center)"
+  },
+  {
+   "element_id": "4211470",
+   "quantity": 6,
+   "bags": {
+    "11": 6
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 1x4 w/ 2 studs (jumper)"
+  },
+  {
+   "element_id": "6372029",
+   "quantity": 12,
+   "bags": {
+    "7": 8,
+    "8": 4
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 1x6"
+  },
+  {
+   "element_id": "4211353",
+   "quantity": 2,
+   "bags": {
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 2x2 corner"
+  },
+  {
+   "element_id": "4211881",
+   "quantity": 10,
+   "bags": {
+    "4": 1,
+    "5": 4,
+    "6": 4,
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 2x2 w/ 2 pin holes"
+  },
+  {
+   "element_id": "4211568",
+   "quantity": 8,
+   "bags": {
+    "3": 4,
+    "7": 2,
+    "8": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 2x2 w/ rail / grille side"
+  },
+  {
+   "element_id": "4211396",
+   "quantity": 21,
+   "bags": {
+    "5": 2,
+    "6": 2,
+    "7": 4,
+    "8": 6,
+    "9": 4,
+    "11": 3
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 2x3"
+  },
+  {
+   "element_id": "4211395",
+   "quantity": 2,
+   "bags": {
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 2x4"
+  },
+  {
+   "element_id": "4211406",
+   "quantity": 1,
+   "bags": {
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 2x8"
+  },
+  {
+   "element_id": "6421522",
+   "quantity": 2,
+   "bags": {
+    "7": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 3x3 corner (L-shape)"
+  },
+  {
+   "element_id": "4211361",
+   "quantity": 2,
+   "bags": {
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 3x3 corner (wedge)"
+  },
+  {
+   "element_id": "6266279",
+   "quantity": 6,
+   "bags": {
+    "11": 6
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate 4x4 w/ clips/hinge"
+  },
+  {
+   "element_id": "6227897",
+   "quantity": 1,
+   "bags": {
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray plate round 1x1 w/ bar handle"
+  },
+  {
+   "element_id": "6472396",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray round 6x6 dish w/ spokes (cockpit window frame)"
+  },
+  {
+   "element_id": "4521921",
+   "quantity": 14,
+   "bags": {
+    "6": 4,
+    "7": 4,
+    "8": 6
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray slope 1x1 45 / cheese slope"
+  },
+  {
+   "element_id": "4568637",
+   "quantity": 12,
+   "bags": {
+    "4": 3,
+    "5": 4,
+    "6": 4,
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray slope 1x2"
+  },
+  {
+   "element_id": "4211488",
+   "quantity": 2,
+   "bags": {
+    "4": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray slope 1x3 33"
+  },
+  {
+   "element_id": "6508016",
+   "quantity": 4,
+   "bags": {
+    "6": 4
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray slope 1x4 inverted/long tile wedge"
+  },
+  {
+   "element_id": "6013497",
+   "quantity": 3,
+   "bags": {
+    "4": 2,
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray slope 1x4 w/ stud (curved long)"
+  },
+  {
+   "element_id": "4211421",
+   "quantity": 3,
+   "bags": {
+    "9": 3
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray slope 2x2 45"
+  },
+  {
+   "element_id": "4211106",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray slope 2x3 25"
+  },
+  {
+   "element_id": "4211415",
+   "quantity": 8,
+   "bags": {
+    "5": 4,
+    "6": 4
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray small tile (1x1/1x2)"
+  },
+  {
+   "element_id": "6176433",
+   "quantity": 8,
+   "bags": {
+    "5": 4,
+    "6": 4
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray tile 1x1 quarter circle"
+  },
+  {
+   "element_id": "4211414",
+   "quantity": 16,
+   "bags": {
+    "3": 4,
+    "5": 4,
+    "6": 4,
+    "9": 1,
+    "11": 3
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray tile 1x2"
+  },
+  {
+   "element_id": "6134378",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray tile 1x2 w/ clips/handle"
+  },
+  {
+   "element_id": "4558169",
+   "quantity": 4,
+   "bags": {
+    "5": 2,
+    "6": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray tile 1x4"
+  },
+  {
+   "element_id": "4211356",
+   "quantity": 2,
+   "bags": {
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray tile 1x6"
+  },
+  {
+   "element_id": "4211549",
+   "quantity": 2,
+   "bags": {
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray tile 1x6/1x8 thin (plate 1x8?)"
+  },
+  {
+   "element_id": "4211481",
+   "quantity": 2,
+   "bags": {
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray tile 1x8"
+  },
+  {
+   "element_id": "4211413",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray tile 2x2"
+  },
+  {
+   "element_id": "6163990",
+   "quantity": 8,
+   "bags": {
+    "5": 4,
+    "6": 4
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray tile 2x2 macaroni (curved)"
+  },
+  {
+   "element_id": "4568734",
+   "quantity": 8,
+   "bags": {
+    "7": 4,
+    "8": 4
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray tile 2x4"
+  },
+  {
+   "element_id": "4211794",
+   "quantity": 13,
+   "bags": {
+    "5": 4,
+    "6": 4,
+    "9": 4,
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray wedge plate 2x3 pointed (left)"
+  },
+  {
+   "element_id": "4211791",
+   "quantity": 13,
+   "bags": {
+    "5": 4,
+    "6": 4,
+    "9": 4,
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray wedge plate 2x3 pointed (right)"
+  },
+  {
+   "element_id": "6491606",
+   "quantity": 1,
+   "bags": {
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray wedge plate 3x3 cut corner (left+right pair image)"
+  },
+  {
+   "element_id": "4282789",
+   "quantity": 4,
+   "bags": {
+    "5": 2,
+    "6": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray wedge plate 3x6 (left)"
+  },
+  {
+   "element_id": "4282786",
+   "quantity": 4,
+   "bags": {
+    "5": 2,
+    "6": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray wedge plate 3x6 (right) w/ holes? (6x3 wing)"
+  },
+  {
+   "element_id": "6240030",
+   "quantity": 2,
+   "bags": {
+    "10": 2
+   },
+   "category": "standard",
+   "guess": "Light Bluish Gray/White plate round 1x1 w/ hole"
+  },
+  {
+   "element_id": "6118815",
+   "quantity": 1,
+   "bags": {
+    "10": 1
+   },
+   "category": "minifig",
+   "guess": "Light Nougat TIE Pilot head (printed)"
+  },
+  {
+   "element_id": "6327442",
+   "quantity": 4,
+   "bags": {
+    "5": 4
+   },
+   "category": "standard",
+   "guess": "Lime bar 4L"
+  },
+  {
+   "element_id": "6310279",
+   "quantity": 5,
+   "bags": {
+    "5": 2,
+    "6": 2,
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Lime bracket 1x2-2x2"
+  },
+  {
+   "element_id": "4187743",
+   "quantity": 4,
+   "bags": {
+    "3": 4
+   },
+   "category": "standard",
+   "guess": "Lime plate 1x4"
+  },
+  {
+   "element_id": "6190251",
+   "quantity": 2,
+   "bags": {
+    "3": 2
+   },
+   "category": "standard",
+   "guess": "Lime plate round 1x1"
+  },
+  {
+   "element_id": "6322830",
+   "quantity": 9,
+   "bags": {
+    "2": 1,
+    "5": 4,
+    "6": 4
+   },
+   "category": "standard",
+   "guess": "Medium Azure brick 1x2 w/ pin hole"
+  },
+  {
+   "element_id": "6469087",
+   "quantity": 4,
+   "bags": {
+    "3": 4
+   },
+   "category": "standard",
+   "guess": "Orange plate 1x6"
+  },
+  {
+   "element_id": "4159007",
+   "quantity": 6,
+   "bags": {
+    "4": 4,
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Orange plate 2x2 w/ hole (axle)"
+  },
+  {
+   "element_id": "6477975",
+   "quantity": 4,
+   "bags": {
+    "5": 2,
+    "6": 2
+   },
+   "category": "standard",
+   "guess": "Orange round tile half 2x2"
+  },
+  {
+   "element_id": "4157223",
+   "quantity": 1,
+   "bags": {
+    "2": 1
+   },
+   "category": "standard",
+   "guess": "Red Technic brick 1x4"
+  },
+  {
+   "element_id": "6378120",
+   "quantity": 12,
+   "bags": {
+    "3": 12
+   },
+   "category": "standard",
+   "guess": "Red Technic pin / axle connector (short)"
+  },
+  {
+   "element_id": "6001806",
+   "quantity": 4,
+   "bags": {
+    "2": 3,
+    "3": 1
+   },
+   "category": "standard",
+   "guess": "Red bracket 1x2-2x2"
+  },
+  {
+   "element_id": "6118830",
+   "quantity": 2,
+   "bags": {
+    "2": 2
+   },
+   "category": "standard",
+   "guess": "Red bracket 2x2-2x4 (large)"
+  },
+  {
+   "element_id": "6473603",
+   "quantity": 4,
+   "bags": {
+    "4": 4
+   },
+   "category": "standard",
+   "guess": "Red brick 1x1 w/ 4 studs on sides"
+  },
+  {
+   "element_id": "300421",
+   "quantity": 4,
+   "bags": {
+    "2": 4
+   },
+   "category": "standard",
+   "guess": "Red brick 1x2"
+  },
+  {
+   "element_id": "6371957",
+   "quantity": 4,
+   "bags": {
+    "1": 4
+   },
+   "category": "standard",
+   "guess": "Red brick 1x2 w/ 2 pin holes (Technic)"
+  },
+  {
+   "element_id": "6385920",
+   "quantity": 2,
+   "bags": {
+    "11": 2
+   },
+   "category": "standard",
+   "guess": "Red brick 2x2 w/ pin/axle hole"
+  },
+  {
+   "element_id": "300121",
+   "quantity": 1,
+   "bags": {
+    "2": 1
+   },
+   "category": "standard",
+   "guess": "Red brick 2x4"
+  },
+  {
+   "element_id": "6266205",
+   "quantity": 4,
+   "bags": {
+    "5": 2,
+    "6": 2
+   },
+   "category": "standard",
+   "guess": "Red plate 1x2 w/ 2 clips"
+  },
+  {
+   "element_id": "6346804",
+   "quantity": 4,
+   "bags": {
+    "7": 2,
+    "8": 2
+   },
+   "category": "standard",
+   "guess": "Red plate 1x2 w/ 2 clips / hinge"
+  },
+  {
+   "element_id": "6480856",
+   "quantity": 1,
+   "bags": {
+    "2": 1
+   },
+   "category": "standard",
+   "guess": "Red plate 1x4 w/ hinge / pin end"
+  },
+  {
+   "element_id": "242021",
+   "quantity": 4,
+   "bags": {
+    "2": 4
+   },
+   "category": "standard",
+   "guess": "Red plate 2x2 corner"
+  },
+  {
+   "element_id": "302121",
+   "quantity": 2,
+   "bags": {
+    "1": 2
+   },
+   "category": "standard",
+   "guess": "Red plate 2x3"
+  },
+  {
+   "element_id": "6170390",
+   "quantity": 2,
+   "bags": {
+    "4": 2
+   },
+   "category": "standard",
+   "guess": "Red tile 1x1 quarter circle"
+  },
+  {
+   "element_id": "6173961",
+   "quantity": 12,
+   "bags": {
+    "1": 12
+   },
+   "category": "standard",
+   "guess": "Red wedge plate 2x3 (cut corner)"
+  },
+  {
+   "element_id": "6223219",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Sand Green plate round 4x4 w/ ridges (turbine ring)"
+  },
+  {
+   "element_id": "4113917",
+   "quantity": 21,
+   "bags": {
+    "3": 4,
+    "4": 4,
+    "5": 6,
+    "6": 6,
+    "10": 1
+   },
+   "category": "standard",
+   "guess": "Tan plate 1x2"
+  },
+  {
+   "element_id": "6223291",
+   "quantity": 3,
+   "bags": {
+    "4": 2,
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Tan plate 4x4 w/ 2x2 hole"
+  },
+  {
+   "element_id": "4509897",
+   "quantity": 1,
+   "bags": {
+    "11": 1
+   },
+   "category": "standard",
+   "guess": "Tan plate 4x6"
+  },
+  {
+   "element_id": "4161734",
+   "quantity": 12,
+   "bags": {
+    "1": 4,
+    "3": 4,
+    "5": 2,
+    "6": 2
+   },
+   "category": "standard",
+   "guess": "Tan plate round 1x1"
+  },
+  {
+   "element_id": "6115248",
+   "quantity": 1,
+   "bags": {
+    "9": 1
+   },
+   "category": "standard",
+   "guess": "Tan round tile 2x2"
+  },
+  {
+   "element_id": "6258607",
+   "quantity": 6,
+   "bags": {
+    "1": 4,
+    "9": 2
+   },
+   "category": "standard",
+   "guess": "Trans-Red round plate/tile 1x1 (light)"
+  },
+  {
+   "element_id": "6507880",
+   "quantity": 2,
+   "bags": {
+    "4": 2
+   },
+   "category": "standard",
+   "guess": "Trans-Red / Dark Pink bar 6L"
+  },
+  {
+   "element_id": "6320310",
+   "quantity": 2,
+   "bags": {
+    "2": 2
+   },
+   "category": "standard",
+   "guess": "White brick 1x1 w/ pin/clip on side"
+  },
+  {
+   "element_id": "6070698",
+   "quantity": 4,
+   "bags": {
+    "5": 2,
+    "6": 2
+   },
+   "category": "standard",
+   "guess": "White brick 1x2 w/ 2 pin holes"
+  },
+  {
+   "element_id": "6034044",
+   "quantity": 2,
+   "bags": {
+    "3": 2
+   },
+   "category": "standard",
+   "guess": "White curved slope 1x2 (bow)"
+  },
+  {
+   "element_id": "6435932",
+   "quantity": 4,
+   "bags": {
+    "1": 4
+   },
+   "category": "standard",
+   "guess": "White inverted slope 1x2 w/ studs (2x2?)"
+  },
+  {
+   "element_id": "6266219",
+   "quantity": 4,
+   "bags": {
+    "5": 2,
+    "6": 2
+   },
+   "category": "standard",
+   "guess": "White plate 1x2 w/ 2 pin holes / bar"
+  },
+  {
+   "element_id": "403201",
+   "quantity": 2,
+   "bags": {
+    "9": 2
+   },
+   "category": "standard",
+   "guess": "White round plate 2x2"
+  },
+  {
+   "element_id": "6483080",
+   "quantity": 1,
+   "bags": {
+    "10": 1
+   },
+   "category": "printed",
+   "guess": "White/Black tile 2x2 printed (25th anniversary logo)"
+  },
+  {
+   "element_id": "389424",
+   "quantity": 2,
+   "bags": {
+    "1": 2
+   },
+   "category": "standard",
+   "guess": "Yellow Technic brick 1x6"
+  },
+  {
+   "element_id": "6130007",
+   "quantity": 1,
+   "bags": {
+    "2": 1
+   },
+   "category": "standard",
+   "guess": "Yellow bar / grille 1x4 (fence?)"
+  },
+  {
+   "element_id": "306224",
+   "quantity": 8,
+   "bags": {
+    "5": 4,
+    "6": 4
+   },
+   "category": "standard",
+   "guess": "Yellow brick round 1x1"
+  }
+ ]
+}

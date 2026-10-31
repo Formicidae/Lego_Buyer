@@ -54,6 +54,15 @@
     <p class="hint" id="wl-status"></p>
   </div>
 
+  <div class="import-form">
+    <label for="pl-select">Or import a bundled parts list</label>
+    <div class="load-row">
+      <select id="pl-select"><option value="">Loading…</option></select>
+      <button class="btn primary" type="button" id="btn-import-pl" disabled>Import</button>
+    </div>
+    <p class="hint" id="pl-status">Lists of specific bags of a set, shipped with the app (e.g. the bags missing from a second-hand set).</p>
+  </div>
+
   <div class="lists-head"><h2>Your lists</h2><button class="btn primary" id="btn-combine" type="button" disabled>Open selected together</button></div>
   <p class="hint">Tick two or more and open them together for one combined store checklist. Each list keeps its own counts, so you can still buy for just one of them afterwards. Finds are credited to lists in the order you tick them.</p>
   <ul class="set-list" id="set-list">
@@ -61,8 +70,8 @@
     <li>
       <input type="checkbox" class="pick" value="{{ s.set_num }}" aria-label="select">
       <a href="/s/{{ s.set_num }}">
-        {% if s.img_url %}<img src="{{ s.img_url }}" alt="">{% else %}<span class="list-icon">{{ '♥' if s.kind == 'wishlist' else ('☺' if s.kind == 'minifig' else '▣') }}</span>{% endif %}
-        <div><b>{{ 'Wishlist' if s.kind == 'wishlist' else ('Minifig' if s.kind == 'minifig' else s.set_num) }}</b> {{ s.name }}<br><small>{{ s.num_parts }} pieces · {{ s.lots }} lots{% if s.year %} · {{ s.year }}{% endif %}{% if s.import_notes %} · <span class="warn-text">some lots couldn't be matched</span>{% endif %}</small></div>
+        {% if s.img_url %}<img src="{{ s.img_url }}" alt="">{% else %}<span class="list-icon">{{ '♥' if s.kind == 'wishlist' else ('☺' if s.kind == 'minifig' else ('☰' if s.kind == 'partlist' else '▣')) }}</span>{% endif %}
+        <div><b>{{ 'Wishlist' if s.kind == 'wishlist' else ('Minifig' if s.kind == 'minifig' else ('Parts list' if s.kind == 'partlist' else s.set_num)) }}</b> {{ s.name }}<br><small>{{ s.num_parts }} pieces · {{ s.lots }} lots{% if s.year %} · {{ s.year }}{% endif %}{% if s.import_notes %} · <span class="warn-text">some lots couldn't be matched</span>{% endif %}</small></div>
       </a>
       <button class="btn ghost icon danger" data-del="{{ s.set_num }}" title="Remove">&times;</button>
     </li>
