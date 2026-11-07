@@ -87,12 +87,22 @@ made while offline, syncing them when the Pi is reachable again.
 - **Admin** (`/admin`): update to the latest code, run diagnostics against Rebrickable, BrickOwl and
   lego.com, and read the app log, all from a phone.
 
-- **Have** — go through your collection and tap *Have* (or the picture) once per piece you own.
-  *All* marks a lot complete.
-- **Trip** — at the store, tap *Exact* when you find the exact part, *Alt* for an acceptable
+- **Parts · At home** — go through your collection and tap *Have* (or the picture) once per piece
+  you own. *All* marks a lot complete.
+- **Parts · At the store** — tap *Exact* when you find the exact part, *Alt* for an acceptable
   substitute. *Mistake?* reveals the undo links. Every open phone updates within a few seconds and
   shows who tapped last. *Filters → Open checklist PDF* prints what is still missing, grouped by
   color so you can walk the wall.
+- **Build** — for building an incomplete set. *Start build mode* marks every part as owned; as you
+  build, tap *Missing* (or the picture) on whatever the box doesn't have. The Buy tab and the
+  BrickOwl wishlist are derived from those marks, so there is nothing to "save": stop halfway, come
+  back another day, keep marking. Import a **build order** (an LDraw `.ldr`/`.mpd` model with
+  `0 STEP` markers — e.g. from the [LDraw OMR](https://library.ldraw.org/omr) or the LDraw forums —
+  or a JSON steps file) and the parts are shown step by step with a *Step done → next* button;
+  the current step is remembered on the server. Without one, parts are listed by type.
+  JSON format: `{"source": "pdf", "steps": [{"book": 1, "page": 7, "step": 3,
+  "parts": [{"part_num": "3001", "color_id": 4, "qty": 2}, {"element_id": "300126", "qty": 1}]}]}`.
+  The import reports what didn't match the inventory and how many pieces the steps account for.
 - **Buy** — what's left after both passes. *Check LEGO prices* looks every remaining element up on
   lego.com (about a second each, cached for a day) and shows Bestseller vs Standard subtotals against
   the $14-per-category service-fee minimum and the $35 free-shipping line. Copy a BrickLink

@@ -13,14 +13,20 @@
     parts: [],
     figs: [],
     rev: -1,
-    mode: localStorage.getItem('lb_mode') || 'have',
+    mode: localStorage.getItem('lb_mode') || 'have',   // have | trip | build | buy
     search: '',
     sort: localStorage.getItem('lb_sort') || 'type',
     hideDone: localStorage.getItem('lb_hide_done') !== '0',
     who: localStorage.getItem('lb_who') || '',
-    rows: new Map(), // key -> row element
+    rows: new Map(), // key -> [row elements] (a part can appear in several build steps)
+    steps: [], stepsMeta: null,
+    hidePast: localStorage.getItem('lb_hide_past') !== '0',
+    onlyMissing: localStorage.getItem('lb_only_missing') === '1',
     pollTimer: null,
   };
+  const rowsOf = (key) => state.rows.get(key) || [];
+  const addRow = (key, el) => { if (!state.rows.has(key)) state.rows.set(key, []); state.rows.get(key).push(el); };
+  const missing = (it) => Math.max(0, it.quantity - it.owned);
 
   // ---------- helpers ----------
   const api = async (url, opts = {}) => {
@@ -109,6 +115,7 @@
   };
   const isDone = (it) => {
     if (state.mode === 'have') return it.owned >= it.quantity;
+    if (state.mode === 'build') return false; // nothing is ever "done" while building; filters handle the noise
     return remaining(it) === 0;
   };
   const matches = (it, q) => {
@@ -127,6 +134,7 @@
       if (state.hideDone && isDone(it)) continue;
       if (state.mode === 'trip' && needed(it) === 0 && state.hideDone) continue;
       if (state.mode === 'buy' && remaining(it) === 0) continue;
+      if (state.mode === 'build' && state.onlyMissing && missing(it) === 0) continue;
       const id = it.kind === 'minifig' ? `fig:${it.fig_num}` : `part:${it.part_num}`;
       if (!cards.has(id)) {
         cards.set(id, {
@@ -164,50 +172,126 @@
   // ---------- rendering ----------
   const tplCard = $('#tpl-card').content;
   const tplRow = $('#tpl-row').content;
+  const tplStep = $('#tpl-step').content;
+
+  const makeRow = (it, stepQty) => {
+    const r = tplRow.cloneNode(true).firstElementChild;
+    r.dataset.key = it.key;
+    if (stepQty != null) r.dataset.stepQty = stepQty;
+    const im = $('img', r);
+    im.alt = '';
+    im.addEventListener('error', () => im.closest('.pic').classList.add('noimg'), { once: true });
+    if (it.img_url) im.src = it.img_url; else im.closest('.pic').classList.add('noimg');
+    const sw = $('.swatch', r);
+    if (it.color_rgb) sw.style.background = `#${it.color_rgb}`; else sw.hidden = true;
+    $('.color-name', r).textContent = it.kind === 'minifig' ? 'Complete minifigure' : it.color_name;
+    $('.element', r).textContent = it.kind === 'minifig' ? it.fig_num : (it.element_id ? `Element ${it.element_id}` : `Design ${it.part_num}`);
+    if (it.is_spare) $('.meta', r).insertAdjacentHTML('beforeend', '<span class="tag">spare</span>');
+    if (state.isView && it.members) { const m = document.createElement('div'); m.className = 'members'; r.querySelector('.meta').after(m); }
+    paintPrice(it, r);
+    addRow(it.key, r);
+    paintRow(it, r);
+    return r;
+  };
 
   const render = () => {
     const grid = $('#grid');
-    const cards = buildCards();
     const scroll = window.scrollY;
     grid.replaceChildren();
     state.rows.clear();
-    for (const c of cards) {
-      const el = tplCard.cloneNode(true).firstElementChild;
-      $('.design', el).textContent = c.cat ? `${c.cat.toUpperCase()} · DESIGN ${c.design}` : `DESIGN ${c.design}`;
-      $('.part-name', el).textContent = c.title;
-      const rows = $('.rows', el);
-      for (const it of c.rows) {
-        const r = tplRow.cloneNode(true).firstElementChild;
-        r.dataset.key = it.key;
-        const im = $('img', r);
-        im.alt = '';
-        im.addEventListener('error', () => im.closest('.pic').classList.add('noimg'), { once: true });
-        if (it.img_url) im.src = it.img_url; else im.closest('.pic').classList.add('noimg');
-        const sw = $('.swatch', r);
-        if (it.color_rgb) sw.style.background = `#${it.color_rgb}`; else sw.hidden = true;
-        $('.color-name', r).textContent = it.kind === 'minifig' ? 'Complete minifigure' : it.color_name;
-        $('.element', r).textContent = it.kind === 'minifig' ? it.fig_num : (it.element_id ? `Element ${it.element_id}` : `Design ${it.part_num}`);
-        if (it.is_spare) $('.meta', r).insertAdjacentHTML('beforeend', '<span class="tag">spare</span>');
-        if (state.isView && it.members) { const m = document.createElement('div'); m.className = 'members'; r.querySelector('.meta').after(m); }
-        paintPrice(it, r);
-        rows.appendChild(r);
-        state.rows.set(it.key, r);
-        paintRow(it, r);
-      }
-      grid.appendChild(el);
-    }
-    $('#empty').hidden = cards.length > 0;
-    $('#empty').textContent = state.search ? 'Nothing matches that search.' :
-      state.mode === 'have' ? 'Everything is marked as owned. Switch to Trip.' :
-      state.mode === 'trip' ? 'Nothing left to find. Switch to Buy.' : 'Nothing left to buy.';
+    $('#build-panel').hidden = state.mode !== 'build';
     $('#buy-panel').hidden = state.mode !== 'buy';
+    let count;
+    if (state.mode === 'build' && !state.set.build_mode) {
+      count = -1; // nothing to tap until build mode is on; the panel explains
+    } else if (state.mode === 'build' && state.steps.length) {
+      count = renderSteps(grid);
+    } else {
+      const cards = buildCards();
+      count = cards.length;
+      for (const c of cards) {
+        const el = tplCard.cloneNode(true).firstElementChild;
+        $('.design', el).textContent = c.cat ? `${c.cat.toUpperCase()} · DESIGN ${c.design}` : `DESIGN ${c.design}`;
+        $('.part-name', el).textContent = c.title;
+        const rows = $('.rows', el);
+        for (const it of c.rows) rows.appendChild(makeRow(it));
+        grid.appendChild(el);
+      }
+    }
+    $('#empty').hidden = count !== 0;
+    $('#empty').textContent = state.search ? 'Nothing matches that search.' :
+      state.mode === 'have' ? 'Everything is marked as owned. Switch to the store view or Buy.' :
+      state.mode === 'trip' ? 'Nothing left to find. Switch to Buy.' :
+      state.mode === 'build' ? (state.onlyMissing ? 'Nothing marked missing yet.' : state.hidePast ? 'All steps are behind the current one — untick “hide steps before the current one” to see them.' : 'No parts to show.') : 'Nothing left to buy.';
+    if (state.mode === 'build') renderBuildPanel();
     if (state.mode === 'buy' && !state._fromSourcing) { renderBuyPlan(); if (!state._srcPending) { state._srcPending = true; setTimeout(() => { state._srcPending = false; renderSourcing(); }, 50); } }
     renderSummary();
     window.scrollTo(0, scroll);
   };
 
+  // ---------- build mode: step cards ----------
+  const stepLabel = (st) => st.label || [st.book ? `Book ${st.book}` : '', st.page ? `p.${st.page}` : '', `Step ${st.step || st.seq}`].filter(Boolean).join(' · ');
+  const currentSeq = () => state.set.build_pos || (state.steps.length ? state.steps[0].seq : 0);
+  const renderSteps = (grid) => {
+    const q = state.search.trim().toLowerCase();
+    const cur = currentSeq();
+    let shown = 0;
+    for (const st of state.steps) {
+      if (state.hidePast && st.seq < cur) continue;
+      const items = [];
+      for (const p of st.parts) {
+        const it = p.key && findItem(p.key); if (!it) continue;
+        if (!matches(it, q)) continue;
+        if (state.onlyMissing && missing(it) === 0) continue;
+        items.push([it, p.qty]);
+      }
+      if (!items.length && (q || state.onlyMissing)) continue;
+      const el = tplStep.cloneNode(true).firstElementChild;
+      el.dataset.seq = st.seq;
+      el.classList.toggle('current', st.seq === cur);
+      $('.design', el).textContent = `STEP ${st.seq} OF ${state.steps.length}${st.parts.length !== items.length ? ` · ${items.length} OF ${st.parts.length} PARTS SHOWN` : ''}`;
+      $('.part-name', el).textContent = stepLabel(st);
+      const rows = $('.rows', el);
+      for (const [it, qty] of items) rows.appendChild(makeRow(it, qty));
+      if (!items.length) rows.innerHTML = '<div class="row-empty">No parts in this step (sub-assembly placement).</div>';
+      $('.step-here', el).hidden = st.seq === cur;
+      $('.step-here', el).addEventListener('click', () => setStep(st.seq));
+      $('.step-next', el).addEventListener('click', () => { const nx = state.steps.find((s) => s.seq > st.seq); setStep(nx ? nx.seq : st.seq, true); });
+      $('.step-next', el).hidden = st.seq !== cur;
+      grid.appendChild(el); shown++;
+    }
+    return shown;
+  };
+  const setStep = async (seq, scroll) => {
+    state.set.build_pos = seq;
+    render();
+    if (scroll) scrollToStep(seq);
+    try { await api(`${state.api}/settings`, { method: 'POST', body: JSON.stringify({ build_pos: seq }) }); } catch (e) { toast(e.message); }
+  };
+  const scrollToStep = (seq) => {
+    const el = $(`.step[data-seq="${seq}"]`); if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY - 70;
+    window.scrollTo({ top, behavior: 'smooth' });
+  };
+  const renderBuildPanel = () => {
+    const s = state.set; const items = visibleItems();
+    const miss = sum(items, missing); const lots = items.filter((i) => missing(i) > 0).length;
+    $('#btn-build-start').hidden = !!s.build_mode;
+    $('#btn-build-jump').hidden = !s.build_mode || !state.steps.length;
+    $('#build-opts').hidden = !state.steps.length;
+    $('#build-status').textContent = !s.build_mode
+      ? 'Build mode marks every part as owned, then you tap “Missing” on whatever the box turns out not to have. The Buy tab and BrickOwl wishlist come straight from those marks, and every tap is saved, so you can stop and pick it up another day.'
+      : `Build mode on · ${miss} piece${miss === 1 ? '' : 's'} in ${lots} lot${lots === 1 ? '' : 's'} marked missing${state.steps.length ? ` · at step ${currentSeq()} of ${state.steps.length}` : ''}.`;
+    const m = state.stepsMeta;
+    $('#steps-summary').textContent = state.steps.length ? `Build order: ${state.steps.length} steps (${(m && m.source) || 'imported'})` : 'Build order: none yet — parts are listed by type';
+    $('#steps-delete').hidden = !state.steps.length;
+    if (!state.steps.length && s.build_mode) $('#steps-import').open = true;
+    $('#b-hide-past').checked = state.hidePast; $('#b-only-missing').checked = state.onlyMissing;
+  };
+
   const paintPrice = (it, r) => {
     const pr = $('.price', r); if (!pr || it.kind === 'minifig') return;
+    if (state.mode === 'build') { pr.hidden = true; return; }
     pr.hidden = false; pr.className = 'price';
     if (it.price_checked_at == null) { pr.classList.add('na'); pr.textContent = it.lego_error ? `LEGO: lookup failed` : 'LEGO: price not checked yet'; return; }
     if (it.lego_price == null || !it.lego_available) {
@@ -235,16 +319,28 @@
     const qty = $('.qty', r);
     let have, total, label;
     if (state.mode === 'have') { have = it.owned; total = it.quantity; label = 'owned'; qty.textContent = `×${it.quantity}`; }
+    else if (state.mode === 'build') { have = missing(it); total = it.quantity; label = 'missing'; qty.textContent = `×${r.dataset.stepQty || it.quantity}`; }
     else { have = need - rem; total = need; label = 'found'; qty.textContent = `×${rem}`; }
-    qty.classList.toggle('done', total > 0 && have >= total);
+    qty.classList.toggle('done', state.mode !== 'build' && total > 0 && have >= total);
+    qty.classList.toggle('miss', state.mode === 'build' && have > 0);
     $('.bar-fill', r).style.width = total ? `${Math.min(100, (have / total) * 100)}%` : '0%';
-    $('.count-text', r).innerHTML = `<b>${have}</b> / ${total} ${label}`;
+    $('.bar', r).classList.toggle('bar-miss', state.mode === 'build');
+    $('.count-text', r).innerHTML = state.mode === 'build' ? `<b>${have}</b> missing of ${total}${r.dataset.stepQty && Number(r.dataset.stepQty) !== it.quantity ? ` <span class="muted">(${r.dataset.stepQty} in this step)</span>` : ''}` : `<b>${have}</b> / ${total} ${label}`;
     $('.last', r).textContent = it.updated_by ? `${it.updated_by} · ${ago(it.updated_at)}` : '';
-    r.classList.toggle('complete', total > 0 && have >= total);
+    r.classList.toggle('complete', state.mode !== 'build' && total > 0 && have >= total);
+    r.classList.toggle('missing', state.mode === 'build' && have > 0);
 
     const actions = $('.actions', r); actions.replaceChildren();
     const mistake = $('.mistake', r); const undo = $('.undo', r); undo.replaceChildren();
-    if (state.mode === 'have') {
+    if (state.mode === 'build') {
+      mistake.hidden = true;
+      const m = missing(it);
+      actions.append(
+        btn('−', 'minus', () => tap(it, 'owned', 1), m <= 0),
+        btn(`Missing <small>${m} of ${it.quantity}</small>`, 'have miss', () => tap(it, 'owned', -1), it.owned <= 0),
+        btn('All', 'all', () => setVal(it, 'owned', 0), it.owned <= 0),
+      );
+    } else if (state.mode === 'have') {
       mistake.hidden = true;
       actions.append(
         btn('−', 'minus', () => tap(it, 'owned', -1), it.owned <= 0),
@@ -284,12 +380,18 @@
     const owned = sum(items, (i) => Math.min(i.owned, i.quantity));
     const found = sum(items, (i) => Math.min(i.found_exact + (countAlt() ? i.found_alt : 0), needed(i)));
     const rem = sum(items, remaining);
-    $('#summary').innerHTML = `
+    const miss = sum(items, missing);
+    $('#summary').innerHTML = state.mode === 'build' ? `
+      <span><b>${pieces}</b> pieces in <b>${lots}</b> lots</span>
+      <span class="s-rem"><b>${miss}</b> marked missing</span>
+      <span class="s-found"><b>${found}</b> found at store</span>
+      <span class="s-rem"><b>${rem}</b> still to buy</span>` : `
       <span><b>${pieces}</b> pieces in <b>${lots}</b> lots</span>
       <span class="s-own"><b>${owned}</b> owned</span>
       <span class="s-found"><b>${found}</b> found at store</span>
       <span class="s-rem"><b>${rem}</b> still to buy</span>`;
     renderBucket(items);
+    if (state.mode === 'build') renderBuildPanel();
   };
   const renderBucket = (items) => {
     const box = $('#bucket'); if (state.mode !== 'trip') { box.hidden = true; return; }
@@ -319,7 +421,7 @@
   const findItem = (key) => state.parts.find((p) => p.key === key) || state.figs.find((f) => f.key === key);
 
   // ---------- updates ----------
-  const applyProgress = (it, row) => { Object.assign(it, row); const el = state.rows.get(it.key); if (el) paintRow(it, el); renderSummary(); };
+  const applyProgress = (it, row) => { Object.assign(it, row); for (const el of rowsOf(it.key)) paintRow(it, el); renderSummary(); };
   const viewName = () => state.isView ? 'Combined' : state.set.kind === 'wishlist' ? 'Wishlist' : state.set.kind === 'partlist' ? state.set.name : state.set.kind === 'minifig' ? `Minifig ${state.set.set_num}` : `LEGO ${state.set.set_num.replace(/-1$/, '')}`;
 
   const tap = async (it, field, delta) => {
@@ -364,13 +466,15 @@
       if (!res || !res.changed) return;
       state.rev = res.rev;
       if (res.set.loaded_at !== state.set.loaded_at) { await loadSet(); toast('Set was refreshed'); return; }
-      const settingsChanged = ['include_spares', 'include_minifigs', 'count_alt'].some((k) => state.set[k] !== res.set[k]);
+      const settingsChanged = ['include_spares', 'include_minifigs', 'count_alt', 'build_mode', 'build_pos'].some((k) => state.set[k] !== res.set[k]);
       state.set = res.set;
       let structural = settingsChanged;
+      const stamp = (m) => (m && m.imported_at) || 0;
+      if (!state.isView && stamp(res.steps_meta) !== stamp(state.stepsMeta)) { await loadSteps(); structural = true; }
       for (const it of [...state.parts, ...state.figs]) {
         const p = res.progress[it.key] || { owned: 0, found_exact: 0, found_alt: 0, updated_at: null, updated_by: null };
         const changed = ['owned', 'found_exact', 'found_alt'].some((k) => it[k] !== p[k]) || (p.members && JSON.stringify(p.members) !== JSON.stringify(it.members));
-        if (changed) { Object.assign(it, p); const el = state.rows.get(it.key); if (el) paintRow(it, el); if (state.hideDone && isDone(it)) structural = true; if (!el) structural = true; }
+        if (changed) { Object.assign(it, p); const els = rowsOf(it.key); for (const el of els) paintRow(it, el); if (state.hideDone && isDone(it)) structural = true; if (!els.length) structural = true; }
       }
       if (structural) { syncFilterUI(); render(); } else renderSummary();
     } catch (e) { if (isNetworkError(e)) { state.serverDown = true; updateNetBanner(); } }
@@ -389,12 +493,18 @@
       it.updated_by = q.who || it.updated_by;
     }
     updateNetBanner();
+    if (!state.isView) await loadSteps();
     $('#hdr-small').textContent = viewName();
     $('#hdr-title').textContent = state.set.name;
     document.title = `${state.set.name} · Lego Buyer`;
     if (state.isView) $('#btn-reload').hidden = true;
     syncFilterUI();
     render();
+  };
+
+  const loadSteps = async () => {
+    try { const r = await api(`${state.api}/steps`); if (r) { state.steps = r.steps || []; state.stepsMeta = r.meta || null; } }
+    catch { state.steps = []; state.stepsMeta = null; }
   };
 
   const pdfOrder = () => localStorage.getItem('lb_pdf_order') || 'color';
@@ -440,7 +550,7 @@
     const next = cur === 'Bestseller' ? 'Standard' : cur === 'Standard' ? '' : 'Bestseller';
     try {
       await api('/api/tier', { method: 'POST', body: JSON.stringify({ element_id: eid, tier: next }) });
-      for (const it of state.parts) if (it.element_id === eid) { it.tier = next || null; it.tier_manual = next || null; const el = state.rows.get(it.key); if (el) paintPrice(it, el); }
+      for (const it of state.parts) if (it.element_id === eid) { it.tier = next || null; it.tier_manual = next || null; for (const el of rowsOf(it.key)) paintPrice(it, el); }
       renderBuyPlan(); renderSourcing();
     } catch (e) { toast(e.message); }
   };
@@ -535,8 +645,15 @@
 
   // ---------- wiring ----------
   const setMode = (m) => {
+    if (m === 'parts') m = localStorage.getItem('lb_sub') || 'have';
+    if (m === 'build' && state.isView) m = 'have';
     state.mode = m; localStorage.setItem('lb_mode', m);
-    $$('.stage').forEach((b) => b.classList.toggle('active', b.dataset.mode === m));
+    if (m === 'have' || m === 'trip') localStorage.setItem('lb_sub', m);
+    const stage = m === 'have' || m === 'trip' ? 'parts' : m;
+    $$('.stage').forEach((b) => b.classList.toggle('active', b.dataset.mode === stage));
+    $('#subtabs').hidden = stage !== 'parts';
+    $$('.subtab').forEach((b) => b.classList.toggle('active', b.dataset.sub === m));
+    $('#sort').closest('.sort').hidden = m === 'build' && state.steps.length > 0;
     if (state.set) { syncFilterUI(); render(); }
   };
 
@@ -674,6 +791,43 @@
       } catch (e) { toast(e.message); }
     });
     $$('.stage').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
+    $$('.subtab').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.sub)));
+    if (state.isView) $('#stage-build').hidden = true;
+
+    // Build mode
+    $('#btn-build-start').addEventListener('click', async () => {
+      if (!confirm('Start build mode? Every part not yet counted is marked as owned; you then mark what turns out to be missing as you build.')) return;
+      try {
+        const r = await api(`${state.api}/build_start`, { method: 'POST', body: JSON.stringify({ who: ensureWho() }) });
+        if (!r) return;
+        state.rev = -1; await loadSet(); toast(`Build mode on · ${r.marked} lots marked owned`);
+      } catch (e) { toast(e.message); }
+    });
+    $('#btn-build-jump').addEventListener('click', () => scrollToStep(currentSeq()));
+    $('#b-hide-past').addEventListener('change', (e) => { state.hidePast = e.target.checked; localStorage.setItem('lb_hide_past', state.hidePast ? '1' : '0'); render(); });
+    $('#b-only-missing').addEventListener('change', (e) => { state.onlyMissing = e.target.checked; localStorage.setItem('lb_only_missing', state.onlyMissing ? '1' : '0'); render(); });
+    $('#steps-upload').addEventListener('click', async () => {
+      const f = $('#steps-file').files[0];
+      if (!f) { $('#steps-status').textContent = 'Choose an .ldr, .mpd or .json file first.'; return; }
+      const fd = new FormData(); fd.append('file', f);
+      $('#steps-status').textContent = 'Importing…'; $('#steps-upload').disabled = true;
+      try {
+        const r = await fetch(`${state.api}/steps`, { method: 'POST', body: fd });
+        const j = await r.json();
+        if (!r.ok) { $('#steps-status').textContent = j.error || 'Import failed'; return; }
+        const rep = j.report; const un = Object.keys(rep.unmatched || {}).length; const over = Object.keys(rep.over || {}).length; const nis = Object.keys(rep.not_in_steps || {}).length;
+        $('#steps-status').textContent = `${rep.steps} steps · ${rep.pieces_in_steps} of ${rep.pieces_in_set} pieces placed · ${rep.lots_covered} of ${rep.lots_in_set} lots covered`
+          + (rep.has_step_markers === false ? ' · the model has no step markers, so each sub-assembly is one step' : '')
+          + (un ? ` · ${un} part type(s) didn't match the inventory` : '') + (over ? ` · ${over} part(s) used more than the set has` : '') + (nis ? ` · ${nis} lot(s) never appear in a step` : '') + '.';
+        $('#steps-file').value = '';
+        state.rev = -1; await loadSet(); setMode('build');
+      } catch (e) { $('#steps-status').textContent = e.message; }
+      finally { $('#steps-upload').disabled = false; }
+    });
+    $('#steps-delete').addEventListener('click', async () => {
+      if (!confirm('Forget the imported build order? Your missing marks are kept.')) return;
+      await api(`${state.api}/steps`, { method: 'DELETE' }); state.rev = -1; await loadSet(); setMode('build');
+    });
     $('#search').addEventListener('input', (e) => { state.search = e.target.value; render(); });
     $('#sort').value = state.sort;
     $('#sort').addEventListener('change', (e) => { state.sort = e.target.value; localStorage.setItem('lb_sort', state.sort); render(); });
@@ -753,6 +907,7 @@
       const pic = e.target.closest('.pic'); if (!pic) return;
       const key = pic.closest('.row').dataset.key; const it = findItem(key); if (!it) return;
       if (state.mode === 'have' && it.owned < it.quantity) tap(it, 'owned', 1);
+      else if (state.mode === 'build' && it.owned > 0) tap(it, 'owned', -1);
       else if (state.mode === 'trip' && remaining(it) > 0) tap(it, 'found_exact', 1);
     });
     $('#grid').addEventListener('click', (e) => {

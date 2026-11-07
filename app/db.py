@@ -109,6 +109,30 @@ CREATE TABLE IF NOT EXISTS revisions (
     set_num TEXT PRIMARY KEY,
     rev INTEGER NOT NULL DEFAULT 0
 );
+
+-- Build order: which parts each instruction step uses. Keyed by part/color (not set_parts.id) so a
+-- set reload never loses it. One row per (step, part, color).
+CREATE TABLE IF NOT EXISTS set_steps (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    set_num TEXT NOT NULL,
+    seq INTEGER NOT NULL,
+    book INTEGER,
+    page INTEGER,
+    step INTEGER,
+    label TEXT,
+    part_num TEXT,
+    color_id INTEGER,
+    qty INTEGER NOT NULL DEFAULT 1,
+    note TEXT
+);
+CREATE INDEX IF NOT EXISTS set_steps_set ON set_steps(set_num, seq);
+
+CREATE TABLE IF NOT EXISTS set_steps_meta (
+    set_num TEXT PRIMARY KEY,
+    source TEXT NOT NULL,
+    imported_at REAL NOT NULL,
+    notes TEXT
+);
 """
 
 
@@ -132,6 +156,8 @@ MIGRATIONS = [
     "ALTER TABLE set_parts ADD COLUMN bl_qty INTEGER",
     "ALTER TABLE set_parts ADD COLUMN bl_lots INTEGER",
     "ALTER TABLE set_parts ADD COLUMN bl_checked_at REAL",
+    "ALTER TABLE sets ADD COLUMN build_mode INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE sets ADD COLUMN build_pos INTEGER",
 ]
 
 
@@ -290,8 +316,10 @@ def delete_set(set_num):
 
 
 def update_set_settings(set_num, **fields):
-    allowed = {"include_spares", "include_minifigs", "count_alt"}
+    allowed = {"include_spares", "include_minifigs", "count_alt", "build_mode"}
     sets = {k: 1 if v else 0 for k, v in fields.items() if k in allowed}
+    if "build_pos" in fields:
+        sets["build_pos"] = int(fields["build_pos"]) if fields["build_pos"] is not None else None
     if not sets:
         return
     with tx() as conn:
@@ -377,6 +405,75 @@ def reset_progress(set_num, fields):
         if sets:
             conn.execute(f"UPDATE progress SET {sets}, updated_at=? WHERE set_num=?", (time.time(), set_num))
         bump_rev(conn, set_num)
+
+
+def start_build_mode(set_num, who=None):
+    """Build mode: everything starts as owned and you mark what's missing as you build. Items that were
+    never touched get owned=quantity; anything already counted is left alone."""
+    with tx() as conn:
+        touched = {r["key"] for r in conn.execute("SELECT key FROM progress WHERE set_num=?", (set_num,))}
+        n = 0
+        rows = [(f"p:{r['id']}", r["quantity"]) for r in conn.execute("SELECT id, quantity FROM set_parts WHERE set_num=?", (set_num,))]
+        rows += [(f"f:{r['id']}", r["quantity"]) for r in conn.execute("SELECT id, quantity FROM set_minifigs WHERE set_num=?", (set_num,))]
+        for key, qty in rows:
+            if key in touched:
+                continue
+            conn.execute("INSERT INTO progress(set_num, key, owned, found_exact, found_alt, updated_at, updated_by) VALUES(?,?,?,0,0,?,?)",
+                         (set_num, key, qty, time.time(), who))
+            n += 1
+        conn.execute("UPDATE sets SET build_mode=1 WHERE set_num=?", (set_num,))
+        rev = bump_rev(conn, set_num)
+    return {"marked": n, "rev": rev}
+
+
+# ---------- Build order (instruction steps) ----------
+
+def replace_steps(set_num, steps, source, notes=None):
+    """steps: [{book, page, step, label, parts: [{part_num, color_id, qty, note}]}] in build order."""
+    with tx() as conn:
+        conn.execute("DELETE FROM set_steps WHERE set_num=?", (set_num,))
+        for seq, st in enumerate(steps, start=1):
+            parts = st.get("parts") or []
+            if not parts:
+                conn.execute("INSERT INTO set_steps(set_num, seq, book, page, step, label, part_num, color_id, qty, note) VALUES(?,?,?,?,?,?,NULL,NULL,0,?)",
+                             (set_num, seq, st.get("book"), st.get("page"), st.get("step"), st.get("label"), st.get("note")))
+            for p in parts:
+                conn.execute("INSERT INTO set_steps(set_num, seq, book, page, step, label, part_num, color_id, qty, note) VALUES(?,?,?,?,?,?,?,?,?,?)",
+                             (set_num, seq, st.get("book"), st.get("page"), st.get("step"), st.get("label"), p.get("part_num"), p.get("color_id"), int(p.get("qty") or 1), p.get("note")))
+        conn.execute("INSERT INTO set_steps_meta(set_num, source, imported_at, notes) VALUES(?,?,?,?) ON CONFLICT(set_num) DO UPDATE SET source=excluded.source, imported_at=excluded.imported_at, notes=excluded.notes",
+                     (set_num, source, time.time(), notes))
+        bump_rev(conn, set_num)
+
+
+def delete_steps(set_num):
+    with tx() as conn:
+        conn.execute("DELETE FROM set_steps WHERE set_num=?", (set_num,))
+        conn.execute("DELETE FROM set_steps_meta WHERE set_num=?", (set_num,))
+        conn.execute("UPDATE sets SET build_pos=NULL WHERE set_num=?", (set_num,))
+        bump_rev(conn, set_num)
+
+
+def steps_meta(set_num):
+    return q1("SELECT * FROM set_steps_meta WHERE set_num=?", (set_num,))
+
+
+def steps(set_num):
+    """Steps with each part resolved to the inventory row key (non-spare row preferred)."""
+    rows = q("SELECT * FROM set_steps WHERE set_num=? ORDER BY seq, id", (set_num,))
+    inv = q("SELECT id, part_num, color_id, is_spare FROM set_parts WHERE set_num=? ORDER BY is_spare", (set_num,))
+    keys = {}
+    for r in inv:
+        keys.setdefault((r["part_num"], r["color_id"]), f"p:{r['id']}")
+    out, cur = [], None
+    for r in rows:
+        if cur is None or cur["seq"] != r["seq"]:
+            cur = {"seq": r["seq"], "book": r["book"], "page": r["page"], "step": r["step"], "label": r["label"], "parts": []}
+            out.append(cur)
+        if r["part_num"] is None:
+            continue
+        cur["parts"].append({"part_num": r["part_num"], "color_id": r["color_id"], "qty": r["qty"], "note": r["note"],
+                             "key": keys.get((r["part_num"], r["color_id"]))})
+    return out
 
 
 # ---------- LEGO prices ----------

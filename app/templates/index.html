@@ -84,12 +84,16 @@
 <section id="workspace" hidden>
   <div class="netbar" id="netbar" hidden></div>
   <nav class="stages">
-    <button class="stage" data-mode="have" type="button"><b>1 · Have</b><small>Check against your collection</small></button>
-    <button class="stage" data-mode="trip" type="button"><b>2 · Trip</b><small>Find at Bricks &amp; Minifigs</small></button>
+    <button class="stage" data-mode="parts" type="button"><b>1 · Parts</b><small>Your collection &amp; store finds</small></button>
+    <button class="stage" data-mode="build" type="button" id="stage-build"><b>2 · Build</b><small>Mark what's missing as you build</small></button>
     <button class="stage" data-mode="buy" type="button"><b>3 · Buy</b><small>Order the rest</small></button>
   </nav>
 
   <div class="toolbar">
+    <div class="subtabs" id="subtabs">
+      <button type="button" class="subtab" data-sub="have">At home</button>
+      <button type="button" class="subtab" data-sub="trip">At the store</button>
+    </div>
     <div class="search"><span class="search-icon">&#x2315;</span><input id="search" type="search" placeholder="Search name, color, element or design ID"></div>
     <label class="sort"><span>Sort</span>
       <select id="sort">
@@ -125,6 +129,33 @@
   <div class="bucket" id="bucket" hidden>
     <div class="bucket-text"><span id="bucket-line"></span><small id="bucket-sub"></small></div>
     <button class="btn primary" id="btn-finish" type="button">Finish trip → add to collection</button>
+  </div>
+
+  <div class="buy-panel build-panel" id="build-panel" hidden>
+    <div class="buy-head">
+      <h2>Build this set</h2>
+      <div class="buy-actions">
+        <button class="btn primary" id="btn-build-start" type="button">Start build mode</button>
+        <button class="btn ghost" id="btn-build-jump" type="button" hidden>Jump to current step</button>
+      </div>
+    </div>
+    <p class="hint" id="build-status"></p>
+    <div class="build-opts" id="build-opts" hidden>
+      <label><input type="checkbox" id="b-hide-past" checked> Hide steps before the current one</label>
+      <label><input type="checkbox" id="b-only-missing"> Only show parts marked missing</label>
+    </div>
+    <details class="cart-import" id="steps-import">
+      <summary id="steps-summary">Build order</summary>
+      <p class="hint" id="steps-hint">Import the instruction order so parts show up step by step. Accepts an LDraw model (.ldr / .mpd, e.g. from the LDraw Official Model Repository or the LDraw forums) or a JSON steps file produced from the instruction PDF.</p>
+      <div class="cart-form">
+        <label>File <input id="steps-file" type="file" accept=".ldr,.mpd,.json,.txt"></label>
+        <div class="buy-actions">
+          <button class="btn primary" id="steps-upload" type="button">Import build order</button>
+          <button class="btn ghost danger" id="steps-delete" type="button" hidden>Forget build order</button>
+        </div>
+        <span class="hint" id="steps-status"></span>
+      </div>
+    </details>
   </div>
 
   <div class="buy-panel" id="buy-panel" hidden>
@@ -190,6 +221,17 @@
   <article class="card">
     <header class="card-head"><small class="design"></small><h3 class="part-name"></h3></header>
     <div class="rows"></div>
+  </article>
+</template>
+
+<template id="tpl-step">
+  <article class="card step">
+    <header class="card-head step-head">
+      <div><small class="design"></small><h3 class="part-name"></h3></div>
+      <button type="button" class="btn ghost step-here">Start here</button>
+    </header>
+    <div class="rows"></div>
+    <footer class="step-foot"><button type="button" class="btn primary step-next">Step done → next</button></footer>
   </article>
 </template>
 

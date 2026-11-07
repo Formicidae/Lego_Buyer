@@ -21,7 +21,7 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from . import bricklink, brickowl, cartparse, db, jobs, lego, partlists, rebrickable, sourcing, views
+from . import bricklink, brickowl, cartparse, db, jobs, lego, partlists, rebrickable, sourcing, steps, views
 from .checklist import build_checklist, render_checklist_html, render_checklist_pdf
 from .config import APP_PASSCODE, SECRET, BRICKOWL_API_KEY, REBRICKABLE_API_KEY, DATA_DIR, CHROMIUM_PATH
 
@@ -182,7 +182,7 @@ async def api_progress(request: Request):
         rev = db.get_rev(set_num)
         if rev == client_rev:
             return JSONResponse({"rev": rev, "changed": False})
-        return JSONResponse({"rev": rev, "changed": True, "progress": db.progress_snapshot(set_num), "set": db.get_set(set_num)})
+        return JSONResponse({"rev": rev, "changed": True, "progress": db.progress_snapshot(set_num), "set": db.get_set(set_num), "steps_meta": db.steps_meta(set_num)})
     body = await request.json()
     key, field, who = body.get("key"), body.get("field"), (body.get("who") or "")[:40]
     if field not in ("owned", "found_exact", "found_alt") or not key:
@@ -213,6 +213,50 @@ async def api_reset(request: Request):
     body = await request.json()
     db.reset_progress(set_num, body.get("fields", []))
     return JSONResponse({"rev": db.get_rev(set_num)})
+
+
+async def api_build_start(request: Request):
+    """Switch a set to build mode: everything not yet counted becomes owned; missing parts get marked as you build."""
+    set_num = request.path_params["set_num"]
+    if not db.get_set(set_num):
+        return JSONResponse({"error": "not found"}, status_code=404)
+    body = await request.json() if request.headers.get("content-type", "").startswith("application/json") else {}
+    res = db.start_build_mode(set_num, (body.get("who") or "")[:40])
+    log.info("build mode started: %s (%d items marked owned)", set_num, res["marked"])
+    return JSONResponse({**res, "set": db.get_set(set_num)})
+
+
+async def api_steps(request: Request):
+    """Build order. GET: steps with parts resolved to inventory keys. POST: import an LDraw (.ldr/.mpd) or JSON
+    file (multipart 'file', or raw text/JSON body). DELETE: forget the build order."""
+    set_num = request.path_params["set_num"]
+    if not db.get_set(set_num):
+        return JSONResponse({"error": "not found"}, status_code=404)
+    if request.method == "GET":
+        return JSONResponse({"steps": db.steps(set_num), "meta": db.steps_meta(set_num), "rev": db.get_rev(set_num)})
+    if request.method == "DELETE":
+        db.delete_steps(set_num)
+        return JSONResponse({"ok": True, "rev": db.get_rev(set_num)})
+    ctype = request.headers.get("content-type", "")
+    text, filename = "", ""
+    if ctype.startswith("multipart/form-data"):
+        form = await request.form()
+        up = form.get("file")
+        if up is not None and getattr(up, "filename", None):
+            filename = up.filename
+            text = (await up.read()).decode("utf-8", errors="replace")
+        else:
+            text = form.get("text") or ""
+    else:
+        text = (await request.body()).decode("utf-8", errors="replace")
+    if not text.strip():
+        return JSONResponse({"error": "no file or text given"}, status_code=400)
+    try:
+        report = await run_in_threadpool(steps.import_text, set_num, text, filename)
+    except steps.StepsError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    log.info("steps imported: %s from %s: %s", set_num, filename or "text", {k: report[k] for k in ("steps", "pieces_in_steps", "pieces_in_set", "lots_covered", "lots_in_set")})
+    return JSONResponse({"report": report, "rev": db.get_rev(set_num)})
 
 
 async def api_prices(request: Request):
@@ -777,6 +821,8 @@ routes = [
     Route("/api/sets/{set_num}/progress", api_progress, methods=["GET", "POST"]),
     Route("/api/sets/{set_num}/settings", api_settings, methods=["POST"]),
     Route("/api/sets/{set_num}/reset", api_reset, methods=["POST"]),
+    Route("/api/sets/{set_num}/build_start", api_build_start, methods=["POST"]),
+    Route("/api/sets/{set_num}/steps", api_steps, methods=["GET", "POST", "DELETE"]),
     Route("/api/sets/{set_num}/finish_trip", api_finish_trip, methods=["POST"]),
     Route("/api/sets/{set_num}/prices", api_prices, methods=["GET", "POST"]),
     Route("/api/sets/{set_num}/buyplan", api_buyplan),
