@@ -12,6 +12,7 @@ Every part is resolved against the set's inventory so the UI can tap the right r
 is reported back rather than silently dropped.
 """
 import json
+import pathlib
 import re
 from collections import Counter, OrderedDict
 
@@ -34,17 +35,24 @@ def _ldraw_models(text):
         m = re.match(r"^0\s+FILE\s+(.+)$", line, re.I)
         if m:
             if cur or name is not None:
-                models[(name or "main").lower()] = cur
+                models[name or "main"] = cur
             name, cur = m.group(1).strip(), []
             continue
         if re.match(r"^0\s+NOFILE", line, re.I):
-            models[(name or "main").lower()] = cur
+            models[name or "main"] = cur
             name, cur = None, []
             continue
         cur.append(line)
     if cur or not models:
-        models[(name or "main").lower()] = cur
+        models[name or "main"] = cur
     return models
+
+
+def _pretty(name):
+    """'75954 - Magic Window.ldr' -> 'Magic Window' (keeps the author's capitalisation)."""
+    n = re.sub(r"\.(dat|ldr|mpd)$", "", name.strip(), flags=re.I)
+    n = re.sub(r"^\d{3,7}(-\d+)?\s+-\s+", "", n)
+    return n or name
 
 
 def _is_step(line):
@@ -66,9 +74,19 @@ def _part_ref(line):
 
 def parse_ldraw(text):
     """Returns (steps, submodel_names). Each step: {label, parts: [(ldraw_color, ldraw_part, qty)]}."""
-    models = _ldraw_models(text)
-    names = {re.sub(r"\.(dat|ldr|mpd)$", "", n, flags=re.I): n for n in models}
+    all_models = _ldraw_models(text)
+    # Embedded part definitions (unofficial parts shipped inside the MPD) are parts, not sub-assemblies.
+    def _is_part(name, lines):
+        return name.lower().endswith(".dat") or any(re.match(r"^0\s+!LDRAW_ORG\s+Unofficial_(Part|Subpart|Primitive|Shortcut)", l, re.I) for l in lines[:12])
+    models = OrderedDict((n, l) for n, l in all_models.items() if not _is_part(n, l))
+    if not models:
+        raise StepsError("No model found in the LDraw file (only part definitions)")
     main = next(iter(models))
+    # Case-insensitive lookup by file name, with or without the extension.
+    lookup = {}
+    for n in models:
+        lookup[n.lower()] = n
+        lookup[re.sub(r"\.(dat|ldr|mpd)$", "", n, flags=re.I).lower()] = n
 
     def expand(model_name, prefix, depth, inherited_color):
         if depth > 12:
@@ -85,7 +103,7 @@ def parse_ldraw(text):
                 return
             step_no += 1
             for sub, color, count in subs:
-                sub_name = re.sub(r"\.(ldr|mpd)$", "", sub, flags=re.I)
+                sub_name = _pretty(sub)
                 sub_prefix = f"{prefix}{'' if not prefix else ' › '}{sub_name}"
                 for s in expand(sub, sub_prefix, depth + 1, color):
                     s["parts"] = [(c, p, q * count) for c, p, q in s["parts"]]
@@ -106,9 +124,8 @@ def parse_ldraw(text):
             color, base, fname = ref
             if color == 16 and inherited_color is not None:
                 color = inherited_color
-            key = fname.lower()
-            if key in models or base.lower() in {n.lower() for n in names}:
-                sub = key if key in models else names[next(n for n in names if n.lower() == base.lower())].lower()
+            sub = lookup.get(fname.lower()) or lookup.get(base.lower())
+            if sub:
                 # Same submodel repeated in a step: build it once ×N.
                 for i, (s, c, n) in enumerate(subs):
                     if s == sub and c == color:
@@ -128,7 +145,10 @@ def parse_ldraw(text):
 
 def _ldraw_candidates(base):
     """Possible Rebrickable part numbers for an LDraw file name, most specific first."""
+    base = re.sub(r"^\d{3,7}(-\d+)?\s+-\s+", "", base.strip())  # '75948 - 20310' (embedded part) -> '20310'
     c = [base]
+    if "-" in base:
+        c.append(base.split("-")[0])  # '4449-f1' -> '4449'
     b = base
     # Strip pattern/print suffixes progressively: 3626cpb0001 -> 3626c -> 3626
     while True:
@@ -290,3 +310,24 @@ def import_text(set_num, text, filename=""):
     notes = json.dumps({k: report[k] for k in ("unmatched", "over", "not_in_steps") if report.get(k)})
     db.replace_steps(set_num, steps, source, notes)
     return report
+
+
+# ---------- Bundled build orders ----------
+
+BUNDLED_DIR = pathlib.Path(__file__).parent / "buildorders"
+
+
+def bundled_path(set_num):
+    for ext in ("mpd", "ldr", "json"):
+        p = BUNDLED_DIR / f"{set_num}.{ext}"
+        if p.exists():
+            return p
+    return None
+
+
+def import_bundled(set_num):
+    """Import the shipped build order for a set, if there is one. Returns the report or None."""
+    p = bundled_path(set_num)
+    if not p:
+        return None
+    return import_text(set_num, p.read_text(encoding="utf-8", errors="replace"), f"bundled {p.name}")

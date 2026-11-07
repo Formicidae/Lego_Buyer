@@ -285,6 +285,16 @@
     const m = state.stepsMeta;
     $('#steps-summary').textContent = state.steps.length ? `Build order: ${state.steps.length} steps (${(m && m.source) || 'imported'})` : 'Build order: none yet — parts are listed by type';
     $('#steps-delete').hidden = !state.steps.length;
+    const rep = $('#steps-report'); rep.hidden = true;
+    if (m && m.notes) {
+      let n = {}; try { n = JSON.parse(m.notes); } catch {}
+      const lines = [];
+      const list = (o, max = 6) => Object.entries(o).slice(0, max).map(([k, v]) => `${k} ×${v}`).join(', ') + (Object.keys(o).length > max ? ', …' : '');
+      if (n.unmatched && Object.keys(n.unmatched).length) lines.push(`<b>${Object.keys(n.unmatched).length} part type(s) in the model aren't in this set's inventory</b> (left out): ${list(n.unmatched)}.`);
+      if (n.not_in_steps && Object.keys(n.not_in_steps).length) lines.push(`<b>${Object.keys(n.not_in_steps).length} lot(s) never appear in a step</b> (check them from the Parts tab): ${list(n.not_in_steps)}.`);
+      if (n.over && Object.keys(n.over).length) lines.push(`<b>${Object.keys(n.over).length} part(s) used more often than the set has</b>: ${list(n.over)}.`);
+      if (lines.length) { rep.innerHTML = lines.join('<br>'); rep.hidden = false; }
+    }
     if (!state.steps.length && s.build_mode) $('#steps-import').open = true;
     $('#b-hide-past').checked = state.hidePast; $('#b-only-missing').checked = state.onlyMissing;
   };

@@ -239,6 +239,7 @@ a { color: var(--green); }
 .card.step.current .card-head { background: var(--green-2); }
 .step-foot { padding: 10px 12px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; }
 .step-foot:has(.step-next[hidden]) { display: none; }
+.steps-report { background: var(--amber); color: var(--amber-ink); border-radius: 10px; padding: 8px 10px; }
 .row-empty { padding: 12px; color: var(--ink-3); font-size: 13px; }
 .qty.miss { background: var(--red); color: #fff; border-color: #6d2518; box-shadow: 0 2px 0 #6d2518; }
 .row.missing { background: #fdf4f2; }

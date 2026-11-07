@@ -233,6 +233,13 @@ async def api_steps(request: Request):
     if not db.get_set(set_num):
         return JSONResponse({"error": "not found"}, status_code=404)
     if request.method == "GET":
+        if not db.steps_meta(set_num) and steps.bundled_path(set_num):
+            # First look at a set we ship a build order for: import it now (a few hundred ms).
+            try:
+                rep = await run_in_threadpool(steps.import_bundled, set_num)
+                log.info("bundled build order imported for %s: %s", set_num, {k: rep[k] for k in ("steps", "pieces_in_steps", "pieces_in_set", "lots_covered", "lots_in_set")})
+            except steps.StepsError as e:
+                log.warning("bundled build order for %s failed: %s", set_num, e)
         return JSONResponse({"steps": db.steps(set_num), "meta": db.steps_meta(set_num), "rev": db.get_rev(set_num)})
     if request.method == "DELETE":
         db.delete_steps(set_num)
