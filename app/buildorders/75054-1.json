@@ -1,0 +1,3891 @@
+{
+ "source": "LEGO instructions PDFs 6091462 + 6091463 (75054 books 1-2), parsed",
+ "steps": [
+  {
+   "book": 1,
+   "page": 7,
+   "step": 1,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.7 \u00b7 Step 1",
+   "parts": [
+    {
+     "element_id": "4211008",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 7,
+   "step": 2,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.7 \u00b7 Step 2",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 1
+    },
+    {
+     "element_id": "4514553",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 8,
+   "step": 3,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.8 \u00b7 Step 3",
+   "parts": [
+    {
+     "element_id": "4210753",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 8,
+   "step": 4,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.8 \u00b7 Step 4",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 9,
+   "step": 5,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.9 \u00b7 Step 5",
+   "parts": [
+    {
+     "element_id": "4143005",
+     "qty": 2
+    },
+    {
+     "element_id": "4514553",
+     "qty": 1
+    },
+    {
+     "element_id": "4211396",
+     "qty": 1
+    },
+    {
+     "element_id": "4211732",
+     "qty": 1
+    },
+    {
+     "element_id": "302324",
+     "qty": 1
+    },
+    {
+     "element_id": "4211880",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 10,
+   "step": 6,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.10 \u00b7 Step 6",
+   "parts": [
+    {
+     "element_id": "6015347",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 10,
+   "step": 7,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.10 \u00b7 Step 7",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 1
+    },
+    {
+     "element_id": "4514553",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 11,
+   "step": 8,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.11 \u00b7 Step 8",
+   "parts": [
+    {
+     "element_id": "4512360",
+     "qty": 1
+    },
+    {
+     "element_id": "370526",
+     "qty": 2
+    },
+    {
+     "element_id": "4107136",
+     "qty": 2
+    }
+   ],
+   "note": "2 piece(s) in this step could not be identified"
+  },
+  {
+   "book": 1,
+   "page": 12,
+   "step": 9,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.12 \u00b7 Step 9",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 2
+    },
+    {
+     "element_id": "4210753",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 13,
+   "step": 10,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.13 \u00b7 Step 10",
+   "parts": [
+    {
+     "element_id": "370526",
+     "qty": 2
+    },
+    {
+     "element_id": "4107136",
+     "qty": 2
+    },
+    {
+     "element_id": "4519010",
+     "qty": 1
+    }
+   ],
+   "note": "2 piece(s) in this step could not be identified"
+  },
+  {
+   "book": 1,
+   "page": 14,
+   "step": 11,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.14 \u00b7 Step 11",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 2
+    },
+    {
+     "element_id": "4210753",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 14,
+   "step": 12,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.14 \u00b7 Step 12",
+   "parts": [
+    {
+     "element_id": "4211008",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 15,
+   "step": 13,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.15 \u00b7 Step 13",
+   "parts": [
+    {
+     "element_id": "302326",
+     "qty": 2
+    },
+    {
+     "element_id": "4211001",
+     "qty": 2
+    },
+    {
+     "element_id": "6083620",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 15,
+   "step": 14,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.15 \u00b7 Step 14",
+   "parts": [
+    {
+     "element_id": "6083620",
+     "qty": 1
+    },
+    {
+     "element_id": "403226",
+     "qty": 2
+    },
+    {
+     "element_id": "303426",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 16,
+   "step": 15,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.16 \u00b7 Step 15",
+   "parts": [
+    {
+     "element_id": "4211815",
+     "qty": 1
+    },
+    {
+     "element_id": "4211396",
+     "qty": 2
+    },
+    {
+     "element_id": "4211442",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 16,
+   "step": 16,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.16 \u00b7 Step 16",
+   "parts": [
+    {
+     "element_id": "6014616",
+     "qty": 1
+    },
+    {
+     "element_id": "4654577",
+     "qty": 1
+    },
+    {
+     "element_id": "4211452",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 17,
+   "step": 17,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.17 \u00b7 Step 17",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 2
+    },
+    {
+     "element_id": "4211639",
+     "qty": 1
+    },
+    {
+     "element_id": "4211442",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 18,
+   "step": 18,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.18 \u00b7 Step 18",
+   "parts": [
+    {
+     "element_id": "302326",
+     "qty": 4
+    },
+    {
+     "element_id": "303426",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 19,
+   "step": 19,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.19 \u00b7 Step 19",
+   "parts": [
+    {
+     "element_id": "302324",
+     "qty": 1
+    },
+    {
+     "element_id": "6019155",
+     "qty": 1
+    },
+    {
+     "element_id": "302126",
+     "qty": 2
+    },
+    {
+     "element_id": "4211445",
+     "qty": 2
+    },
+    {
+     "element_id": "6045988",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 20,
+   "step": 20,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.20 \u00b7 Step 20",
+   "parts": [
+    {
+     "element_id": "4211445",
+     "qty": 4
+    },
+    {
+     "element_id": "4251149",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 20,
+   "step": 21,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.20 \u00b7 Step 21",
+   "parts": [
+    {
+     "element_id": "4211445",
+     "qty": 1
+    },
+    {
+     "element_id": "4519010",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 21,
+   "step": 22,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.21 \u00b7 Step 22",
+   "parts": [
+    {
+     "element_id": "4144023",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 21,
+   "step": 23,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.21 \u00b7 Step 23",
+   "parts": [
+    {
+     "element_id": "370726",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 22,
+   "step": 24,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.22 \u00b7 Step 24",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 1
+    },
+    {
+     "element_id": "4210751",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 22,
+   "step": 25,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.22 \u00b7 Step 25",
+   "parts": [
+    {
+     "element_id": "6048855",
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 23,
+   "step": 26,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.23 \u00b7 Step 26",
+   "parts": [
+    {
+     "element_id": "4211396",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 23,
+   "step": 27,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.23 \u00b7 Step 27",
+   "parts": [
+    {
+     "element_id": "302326",
+     "qty": 4
+    },
+    {
+     "element_id": "4211445",
+     "qty": 2
+    },
+    {
+     "element_id": "4211396",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 24,
+   "step": 28,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.24 \u00b7 Step 28",
+   "parts": [
+    {
+     "element_id": "4210897",
+     "qty": 2
+    },
+    {
+     "element_id": "4256828",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 24,
+   "step": 29,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.24 \u00b7 Step 29",
+   "parts": [
+    {
+     "element_id": "4210788",
+     "qty": 1
+    },
+    {
+     "element_id": "4210782",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 25,
+   "step": 30,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.25 \u00b7 Step 30",
+   "parts": [
+    {
+     "element_id": "4211414",
+     "qty": 1
+    },
+    {
+     "element_id": "4558169",
+     "qty": 4
+    },
+    {
+     "element_id": "4565393",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 25,
+   "step": 31,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.25 \u00b7 Step 31",
+   "parts": [
+    {
+     "element_id": "4211010",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 26,
+   "step": 32,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.26 \u00b7 Step 32",
+   "parts": [
+    {
+     "element_id": "4210897",
+     "qty": 2
+    },
+    {
+     "element_id": "4256828",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 26,
+   "step": 33,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.26 \u00b7 Step 33",
+   "parts": [
+    {
+     "element_id": "4210788",
+     "qty": 1
+    },
+    {
+     "element_id": "4210782",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 27,
+   "step": 34,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.27 \u00b7 Step 34",
+   "parts": [
+    {
+     "element_id": "4211414",
+     "qty": 1
+    },
+    {
+     "element_id": "4558169",
+     "qty": 4
+    },
+    {
+     "element_id": "4565393",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 27,
+   "step": 35,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.27 \u00b7 Step 35",
+   "parts": [
+    {
+     "element_id": "4211010",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 28,
+   "step": 36,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.28 \u00b7 Step 36",
+   "parts": [
+    {
+     "element_id": "4211127",
+     "qty": 1
+    },
+    {
+     "element_id": "4211735",
+     "qty": 1
+    },
+    {
+     "element_id": "4213607",
+     "qty": 2
+    },
+    {
+     "element_id": "4593679",
+     "qty": 2
+    },
+    {
+     "element_id": "4113233",
+     "qty": 2
+    },
+    {
+     "element_id": "4121715",
+     "qty": 6
+    },
+    {
+     "element_id": "4142822",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 30,
+   "step": 37,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.30 \u00b7 Step 37",
+   "parts": [
+    {
+     "element_id": "4211436",
+     "qty": 1
+    },
+    {
+     "element_id": "4611705",
+     "qty": 1
+    },
+    {
+     "element_id": "4514553",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 31,
+   "step": 38,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.31 \u00b7 Step 38",
+   "parts": [
+    {
+     "element_id": "4495935",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 32,
+   "step": 1,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.32 \u00b7 Sub-assembly step 1",
+   "parts": [
+    {
+     "element_id": "4211542",
+     "qty": 1
+    },
+    {
+     "element_id": "4528323",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 32,
+   "step": 2,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.32 \u00b7 Sub-assembly step 2",
+   "parts": [
+    {
+     "element_id": "4211396",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 32,
+   "step": 3,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.32 \u00b7 Sub-assembly step 3",
+   "parts": [
+    {
+     "element_id": "4211735",
+     "qty": 1
+    },
+    {
+     "element_id": "4211732",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 32,
+   "step": 4,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.32 \u00b7 Sub-assembly step 4",
+   "parts": [
+    {
+     "element_id": "4210872",
+     "qty": 1
+    },
+    {
+     "element_id": "4210869",
+     "qty": 1
+    },
+    {
+     "element_id": "4211065",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 33,
+   "step": 5,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.33 \u00b7 Sub-assembly step 5",
+   "parts": [
+    {
+     "element_id": "4211466",
+     "qty": 2
+    },
+    {
+     "element_id": "4528323",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 33,
+   "step": 6,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.33 \u00b7 Sub-assembly step 6",
+   "parts": [
+    {
+     "element_id": "4210872",
+     "qty": 1
+    },
+    {
+     "element_id": "4210869",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 33,
+   "step": 7,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.33 \u00b7 Sub-assembly step 7",
+   "parts": [
+    {
+     "element_id": "4567448",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 33,
+   "step": 8,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.33 \u00b7 Sub-assembly step 8",
+   "parts": [
+    {
+     "element_id": "4210637",
+     "qty": 1
+    },
+    {
+     "element_id": "4565393",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 34,
+   "step": 9,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.34 \u00b7 Sub-assembly step 9",
+   "parts": [
+    {
+     "element_id": "4210631",
+     "qty": 2
+    },
+    {
+     "element_id": "6030710",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 34,
+   "step": 10,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.34 \u00b7 Sub-assembly step 10",
+   "parts": [
+    {
+     "element_id": "4514195",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 35,
+   "step": 12,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.35 \u00b7 Sub-assembly step 12",
+   "parts": [
+    {
+     "element_id": "4629920",
+     "qty": 2
+    },
+    {
+     "element_id": "4120017",
+     "qty": 1
+    },
+    {
+     "element_id": "4121715",
+     "qty": 6
+    },
+    {
+     "element_id": "4188298",
+     "qty": 2
+    },
+    {
+     "element_id": "4199345",
+     "qty": 2
+    },
+    {
+     "element_id": "4206482",
+     "qty": 3
+    },
+    {
+     "element_id": "4249021",
+     "qty": 1
+    },
+    {
+     "element_id": "6029206",
+     "qty": 4
+    },
+    {
+     "element_id": "4514553",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 37,
+   "step": 13,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.37 \u00b7 Sub-assembly step 13",
+   "parts": [
+    {
+     "element_id": "4206482",
+     "qty": 2
+    },
+    {
+     "element_id": "6029206",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 38,
+   "step": 39,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.38 \u00b7 Step 39",
+   "parts": []
+  },
+  {
+   "book": 1,
+   "page": 39,
+   "step": 40,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.39 \u00b7 Step 40",
+   "parts": [
+    {
+     "element_id": "4512360",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 40,
+   "step": 41,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.40 \u00b7 Step 41",
+   "parts": [
+    {
+     "element_id": "302326",
+     "qty": 1
+    },
+    {
+     "element_id": "6015347",
+     "qty": 1
+    },
+    {
+     "element_id": "6079763",
+     "qty": 1
+    },
+    {
+     "element_id": "4646513",
+     "qty": 1
+    },
+    {
+     "element_id": "4211735",
+     "qty": 2
+    },
+    {
+     "element_id": "4211732",
+     "qty": 2
+    },
+    {
+     "element_id": "4565393",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 42,
+   "step": 1,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.42 \u00b7 Sub-assembly step 1",
+   "parts": [
+    {
+     "element_id": "4107829",
+     "qty": 1
+    },
+    {
+     "element_id": "4121715",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 42,
+   "step": 2,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.42 \u00b7 Sub-assembly step 2",
+   "parts": [
+    {
+     "element_id": "4107829",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 42,
+   "step": 3,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.42 \u00b7 Sub-assembly step 3",
+   "parts": [
+    {
+     "element_id": "4211056",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 42,
+   "step": 4,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.42 \u00b7 Sub-assembly step 4",
+   "parts": [
+    {
+     "element_id": "4514553",
+     "qty": 3
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 43,
+   "step": 5,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.43 \u00b7 Sub-assembly step 5",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 3
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 43,
+   "step": 6,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.43 \u00b7 Sub-assembly step 6",
+   "parts": [
+    {
+     "element_id": "4560175",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 43,
+   "step": 7,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.43 \u00b7 Sub-assembly step 7",
+   "parts": [
+    {
+     "element_id": "4495935",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 43,
+   "step": 8,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.43 \u00b7 Sub-assembly step 8",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 1
+    },
+    {
+     "element_id": "4514553",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 44,
+   "step": 9,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.44 \u00b7 Sub-assembly step 9",
+   "parts": [
+    {
+     "element_id": "4113233",
+     "qty": 1
+    },
+    {
+     "element_id": "4144023",
+     "qty": 1
+    },
+    {
+     "element_id": "4213607",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 44,
+   "step": 10,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.44 \u00b7 Sub-assembly step 10",
+   "parts": [
+    {
+     "element_id": "6015356",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 44,
+   "step": 11,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.44 \u00b7 Sub-assembly step 11",
+   "parts": [
+    {
+     "element_id": "4225033",
+     "qty": 2
+    },
+    {
+     "element_id": "4514553",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 45,
+   "step": 12,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.45 \u00b7 Sub-assembly step 12",
+   "parts": [
+    {
+     "element_id": "4142822",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 45,
+   "step": 13,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.45 \u00b7 Sub-assembly step 13",
+   "parts": [
+    {
+     "element_id": "4211056",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 45,
+   "step": 14,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.45 \u00b7 Sub-assembly step 14",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 4
+    },
+    {
+     "element_id": "4142822",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 45,
+   "step": 15,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.45 \u00b7 Sub-assembly step 15",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 46,
+   "step": 16,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.46 \u00b7 Sub-assembly step 16",
+   "parts": [
+    {
+     "element_id": "4514553",
+     "qty": 3
+    },
+    {
+     "element_id": "4210763",
+     "qty": 2
+    },
+    {
+     "element_id": "4529241",
+     "qty": 2
+    },
+    {
+     "element_id": "4611705",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 47,
+   "step": 17,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.47 \u00b7 Sub-assembly step 17",
+   "parts": [
+    {
+     "element_id": "4514553",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 47,
+   "step": 18,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.47 \u00b7 Sub-assembly step 18",
+   "parts": [
+    {
+     "element_id": "4142822",
+     "qty": 1
+    },
+    {
+     "element_id": "4210753",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 47,
+   "step": 19,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.47 \u00b7 Sub-assembly step 19",
+   "parts": [
+    {
+     "element_id": "4142822",
+     "qty": 1
+    },
+    {
+     "element_id": "4210753",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 48,
+   "step": 42,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.48 \u00b7 Step 42",
+   "parts": []
+  },
+  {
+   "book": 1,
+   "page": 49,
+   "step": 43,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.49 \u00b7 Step 43",
+   "parts": [
+    {
+     "element_id": "4140806",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 50,
+   "step": 44,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.50 \u00b7 Step 44",
+   "parts": [
+    {
+     "element_id": "4257526",
+     "qty": 1
+    },
+    {
+     "element_id": "4140806",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 51,
+   "step": 45,
+   "bag": 2,
+   "label": "Bag 2 \u00b7 p.51 \u00b7 Step 45",
+   "parts": [
+    {
+     "element_id": "302223",
+     "qty": 1
+    },
+    {
+     "element_id": "302326",
+     "qty": 2
+    },
+    {
+     "element_id": "370021",
+     "qty": 1
+    },
+    {
+     "element_id": "6045988",
+     "qty": 1
+    },
+    {
+     "element_id": "6061711",
+     "qty": 1
+    },
+    {
+     "element_id": "4210763",
+     "qty": 1
+    },
+    {
+     "element_id": "4121715",
+     "qty": 2
+    },
+    {
+     "element_id": "4211065",
+     "qty": 1
+    },
+    {
+     "element_id": "4211735",
+     "qty": 1
+    },
+    {
+     "element_id": "4211732",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 53,
+   "step": 46,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.53 \u00b7 Step 46",
+   "parts": [
+    {
+     "element_id": "614126",
+     "qty": 12
+    },
+    {
+     "element_id": "4210631",
+     "qty": 2
+    },
+    {
+     "element_id": "4217558",
+     "qty": 2
+    },
+    {
+     "element_id": "6028015",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 55,
+   "step": 47,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.55 \u00b7 Step 47",
+   "parts": [
+    {
+     "element_id": "4211535",
+     "qty": 2
+    },
+    {
+     "element_id": "4211001",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 56,
+   "step": 48,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.56 \u00b7 Step 48",
+   "parts": [
+    {
+     "element_id": "4211622",
+     "qty": 1
+    }
+   ],
+   "note": "1 piece(s) in this step could not be identified"
+  },
+  {
+   "book": 1,
+   "page": 57,
+   "step": 49,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.57 \u00b7 Step 49",
+   "parts": [
+    {
+     "element_id": "4514553",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 58,
+   "step": 50,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.58 \u00b7 Step 50",
+   "parts": [
+    {
+     "element_id": "4630114",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 59,
+   "step": 51,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.59 \u00b7 Step 51",
+   "parts": [
+    {
+     "element_id": "4142865",
+     "qty": 2
+    },
+    {
+     "element_id": "6030286",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 60,
+   "step": 52,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.60 \u00b7 Step 52",
+   "parts": [
+    {
+     "element_id": "4257526",
+     "qty": 1
+    },
+    {
+     "element_id": "4206482",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 61,
+   "step": 53,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.61 \u00b7 Step 53",
+   "parts": [
+    {
+     "element_id": "389426",
+     "qty": 2
+    },
+    {
+     "element_id": "4210763",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 62,
+   "step": 54,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.62 \u00b7 Step 54",
+   "parts": [
+    {
+     "element_id": "4217562",
+     "qty": 4
+    },
+    {
+     "element_id": "4568734",
+     "qty": 2
+    },
+    {
+     "element_id": "4211087",
+     "qty": 2
+    },
+    {
+     "element_id": "4646512",
+     "qty": 2
+    },
+    {
+     "element_id": "4211415",
+     "qty": 2
+    },
+    {
+     "element_id": "4514846",
+     "qty": 2
+    },
+    {
+     "element_id": "302326",
+     "qty": 4
+    }
+   ],
+   "note": "2 piece(s) in this step could not be identified"
+  },
+  {
+   "book": 1,
+   "page": 64,
+   "step": 55,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.64 \u00b7 Step 55",
+   "parts": [
+    {
+     "element_id": "4217562",
+     "qty": 4
+    },
+    {
+     "element_id": "4568734",
+     "qty": 2
+    },
+    {
+     "element_id": "4211087",
+     "qty": 2
+    },
+    {
+     "element_id": "4646512",
+     "qty": 2
+    },
+    {
+     "element_id": "4211415",
+     "qty": 2
+    },
+    {
+     "element_id": "4514846",
+     "qty": 2
+    },
+    {
+     "element_id": "302326",
+     "qty": 4
+    }
+   ],
+   "note": "2 piece(s) in this step could not be identified"
+  },
+  {
+   "book": 1,
+   "page": 66,
+   "step": 56,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.66 \u00b7 Step 56",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 2
+    },
+    {
+     "element_id": "6019986",
+     "qty": 2
+    },
+    {
+     "element_id": "6045988",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 67,
+   "step": 57,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.67 \u00b7 Step 57",
+   "parts": [
+    {
+     "element_id": "4567887",
+     "qty": 3
+    },
+    {
+     "element_id": "4560183",
+     "qty": 1
+    },
+    {
+     "element_id": "6083620",
+     "qty": 2
+    },
+    {
+     "element_id": "4282789",
+     "qty": 1
+    },
+    {
+     "element_id": "4211732",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 68,
+   "step": 58,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.68 \u00b7 Step 58",
+   "parts": [
+    {
+     "element_id": "4211836",
+     "qty": 1
+    },
+    {
+     "element_id": "4654582",
+     "qty": 3
+    },
+    {
+     "element_id": "4211408",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 69,
+   "step": 1,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.69 \u00b7 Sub-assembly step 1",
+   "parts": [
+    {
+     "element_id": "4529727",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 69,
+   "step": 2,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.69 \u00b7 Sub-assembly step 2",
+   "parts": [
+    {
+     "element_id": "4211791",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 69,
+   "step": 3,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.69 \u00b7 Sub-assembly step 3",
+   "parts": [
+    {
+     "element_id": "4211396",
+     "qty": 2
+    },
+    {
+     "element_id": "4211791",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 69,
+   "step": 4,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.69 \u00b7 Sub-assembly step 4",
+   "parts": [
+    {
+     "element_id": "4210631",
+     "qty": 2
+    },
+    {
+     "element_id": "4211549",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 69,
+   "step": 5,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.69 \u00b7 Sub-assembly step 5",
+   "parts": [
+    {
+     "element_id": "6045988",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 69,
+   "step": 6,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.69 \u00b7 Sub-assembly step 6",
+   "parts": [
+    {
+     "element_id": "302326",
+     "qty": 1
+    },
+    {
+     "element_id": "4211064",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 70,
+   "step": 59,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.70 \u00b7 Step 59",
+   "parts": []
+  },
+  {
+   "book": 1,
+   "page": 70,
+   "step": 7,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.70 \u00b7 Sub-assembly step 7",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 70,
+   "step": 8,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.70 \u00b7 Sub-assembly step 8",
+   "parts": [
+    {
+     "element_id": "4206482",
+     "qty": 2
+    },
+    {
+     "element_id": "4210658",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 71,
+   "step": 1,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.71 \u00b7 Sub-assembly step 1",
+   "parts": [
+    {
+     "element_id": "4529728",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 71,
+   "step": 2,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.71 \u00b7 Sub-assembly step 2",
+   "parts": [
+    {
+     "element_id": "4211794",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 71,
+   "step": 3,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.71 \u00b7 Sub-assembly step 3",
+   "parts": [
+    {
+     "element_id": "4211396",
+     "qty": 2
+    },
+    {
+     "element_id": "4211794",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 71,
+   "step": 4,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.71 \u00b7 Sub-assembly step 4",
+   "parts": [
+    {
+     "element_id": "4210631",
+     "qty": 2
+    },
+    {
+     "element_id": "4211549",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 71,
+   "step": 5,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.71 \u00b7 Sub-assembly step 5",
+   "parts": [
+    {
+     "element_id": "6045988",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 71,
+   "step": 6,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.71 \u00b7 Sub-assembly step 6",
+   "parts": [
+    {
+     "element_id": "302326",
+     "qty": 1
+    },
+    {
+     "element_id": "4211064",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 72,
+   "step": 60,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.72 \u00b7 Step 60",
+   "parts": []
+  },
+  {
+   "book": 1,
+   "page": 72,
+   "step": 7,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.72 \u00b7 Sub-assembly step 7",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 72,
+   "step": 8,
+   "bag": 3,
+   "label": "Bag 3 \u00b7 p.72 \u00b7 Sub-assembly step 8",
+   "parts": [
+    {
+     "element_id": "4206482",
+     "qty": 2
+    },
+    {
+     "element_id": "4210658",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 73,
+   "step": 1,
+   "bag": 4,
+   "label": "Bag 4 \u00b7 p.73 \u00b7 Sub-assembly step 1 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4260707",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 73,
+   "step": 2,
+   "bag": 4,
+   "label": "Bag 4 \u00b7 p.73 \u00b7 Sub-assembly step 2 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4211794",
+     "qty": 8
+    },
+    {
+     "element_id": "4211791",
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 73,
+   "step": 3,
+   "bag": 4,
+   "label": "Bag 4 \u00b7 p.73 \u00b7 Sub-assembly step 3",
+   "parts": [
+    {
+     "element_id": "4211542",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 73,
+   "step": 4,
+   "bag": 4,
+   "label": "Bag 4 \u00b7 p.73 \u00b7 Sub-assembly step 4 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4211794",
+     "qty": 4
+    },
+    {
+     "element_id": "4211791",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 73,
+   "step": 5,
+   "bag": 4,
+   "label": "Bag 4 \u00b7 p.73 \u00b7 Sub-assembly step 5 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4527082",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 74,
+   "step": 6,
+   "bag": 4,
+   "label": "Bag 4 \u00b7 p.74 \u00b7 Sub-assembly step 6 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "302326",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 74,
+   "step": 7,
+   "bag": 4,
+   "label": "Bag 4 \u00b7 p.74 \u00b7 Sub-assembly step 7 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "370921",
+     "qty": 4
+    },
+    {
+     "element_id": "4582257",
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 74,
+   "step": 8,
+   "bag": 4,
+   "label": "Bag 4 \u00b7 p.74 \u00b7 Sub-assembly step 8 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4582257",
+     "qty": 8
+    },
+    {
+     "element_id": "4583879",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 74,
+   "step": 9,
+   "bag": 4,
+   "label": "Bag 4 \u00b7 p.74 \u00b7 Sub-assembly step 9 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4611705",
+     "qty": 4
+    },
+    {
+     "element_id": "4211796",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 74,
+   "step": 10,
+   "bag": 4,
+   "label": "Bag 4 \u00b7 p.74 \u00b7 Sub-assembly step 10 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4211527",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 75,
+   "step": 11,
+   "bag": 4,
+   "label": "Bag 4 \u00b7 p.75 \u00b7 Sub-assembly step 11 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 8
+    },
+    {
+     "element_id": "4210658",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 75,
+   "step": 12,
+   "bag": 4,
+   "label": "Bag 4 \u00b7 p.75 \u00b7 Sub-assembly step 12 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4210719",
+     "qty": 8
+    },
+    {
+     "element_id": "4211535",
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 75,
+   "step": 13,
+   "bag": 4,
+   "label": "Bag 4 \u00b7 p.75 \u00b7 Sub-assembly step 13 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4581225",
+     "qty": 4
+    },
+    {
+     "element_id": "6073231",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 75,
+   "step": 14,
+   "bag": 4,
+   "label": "Bag 4 \u00b7 p.75 \u00b7 Sub-assembly step 14 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4592550",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 2,
+   "step": 1,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.2 \u00b7 Sub-assembly step 1 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 20
+    },
+    {
+     "element_id": "4611705",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 2,
+   "step": 2,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.2 \u00b7 Sub-assembly step 2",
+   "parts": [
+    {
+     "element_id": "4225033",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 2,
+   "step": 3,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.2 \u00b7 Sub-assembly step 3 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 12
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 3,
+   "step": 4,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.3 \u00b7 Sub-assembly step 4 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4182751",
+     "qty": 8
+    },
+    {
+     "element_id": "4211800",
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 3,
+   "step": 5,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.3 \u00b7 Sub-assembly step 5 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "6029206",
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 4,
+   "step": 6,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.4 \u00b7 Sub-assembly step 6 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4514553",
+     "qty": 8
+    },
+    {
+     "element_id": "4121715",
+     "qty": 16
+    },
+    {
+     "element_id": "4225033",
+     "qty": 4
+    },
+    {
+     "element_id": "4565393",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 5,
+   "step": 7,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.5 \u00b7 Sub-assembly step 7 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4210917",
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 5,
+   "step": 8,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.5 \u00b7 Sub-assembly step 8 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "614126",
+     "qty": 4
+    },
+    {
+     "element_id": "6015356",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 5,
+   "step": 9,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.5 \u00b7 Sub-assembly step 9 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "6079461",
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 6,
+   "step": 10,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.6 \u00b7 Sub-assembly step 10 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4543086",
+     "qty": 24
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 6,
+   "step": 11,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.6 \u00b7 Sub-assembly step 11 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4558169",
+     "qty": 16
+    },
+    {
+     "element_id": "4211396",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 6,
+   "step": 12,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.6 \u00b7 Sub-assembly step 12 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4143005",
+     "qty": 28
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 7,
+   "step": 13,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.7 \u00b7 Sub-assembly step 13 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "6045988",
+     "qty": 4
+    }
+   ],
+   "note": "8 piece(s) in this step could not be identified"
+  },
+  {
+   "book": 2,
+   "page": 7,
+   "step": 14,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.7 \u00b7 Sub-assembly step 14 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4143005",
+     "qty": 28
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 7,
+   "step": 15,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.7 \u00b7 Sub-assembly step 15 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "6045988",
+     "qty": 4
+    }
+   ],
+   "note": "8 piece(s) in this step could not be identified"
+  },
+  {
+   "book": 2,
+   "page": 8,
+   "step": 16,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.8 \u00b7 Sub-assembly step 16 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4210751",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 8,
+   "step": 17,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.8 \u00b7 Sub-assembly step 17 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4211001",
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 9,
+   "step": 18,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.9 \u00b7 Sub-assembly step 18 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4143005",
+     "qty": 4
+    },
+    {
+     "element_id": "4558169",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 9,
+   "step": 19,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.9 \u00b7 Sub-assembly step 19 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4210631",
+     "qty": 8
+    },
+    {
+     "element_id": "4211119",
+     "qty": 8
+    },
+    {
+     "element_id": "4507056",
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 10,
+   "step": 20,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.10 \u00b7 Sub-assembly step 20 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4558169",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 10,
+   "step": 21,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.10 \u00b7 Sub-assembly step 21 \u00b7 \u00d74",
+   "parts": [
+    {
+     "element_id": "4206482",
+     "qty": 4
+    },
+    {
+     "element_id": "4210851",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 11,
+   "step": 61,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.11 \u00b7 Step 61",
+   "parts": []
+  },
+  {
+   "book": 2,
+   "page": 12,
+   "step": 62,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.12 \u00b7 Step 62",
+   "parts": [
+    {
+     "element_id": "4210631",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 13,
+   "step": 63,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.13 \u00b7 Step 63",
+   "parts": [
+    {
+     "element_id": "4629920",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 14,
+   "step": 64,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.14 \u00b7 Step 64",
+   "parts": [
+    {
+     "element_id": "614126",
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 15,
+   "step": 65,
+   "bag": 5,
+   "label": "Bag 5 \u00b7 p.15 \u00b7 Step 65",
+   "parts": [
+    {
+     "element_id": "4211664",
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 16,
+   "step": 66,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.16 \u00b7 Step 66",
+   "parts": [
+    {
+     "element_id": "4581225",
+     "qty": 4
+    },
+    {
+     "element_id": "302326",
+     "qty": 1
+    },
+    {
+     "element_id": "4257526",
+     "qty": 1
+    },
+    {
+     "element_id": "302226",
+     "qty": 1
+    },
+    {
+     "element_id": "4630114",
+     "qty": 1
+    },
+    {
+     "element_id": "4211732",
+     "qty": 1
+    },
+    {
+     "element_id": "4211760",
+     "qty": 1
+    },
+    {
+     "element_id": "4646512",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 18,
+   "step": 67,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.18 \u00b7 Step 67",
+   "parts": [
+    {
+     "element_id": "4211396",
+     "qty": 3
+    },
+    {
+     "element_id": "4581225",
+     "qty": 3
+    },
+    {
+     "element_id": "4507056",
+     "qty": 4
+    },
+    {
+     "element_id": "4258275",
+     "qty": 1
+    },
+    {
+     "element_id": "4211406",
+     "qty": 1
+    },
+    {
+     "element_id": "4565393",
+     "qty": 2
+    },
+    {
+     "element_id": "4211056",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 20,
+   "step": 68,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.20 \u00b7 Step 68",
+   "parts": [
+    {
+     "element_id": "302326",
+     "qty": 1
+    },
+    {
+     "element_id": "302226",
+     "qty": 1
+    },
+    {
+     "element_id": "4257526",
+     "qty": 1
+    },
+    {
+     "element_id": "4581225",
+     "qty": 4
+    },
+    {
+     "element_id": "403226",
+     "qty": 1
+    },
+    {
+     "element_id": "4654577",
+     "qty": 1
+    },
+    {
+     "element_id": "4646512",
+     "qty": 2
+    },
+    {
+     "element_id": "4282789",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 22,
+   "step": 69,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.22 \u00b7 Step 69",
+   "parts": [
+    {
+     "element_id": "4211396",
+     "qty": 2
+    },
+    {
+     "element_id": "4654577",
+     "qty": 1
+    },
+    {
+     "element_id": "4507056",
+     "qty": 4
+    },
+    {
+     "element_id": "4581225",
+     "qty": 3
+    },
+    {
+     "element_id": "4258273",
+     "qty": 1
+    },
+    {
+     "element_id": "302326",
+     "qty": 1
+    },
+    {
+     "element_id": "4565393",
+     "qty": 2
+    },
+    {
+     "element_id": "4260707",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 24,
+   "step": 70,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.24 \u00b7 Step 70",
+   "parts": [
+    {
+     "element_id": "4646513",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 25,
+   "step": 1,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.25 \u00b7 Sub-assembly step 1",
+   "parts": [
+    {
+     "element_id": "4210678",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 25,
+   "step": 2,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.25 \u00b7 Sub-assembly step 2",
+   "parts": [
+    {
+     "element_id": "4558169",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 25,
+   "step": 3,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.25 \u00b7 Sub-assembly step 3",
+   "parts": [
+    {
+     "element_id": "4611705",
+     "qty": 2
+    },
+    {
+     "element_id": "4210637",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 26,
+   "step": 4,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.26 \u00b7 Sub-assembly step 4",
+   "parts": [
+    {
+     "element_id": "4211836",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 26,
+   "step": 5,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.26 \u00b7 Sub-assembly step 5",
+   "parts": [
+    {
+     "element_id": "302326",
+     "qty": 4
+    },
+    {
+     "element_id": "4211119",
+     "qty": 1
+    },
+    {
+     "element_id": "4560183",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 26,
+   "step": 6,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.26 \u00b7 Sub-assembly step 6",
+   "parts": [
+    {
+     "element_id": "4211393",
+     "qty": 1
+    },
+    {
+     "element_id": "4210631",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 27,
+   "step": 71,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.27 \u00b7 Step 71",
+   "parts": []
+  },
+  {
+   "book": 2,
+   "page": 28,
+   "step": 72,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.28 \u00b7 Step 72",
+   "parts": [
+    {
+     "element_id": "370526",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 29,
+   "step": 73,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.29 \u00b7 Step 73",
+   "parts": [
+    {
+     "element_id": "4646513",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 30,
+   "step": 1,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.30 \u00b7 Sub-assembly step 1",
+   "parts": [
+    {
+     "element_id": "4210678",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 30,
+   "step": 2,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.30 \u00b7 Sub-assembly step 2",
+   "parts": [
+    {
+     "element_id": "4558169",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 30,
+   "step": 3,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.30 \u00b7 Sub-assembly step 3",
+   "parts": [
+    {
+     "element_id": "4527082",
+     "qty": 1
+    },
+    {
+     "element_id": "4251149",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 31,
+   "step": 4,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.31 \u00b7 Sub-assembly step 4",
+   "parts": [
+    {
+     "element_id": "4211836",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 31,
+   "step": 5,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.31 \u00b7 Sub-assembly step 5",
+   "parts": [
+    {
+     "element_id": "302326",
+     "qty": 4
+    },
+    {
+     "element_id": "4211119",
+     "qty": 1
+    },
+    {
+     "element_id": "4560183",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 31,
+   "step": 6,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.31 \u00b7 Sub-assembly step 6",
+   "parts": [
+    {
+     "element_id": "4211393",
+     "qty": 1
+    },
+    {
+     "element_id": "4210631",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 32,
+   "step": 74,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.32 \u00b7 Step 74",
+   "parts": []
+  },
+  {
+   "book": 2,
+   "page": 33,
+   "step": 75,
+   "bag": 6,
+   "label": "Bag 6 \u00b7 p.33 \u00b7 Step 75",
+   "parts": [
+    {
+     "element_id": "370526",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 35,
+   "step": 76,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.35 \u00b7 Step 76",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 2
+    },
+    {
+     "element_id": "4143005",
+     "qty": 1
+    },
+    {
+     "element_id": "4210751",
+     "qty": 1
+    },
+    {
+     "element_id": "4511007",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 36,
+   "step": 77,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.36 \u00b7 Step 77",
+   "parts": [
+    {
+     "element_id": "4161734",
+     "qty": 1
+    },
+    {
+     "element_id": "4210865",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 37,
+   "step": 1,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.37 \u00b7 Sub-assembly step 1",
+   "parts": [
+    {
+     "element_id": "4211396",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 37,
+   "step": 2,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.37 \u00b7 Sub-assembly step 2",
+   "parts": [
+    {
+     "element_id": "4210997",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 37,
+   "step": 3,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.37 \u00b7 Sub-assembly step 3",
+   "parts": [
+    {
+     "element_id": "370526",
+     "qty": 1
+    },
+    {
+     "element_id": "4211094",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 37,
+   "step": 4,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.37 \u00b7 Sub-assembly step 4",
+   "parts": [
+    {
+     "element_id": "6048898",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 38,
+   "step": 5,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.38 \u00b7 Sub-assembly step 5",
+   "parts": [
+    {
+     "element_id": "4143005",
+     "qty": 2
+    },
+    {
+     "element_id": "4211440",
+     "qty": 2
+    },
+    {
+     "element_id": "4211436",
+     "qty": 2
+    },
+    {
+     "element_id": "302126",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 38,
+   "step": 6,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.38 \u00b7 Sub-assembly step 6",
+   "parts": [
+    {
+     "element_id": "6048855",
+     "qty": 2
+    },
+    {
+     "element_id": "4211415",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 39,
+   "step": 7,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.39 \u00b7 Sub-assembly step 7",
+   "parts": [
+    {
+     "element_id": "4211094",
+     "qty": 1
+    },
+    {
+     "element_id": "306901",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 39,
+   "step": 8,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.39 \u00b7 Sub-assembly step 8",
+   "parts": [
+    {
+     "element_id": "306901",
+     "qty": 1
+    },
+    {
+     "element_id": "6036409",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 39,
+   "step": 9,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.39 \u00b7 Sub-assembly step 9",
+   "parts": [
+    {
+     "element_id": "370526",
+     "qty": 2
+    },
+    {
+     "element_id": "4210872",
+     "qty": 1
+    },
+    {
+     "element_id": "4210869",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 39,
+   "step": 10,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.39 \u00b7 Sub-assembly step 10",
+   "parts": [
+    {
+     "element_id": "302126",
+     "qty": 2
+    },
+    {
+     "element_id": "4655257",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 40,
+   "step": 11,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.40 \u00b7 Sub-assembly step 11",
+   "parts": [
+    {
+     "element_id": "4211445",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 40,
+   "step": 12,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.40 \u00b7 Sub-assembly step 12",
+   "parts": [
+    {
+     "element_id": "4210872",
+     "qty": 1
+    },
+    {
+     "element_id": "4210869",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 40,
+   "step": 13,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.40 \u00b7 Sub-assembly step 13",
+   "parts": [
+    {
+     "element_id": "301026",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 40,
+   "step": 14,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.40 \u00b7 Sub-assembly step 14",
+   "parts": [
+    {
+     "element_id": "393701",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 41,
+   "step": 15,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.41 \u00b7 Sub-assembly step 15",
+   "parts": [
+    {
+     "element_id": "4211859",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 41,
+   "step": 16,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.41 \u00b7 Sub-assembly step 16",
+   "parts": [
+    {
+     "element_id": "4211395",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 42,
+   "step": 17,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.42 \u00b7 Sub-assembly step 17",
+   "parts": [
+    {
+     "element_id": "4210631",
+     "qty": 1
+    },
+    {
+     "element_id": "4163917",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 42,
+   "step": 18,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.42 \u00b7 Sub-assembly step 18",
+   "parts": [
+    {
+     "element_id": "4212363",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 42,
+   "step": 19,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.42 \u00b7 Sub-assembly step 19",
+   "parts": [
+    {
+     "element_id": "302326",
+     "qty": 4
+    },
+    {
+     "element_id": "4507056",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 43,
+   "step": 20,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.43 \u00b7 Sub-assembly step 20",
+   "parts": [
+    {
+     "element_id": "4195007",
+     "qty": 2
+    },
+    {
+     "element_id": "4211001",
+     "qty": 3
+    },
+    {
+     "element_id": "4211119",
+     "qty": 4
+    },
+    {
+     "element_id": "4211395",
+     "qty": 1
+    },
+    {
+     "element_id": "4211735",
+     "qty": 1
+    },
+    {
+     "element_id": "4211732",
+     "qty": 1
+    },
+    {
+     "element_id": "4568637",
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 44,
+   "step": 78,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.44 \u00b7 Step 78",
+   "parts": []
+  },
+  {
+   "book": 2,
+   "page": 45,
+   "step": 79,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.45 \u00b7 Step 79",
+   "parts": [
+    {
+     "element_id": "4206482",
+     "qty": 2
+    },
+    {
+     "element_id": "4211566",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 46,
+   "step": 80,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.46 \u00b7 Step 80",
+   "parts": [
+    {
+     "element_id": "4213607",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 47,
+   "step": 1,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.47 \u00b7 Sub-assembly step 1",
+   "parts": [
+    {
+     "element_id": "4211001",
+     "qty": 1
+    },
+    {
+     "element_id": "4211397",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 47,
+   "step": 2,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.47 \u00b7 Sub-assembly step 2",
+   "parts": [
+    {
+     "element_id": "4211445",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 47,
+   "step": 3,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.47 \u00b7 Sub-assembly step 3",
+   "parts": [
+    {
+     "element_id": "4211056",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 47,
+   "step": 4,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.47 \u00b7 Sub-assembly step 4",
+   "parts": [
+    {
+     "element_id": "4211445",
+     "qty": 1
+    },
+    {
+     "element_id": "4211735",
+     "qty": 1
+    },
+    {
+     "element_id": "4211732",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 47,
+   "step": 5,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.47 \u00b7 Sub-assembly step 5",
+   "parts": [
+    {
+     "element_id": "4210631",
+     "qty": 2
+    },
+    {
+     "element_id": "4211445",
+     "qty": 1
+    },
+    {
+     "element_id": "4567887",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 47,
+   "step": 6,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.47 \u00b7 Sub-assembly step 6",
+   "parts": [
+    {
+     "element_id": "4243797",
+     "qty": 1
+    },
+    {
+     "element_id": "4560184",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 48,
+   "step": 81,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.48 \u00b7 Step 81",
+   "parts": []
+  },
+  {
+   "book": 2,
+   "page": 49,
+   "step": 1,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.49 \u00b7 Sub-assembly step 1",
+   "parts": [
+    {
+     "element_id": "4211415",
+     "qty": 1
+    },
+    {
+     "element_id": "4211445",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 49,
+   "step": 2,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.49 \u00b7 Sub-assembly step 2",
+   "parts": [
+    {
+     "element_id": "4211639",
+     "qty": 1
+    },
+    {
+     "element_id": "4211119",
+     "qty": 1
+    },
+    {
+     "element_id": "4251149",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 49,
+   "step": 3,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.49 \u00b7 Sub-assembly step 3",
+   "parts": [
+    {
+     "element_id": "4210997",
+     "qty": 1
+    },
+    {
+     "element_id": "4258273",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 49,
+   "step": 4,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.49 \u00b7 Sub-assembly step 4",
+   "parts": [
+    {
+     "element_id": "4515351",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 49,
+   "step": 5,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.49 \u00b7 Sub-assembly step 5",
+   "parts": [
+    {
+     "element_id": "4210631",
+     "qty": 1
+    },
+    {
+     "element_id": "4210897",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 50,
+   "step": 6,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.50 \u00b7 Sub-assembly step 6",
+   "parts": [
+    {
+     "element_id": "4161734",
+     "qty": 1
+    },
+    {
+     "element_id": "4210631",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 50,
+   "step": 7,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.50 \u00b7 Sub-assembly step 7",
+   "parts": [
+    {
+     "element_id": "4507056",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 50,
+   "step": 8,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.50 \u00b7 Sub-assembly step 8",
+   "parts": [
+    {
+     "element_id": "4210658",
+     "qty": 2
+    },
+    {
+     "element_id": "4514553",
+     "qty": 1
+    },
+    {
+     "element_id": "6045988",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 50,
+   "step": 9,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.50 \u00b7 Sub-assembly step 9",
+   "parts": [
+    {
+     "element_id": "6014616",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 51,
+   "step": 10,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.51 \u00b7 Sub-assembly step 10",
+   "parts": [
+    {
+     "element_id": "6039869",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 51,
+   "step": 11,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.51 \u00b7 Sub-assembly step 11",
+   "parts": [
+    {
+     "element_id": "6030711",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 51,
+   "step": 12,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.51 \u00b7 Sub-assembly step 12",
+   "parts": [
+    {
+     "element_id": "4598526",
+     "qty": 1
+    },
+    {
+     "element_id": "4521921",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 51,
+   "step": 13,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.51 \u00b7 Sub-assembly step 13",
+   "parts": [
+    {
+     "element_id": "4211006",
+     "qty": 1
+    },
+    {
+     "element_id": "4211473",
+     "qty": 1
+    },
+    {
+     "element_id": "4211483",
+     "qty": 1
+    },
+    {
+     "element_id": "4529241",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 52,
+   "step": 82,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.52 \u00b7 Step 82",
+   "parts": []
+  },
+  {
+   "book": 2,
+   "page": 53,
+   "step": 1,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.53 \u00b7 Sub-assembly step 1",
+   "parts": [
+    {
+     "element_id": "4211415",
+     "qty": 1
+    },
+    {
+     "element_id": "4211445",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 53,
+   "step": 2,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.53 \u00b7 Sub-assembly step 2",
+   "parts": [
+    {
+     "element_id": "4211639",
+     "qty": 1
+    },
+    {
+     "element_id": "4210967",
+     "qty": 1
+    },
+    {
+     "element_id": "4211119",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 53,
+   "step": 3,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.53 \u00b7 Sub-assembly step 3",
+   "parts": [
+    {
+     "element_id": "4210997",
+     "qty": 1
+    },
+    {
+     "element_id": "4258275",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 53,
+   "step": 4,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.53 \u00b7 Sub-assembly step 4",
+   "parts": [
+    {
+     "element_id": "4515351",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 53,
+   "step": 5,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.53 \u00b7 Sub-assembly step 5",
+   "parts": [
+    {
+     "element_id": "4210631",
+     "qty": 1
+    },
+    {
+     "element_id": "4210897",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 54,
+   "step": 6,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.54 \u00b7 Sub-assembly step 6",
+   "parts": [
+    {
+     "element_id": "4161734",
+     "qty": 1
+    },
+    {
+     "element_id": "4210631",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 54,
+   "step": 7,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.54 \u00b7 Sub-assembly step 7",
+   "parts": [
+    {
+     "element_id": "4507056",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 54,
+   "step": 8,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.54 \u00b7 Sub-assembly step 8",
+   "parts": [
+    {
+     "element_id": "4210658",
+     "qty": 2
+    },
+    {
+     "element_id": "4514553",
+     "qty": 1
+    },
+    {
+     "element_id": "6045988",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 54,
+   "step": 9,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.54 \u00b7 Sub-assembly step 9",
+   "parts": [
+    {
+     "element_id": "6014616",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 55,
+   "step": 10,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.55 \u00b7 Sub-assembly step 10",
+   "parts": [
+    {
+     "element_id": "6039869",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 55,
+   "step": 11,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.55 \u00b7 Sub-assembly step 11",
+   "parts": [
+    {
+     "element_id": "6030711",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 55,
+   "step": 12,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.55 \u00b7 Sub-assembly step 12",
+   "parts": [
+    {
+     "element_id": "4598526",
+     "qty": 1
+    },
+    {
+     "element_id": "4521921",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 55,
+   "step": 13,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.55 \u00b7 Sub-assembly step 13",
+   "parts": [
+    {
+     "element_id": "4211006",
+     "qty": 1
+    },
+    {
+     "element_id": "4211473",
+     "qty": 1
+    },
+    {
+     "element_id": "4211483",
+     "qty": 1
+    },
+    {
+     "element_id": "4529241",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 2,
+   "page": 56,
+   "step": 83,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.56 \u00b7 Step 83",
+   "parts": []
+  },
+  {
+   "book": 2,
+   "page": 57,
+   "step": 84,
+   "bag": 7,
+   "label": "Bag 7 \u00b7 p.57 \u00b7 Step 84",
+   "parts": [
+    {
+     "element_id": "6054526",
+     "qty": 3
+    }
+   ]
+  }
+ ]
+}

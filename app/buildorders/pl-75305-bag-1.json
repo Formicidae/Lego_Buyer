@@ -1,0 +1,485 @@
+{
+ "source": "LEGO instructions PDF 6366005 (75305), bag 1 only, parsed",
+ "steps": [
+  {
+   "book": 1,
+   "page": 6,
+   "step": 1,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.6 \u00b7 Step 1",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 1
+    },
+    {
+     "element_id": "6045988",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 6,
+   "step": 2,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.6 \u00b7 Step 2",
+   "parts": [
+    {
+     "element_id": "4121715",
+     "qty": 1
+    },
+    {
+     "element_id": "4211640",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 7,
+   "step": 3,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.7 \u00b7 Step 3",
+   "parts": [
+    {
+     "element_id": "302201",
+     "qty": 2
+    },
+    {
+     "element_id": "6045988",
+     "qty": 1
+    },
+    {
+     "element_id": "6052126",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 8,
+   "step": 4,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.8 \u00b7 Step 4",
+   "parts": [
+    {
+     "element_id": "4210678",
+     "qty": 1
+    },
+    {
+     "element_id": "4211001",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 8,
+   "step": 5,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.8 \u00b7 Step 5",
+   "parts": [
+    {
+     "element_id": "4211395",
+     "qty": 1
+    },
+    {
+     "element_id": "4201235",
+     "qty": 1
+    },
+    {
+     "element_id": "4181135",
+     "qty": 1
+    },
+    {
+     "element_id": "6117418",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 9,
+   "step": 6,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.9 \u00b7 Step 6",
+   "parts": [
+    {
+     "element_id": "4211105",
+     "qty": 1
+    },
+    {
+     "element_id": "4211001",
+     "qty": 2
+    },
+    {
+     "element_id": "379524",
+     "qty": 1
+    },
+    {
+     "element_id": "302301",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 9,
+   "step": 7,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.9 \u00b7 Step 7",
+   "parts": [
+    {
+     "element_id": "4211395",
+     "qty": 4
+    },
+    {
+     "element_id": "4118790",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 10,
+   "step": 8,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.10 \u00b7 Step 8",
+   "parts": [
+    {
+     "element_id": "4201235",
+     "qty": 3
+    },
+    {
+     "element_id": "300801",
+     "qty": 2
+    },
+    {
+     "element_id": "4211105",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 10,
+   "step": 9,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.10 \u00b7 Step 9",
+   "parts": [
+    {
+     "element_id": "6058177",
+     "qty": 2
+    },
+    {
+     "element_id": "6052126",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 11,
+   "step": 10,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.11 \u00b7 Step 10",
+   "parts": [
+    {
+     "element_id": "379524",
+     "qty": 1
+    },
+    {
+     "element_id": "303601",
+     "qty": 1
+    },
+    {
+     "element_id": "6210272",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 11,
+   "step": 11,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.11 \u00b7 Step 11",
+   "parts": [
+    {
+     "element_id": "303401",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 12,
+   "step": 12,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.12 \u00b7 Step 12",
+   "parts": [
+    {
+     "element_id": "6123809",
+     "qty": 1
+    },
+    {
+     "element_id": "6245249",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 12,
+   "step": 13,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.12 \u00b7 Step 13",
+   "parts": [
+    {
+     "element_id": "6123809",
+     "qty": 3
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 13,
+   "step": 14,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.13 \u00b7 Step 14",
+   "parts": [
+    {
+     "element_id": "6123809",
+     "qty": 6
+    },
+    {
+     "element_id": "6228987",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 13,
+   "step": 15,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.13 \u00b7 Step 15",
+   "parts": [
+    {
+     "element_id": "4114324",
+     "qty": 1
+    },
+    {
+     "element_id": "4508313",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 14,
+   "step": 16,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.14 \u00b7 Step 16",
+   "parts": [
+    {
+     "element_id": "302301",
+     "qty": 4
+    },
+    {
+     "element_id": "300801",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 15,
+   "step": 17,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.15 \u00b7 Step 17",
+   "parts": [
+    {
+     "element_id": "303401",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 15,
+   "step": 18,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.15 \u00b7 Step 18",
+   "parts": [
+    {
+     "element_id": "300801",
+     "qty": 2
+    },
+    {
+     "element_id": "4620761",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 16,
+   "step": 19,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.16 \u00b7 Step 19",
+   "parts": [
+    {
+     "element_id": "302301",
+     "qty": 2
+    },
+    {
+     "element_id": "6123809",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 17,
+   "step": 20,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.17 \u00b7 Step 20",
+   "parts": [
+    {
+     "element_id": "6123809",
+     "qty": 6
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 17,
+   "step": 21,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.17 \u00b7 Step 21",
+   "parts": [
+    {
+     "element_id": "4508313",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 18,
+   "step": 22,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.18 \u00b7 Step 22",
+   "parts": [
+    {
+     "element_id": "346026",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 18,
+   "step": 23,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.18 \u00b7 Step 23",
+   "parts": [
+    {
+     "element_id": "302326",
+     "qty": 3
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 18,
+   "step": 24,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.18 \u00b7 Step 24",
+   "parts": [
+    {
+     "element_id": "6037746",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 18,
+   "step": 25,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.18 \u00b7 Step 25",
+   "parts": [
+    {
+     "element_id": "300426",
+     "qty": 1
+    },
+    {
+     "element_id": "302326",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 19,
+   "step": 26,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.19 \u00b7 Step 26",
+   "parts": [
+    {
+     "element_id": "6228987",
+     "qty": 2
+    },
+    {
+     "element_id": "300426",
+     "qty": 2
+    },
+    {
+     "element_id": "302426",
+     "qty": 2
+    },
+    {
+     "element_id": "6047276",
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 19,
+   "step": 27,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.19 \u00b7 Step 27",
+   "parts": []
+  },
+  {
+   "book": 1,
+   "page": 20,
+   "step": 28,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.20 \u00b7 Step 28",
+   "parts": [
+    {
+     "element_id": "4501853",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "book": 1,
+   "page": 20,
+   "step": 29,
+   "bag": 1,
+   "label": "Bag 1 \u00b7 p.20 \u00b7 Step 29",
+   "parts": [
+    {
+     "element_id": "6123809",
+     "qty": 2
+    }
+   ]
+  }
+ ]
+}
