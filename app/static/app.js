@@ -28,6 +28,9 @@
   const rowsOf = (key) => state.rows.get(key) || [];
   const addRow = (key, el) => { if (!state.rows.has(key)) state.rows.set(key, []); state.rows.get(key).push(el); };
   const missing = (it) => Math.max(0, it.quantity - it.owned);
+  // "Only show owned": at home that means owned pieces; at the store it means pieces found in the bucket.
+  const checkedOff = (it) => state.mode === 'trip' ? (it.found_exact + it.found_alt) > 0 : it.owned > 0;
+  const hiddenByOnlyOwned = (it) => state.onlyOwned && (state.mode === 'have' || state.mode === 'trip') && !checkedOff(it);
 
   // ---------- helpers ----------
   const api = async (url, opts = {}) => {
@@ -133,7 +136,7 @@
     for (const it of visibleItems()) {
       if (!matches(it, q)) continue;
       if (state.hideDone && isDone(it)) continue;
-      if (state.onlyOwned && it.owned === 0 && (state.mode === 'have' || state.mode === 'trip')) continue;
+      if (hiddenByOnlyOwned(it)) continue;
       if (state.mode === 'trip' && needed(it) === 0 && state.hideDone) continue;
       if (state.mode === 'buy' && remaining(it) === 0) continue;
       if (state.mode === 'build' && state.onlyMissing && missing(it) === 0) continue;
@@ -223,7 +226,7 @@
     $('#empty').hidden = count !== 0;
     $('#empty').textContent = state.search ? 'Nothing matches that search.' :
       state.mode === 'have' ? (state.onlyOwned ? 'Nothing is marked as owned yet — untick “Only show owned” to see the rest.' : 'Everything is marked as owned. Switch to the store view or Buy.') :
-      state.mode === 'trip' ? 'Nothing left to find. Switch to Buy.' :
+      state.mode === 'trip' ? (state.onlyOwned ? 'Nothing in the bucket yet — untick “Only show owned” to see what to look for.' : 'Nothing left to find. Switch to Buy.') :
       state.mode === 'build' ? (state.onlyMissing ? 'Nothing marked missing yet.' : state.hidePast ? 'All steps are behind the current one — untick “hide steps before the current one” to see them.' : 'No parts to show.') : 'Nothing left to buy.';
     if (state.mode === 'build') renderBuildPanel();
     if (state.mode === 'buy' && !state._fromSourcing) { renderBuyPlan(); if (!state._srcPending) { state._srcPending = true; setTimeout(() => { state._srcPending = false; renderSourcing(); }, 50); } }
@@ -449,7 +452,7 @@
       if (!res) return;
       state.rev = res.rev; delete res.rev;
       applyProgress(it, res);
-      if ((state.hideDone && isDone(it)) || (state.onlyOwned && it.owned === 0)) scheduleRender();
+      if ((state.hideDone && isDone(it)) || state.onlyOwned) scheduleRender();
     } catch (e) {
       if (isNetworkError(e)) { const q = loadQueue(); q.push({ key: it.key, field, delta, who }); saveQueue(q); state.serverDown = true; updateNetBanner(); return; }
       Object.assign(it, before); applyProgress(it, {}); toast(e.message);
@@ -462,7 +465,7 @@
       const res = await api(`${state.api}/progress`, { method: 'POST', body: JSON.stringify({ key: it.key, field, value, who }) });
       if (!res) return;
       state.rev = res.rev; delete res.rev; applyProgress(it, res);
-      if ((state.hideDone && isDone(it)) || (state.onlyOwned && it.owned === 0)) scheduleRender();
+      if ((state.hideDone && isDone(it)) || state.onlyOwned) scheduleRender();
     } catch (e) {
       if (isNetworkError(e)) { const q = loadQueue(); q.push({ key: it.key, field, value, who }); saveQueue(q); state.serverDown = true; updateNetBanner(); return; }
       toast(e.message);
@@ -488,7 +491,7 @@
       for (const it of [...state.parts, ...state.figs]) {
         const p = res.progress[it.key] || { owned: 0, found_exact: 0, found_alt: 0, updated_at: null, updated_by: null };
         const changed = ['owned', 'found_exact', 'found_alt'].some((k) => it[k] !== p[k]) || (p.members && JSON.stringify(p.members) !== JSON.stringify(it.members));
-        if (changed) { Object.assign(it, p); const els = rowsOf(it.key); for (const el of els) paintRow(it, el); if ((state.hideDone && isDone(it)) || (state.onlyOwned && it.owned === 0)) structural = true; if (!els.length) structural = true; }
+        if (changed) { Object.assign(it, p); const els = rowsOf(it.key); for (const el of els) paintRow(it, el); if ((state.hideDone && isDone(it)) || state.onlyOwned) structural = true; if (!els.length) structural = true; }
       }
       if (structural) { syncFilterUI(); render(); } else renderSummary();
     } catch (e) { if (isNetworkError(e)) { state.serverDown = true; updateNetBanner(); } }
