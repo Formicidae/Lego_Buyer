@@ -182,3 +182,15 @@ def element(element_id):
         return None
     time.sleep(0.6)  # stay under Rebrickable's rate limit when resolving many in a row
     return part, color
+
+
+def part_color_elements(part_num, color_id):
+    """All LEGO element ids Rebrickable knows for a part in a colour (instruction books may use any of them)."""
+    try:
+        data = _get(f"/parts/{part_num}/colors/{color_id}/")
+    except RebrickableError as e:
+        if "know" in str(e) or "404" in str(e):
+            return []
+        raise
+    time.sleep(0.6)
+    return [str(e) for e in (data.get("elements") or [])]

@@ -30,6 +30,9 @@ class StepsError(Exception):
     pass
 
 
+RESOLVER_VERSION = 2  # bump when element-id resolution gets smarter, so bundled orders re-import once
+
+
 # ---------- LDraw ----------
 
 def _ldraw_models(text):
@@ -244,6 +247,29 @@ def resolve_json(set_num, data):
             cached = {"part_num": res[0] if res else None, "color_id": res[1] if res else None}
         return cached["part_num"], cached["color_id"]
 
+    expanded = set()
+
+    def via_inventory_elements(element_id):
+        """Rebrickable's element table misses some ids. Second route: ask Rebrickable for every element
+        id of each inventory part+colour (once per lot, cached) and look the book's id up in that."""
+        for r in parts:
+            key = (r["part_num"], r["color_id"])
+            if key in expanded:
+                continue
+            expanded.add(key)
+            try:
+                for e in rebrickable.part_color_elements(r["part_num"], r["color_id"]):
+                    if db.element_map_get(e) is None or db.element_map_get(e)["part_num"] is None:
+                        db.element_map_put(e, r["part_num"], r["color_id"])
+            except Exception as ex:
+                log.warning("element list for %s/%s failed: %s", r["part_num"], r["color_id"], ex)
+                expanded.discard(key)
+                return None, None
+            hit = db.element_map_get(element_id)
+            if hit and hit["part_num"]:
+                return hit["part_num"], hit["color_id"]
+        return None, None
+
     for i, st in enumerate(steps_in, start=1):
         rp = []
         for p in st.get("parts") or []:
@@ -255,6 +281,8 @@ def resolve_json(set_num, data):
                     part_num, color_id = row["part_num"], row["color_id"]
                 else:
                     part_num, color_id = via_rebrickable(str(p["element_id"]))
+                    if not part_num:
+                        part_num, color_id = via_inventory_elements(str(p["element_id"]))
                     if part_num and part_num not in by_num:
                         # Rebrickable may name a mould variant (3068b vs 3068a): fall back to the inventory
                         # part sharing the same base number, if there is exactly one.
@@ -343,7 +371,7 @@ def import_text(set_num, text, filename=""):
         raise StepsError("Couldn't tell what this file is (expected LDraw .ldr/.mpd or JSON)")
     if not any(st["parts"] for st in steps):
         raise StepsError("Nothing matched the set's inventory. " + ("Unmatched: " + ", ".join(list(report["unmatched"])[:8]) if report["unmatched"] else ""))
-    notes = json.dumps({k: report[k] for k in ("unmatched", "over", "not_in_steps") if report.get(k)})
+    notes = json.dumps({**{k: report[k] for k in ("unmatched", "over", "not_in_steps") if report.get(k)}, "resolver": RESOLVER_VERSION})
     db.replace_steps(set_num, steps, source, notes)
     return report
 
@@ -368,6 +396,10 @@ def needs_reimport(meta):
     except ValueError:
         return False
     ids = [k for k in (notes.get("unmatched") or {}) if re.fullmatch(r"\d{6,7}", str(k))]
+    if not ids:
+        return False
+    if int(notes.get("resolver") or 0) < RESOLVER_VERSION:
+        return True
     return any(db.element_map_get(k) is None for k in ids)
 
 
