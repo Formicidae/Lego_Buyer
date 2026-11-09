@@ -463,7 +463,7 @@ def delete_steps(set_num):
 
 
 def element_map_get(element_id):
-    return q1("SELECT part_num, color_id FROM element_map WHERE element_id=?", (str(element_id),))
+    return q1("SELECT part_num, color_id, checked_at FROM element_map WHERE element_id=?", (str(element_id),))
 
 
 def element_map_put(element_id, part_num, color_id):

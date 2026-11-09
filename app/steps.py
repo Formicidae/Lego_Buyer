@@ -14,6 +14,7 @@ is reported back rather than silently dropped.
 import json
 import pathlib
 import re
+import time
 from collections import Counter, OrderedDict
 
 import logging
@@ -232,12 +233,13 @@ def resolve_json(set_num, data):
         """Instruction books and Rebrickable often use different element ids for the same part+colour:
         ask Rebrickable what the book's id is, then find that part+colour in the inventory."""
         cached = db.element_map_get(element_id)
-        if cached is None:
+        stale = cached is not None and cached["part_num"] is None and (time.time() - (cached["checked_at"] or 0)) > 86400
+        if cached is None or stale:
             try:
                 res = rebrickable.element(element_id)
-            except Exception as e:  # network/API trouble: leave it unresolved this time
+            except Exception as e:  # network/API trouble: remember the attempt so we don't loop, retry tomorrow
                 log.warning("element lookup %s failed: %s", element_id, e)
-                return None, None
+                res = None
             db.element_map_put(element_id, res[0] if res else None, res[1] if res else None)
             cached = {"part_num": res[0] if res else None, "color_id": res[1] if res else None}
         return cached["part_num"], cached["color_id"]
@@ -327,6 +329,8 @@ def import_text(set_num, text, filename=""):
             raise StepsError(f"Not valid JSON: {e}")
         steps, report = resolve_json(set_num, data)
         source = (data.get("source") if isinstance(data, dict) else None) or "json"
+        if filename:
+            source = f"{filename}: {source}"
     elif re.search(r"^\s*(0|1)\s", text, re.M):
         raw, models = parse_ldraw(text)
         if not raw:
@@ -359,8 +363,6 @@ def bundled_path(set_num):
 
 def needs_reimport(meta):
     """A bundled build order whose unmatched element ids have never been looked up on Rebrickable."""
-    if not (meta.get("source") or "").startswith("ldraw:bundled") and "bundled" not in (meta.get("source") or ""):
-        return False
     try:
         notes = json.loads(meta.get("notes") or "{}")
     except ValueError:
