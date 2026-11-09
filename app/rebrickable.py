@@ -166,3 +166,19 @@ def fetch_set(set_num: str):
         "set_img_url": info.get("set_img_url"),
     }
     return set_info, parts, figs, cats, colors
+
+
+def element(element_id):
+    """LEGO element id -> (part_num, color_id) via Rebrickable, or None if unknown."""
+    try:
+        data = _get(f"/elements/{element_id}/")
+    except RebrickableError as e:
+        if "know" in str(e) or "404" in str(e):
+            return None
+        raise
+    part = (data.get("part") or {}).get("part_num")
+    color = (data.get("color") or {}).get("id")
+    if not part:
+        return None
+    time.sleep(0.6)  # stay under Rebrickable's rate limit when resolving many in a row
+    return part, color

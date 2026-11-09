@@ -275,15 +275,17 @@
   };
   const renderBuildPanel = () => {
     const s = state.set; const items = visibleItems();
+    const importing = state.stepsJob && state.stepsJob.state === 'running';
     const miss = sum(items, missing); const lots = items.filter((i) => missing(i) > 0).length;
     $('#btn-build-start').hidden = !!s.build_mode;
     $('#btn-build-jump').hidden = !s.build_mode || !state.steps.length;
     $('#build-opts').hidden = !state.steps.length;
-    $('#build-status').textContent = !s.build_mode
+    $('#build-status').textContent = importing && !state.steps.length ? 'The build order for this set is being imported — the step-by-step view will appear here in a moment.' : !s.build_mode
       ? 'Build mode marks every part as owned, then you tap “Missing” on whatever the box turns out not to have. The Buy tab and BrickOwl wishlist come straight from those marks, and every tap is saved, so you can stop and pick it up another day.'
       : `Build mode on · ${miss} piece${miss === 1 ? '' : 's'} in ${lots} lot${lots === 1 ? '' : 's'} marked missing${state.steps.length ? ` · at step ${currentSeq()} of ${state.steps.length}` : ''}.`;
     const m = state.stepsMeta;
-    $('#steps-summary').textContent = state.steps.length ? `Build order: ${state.steps.length} steps (${(m && m.source) || 'imported'})` : 'Build order: none yet — parts are listed by type';
+    $('#steps-summary').textContent = state.steps.length ? `Build order: ${state.steps.length} steps (${(m && m.source) || 'imported'})`
+      : importing ? 'Build order: importing… (matching parts to the inventory, up to a minute)' : 'Build order: none yet — parts are listed by type';
     $('#steps-delete').hidden = !state.steps.length;
     const rep = $('#steps-report'); rep.hidden = true;
     if (m && m.notes) {
@@ -513,8 +515,34 @@
   };
 
   const loadSteps = async () => {
-    try { const r = await api(`${state.api}/steps`); if (r) { state.steps = r.steps || []; state.stepsMeta = r.meta || null; } }
+    try { const r = await api(`${state.api}/steps`); if (r) { state.steps = r.steps || []; state.stepsMeta = r.meta || null; state.stepsJob = r.job || null; } }
     catch { state.steps = []; state.stepsMeta = null; }
+    watchStepsJob();
+  };
+  const reportText = (rep) => {
+    if (!rep) return '';
+    const un = Object.keys(rep.unmatched || {}).length; const over = Object.keys(rep.over || {}).length; const nis = Object.keys(rep.not_in_steps || {}).length;
+    return `${rep.steps} steps · ${rep.pieces_in_steps} of ${rep.pieces_in_set} pieces placed · ${rep.lots_covered} of ${rep.lots_in_set} lots covered`
+      + (rep.has_step_markers === false ? ' · the model has no step markers, so each sub-assembly is one step' : '')
+      + (rep.remapped_elements ? ` · ${rep.remapped_elements} element id(s) resolved via Rebrickable` : '')
+      + (un ? ` · ${un} part type(s) didn't match the inventory` : '') + (over ? ` · ${over} part(s) used more than the set has` : '') + (nis ? ` · ${nis} lot(s) never appear in a step` : '') + '.';
+  };
+  // A build-order import runs on the server (element-id lookups can take a minute); follow it.
+  const watchStepsJob = () => {
+    if (state._stepsWatch) { clearTimeout(state._stepsWatch); state._stepsWatch = null; }
+    if (!state.stepsJob || state.stepsJob.state !== 'running') return;
+    if (state.mode === 'build') renderBuildPanel();
+    state._stepsWatch = setTimeout(async () => {
+      try {
+        const j = await api(`/api/jobs/${encodeURIComponent('steps:' + state.set.set_num)}`);
+        state.stepsJob = j;
+        if (j && j.state === 'running') { watchStepsJob(); return; }
+        if (j && j.state === 'done') { $('#steps-status').textContent = reportText(j.report); toast('Build order ready'); }
+        if (j && j.state === 'failed') { $('#steps-status').textContent = j.message || 'Build order import failed'; }
+        const r = await api(`${state.api}/steps`); if (r) { state.steps = r.steps || []; state.stepsMeta = r.meta || null; }
+        if (state.mode === 'build') { setMode('build'); } else renderSummary();
+      } catch (e) { watchStepsJob(); }
+    }, 2500);
   };
 
   const pdfOrder = () => localStorage.getItem('lb_pdf_order') || 'color';
@@ -825,12 +853,9 @@
         const r = await fetch(`${state.api}/steps`, { method: 'POST', body: fd });
         const j = await r.json();
         if (!r.ok) { $('#steps-status').textContent = j.error || 'Import failed'; return; }
-        const rep = j.report; const un = Object.keys(rep.unmatched || {}).length; const over = Object.keys(rep.over || {}).length; const nis = Object.keys(rep.not_in_steps || {}).length;
-        $('#steps-status').textContent = `${rep.steps} steps · ${rep.pieces_in_steps} of ${rep.pieces_in_set} pieces placed · ${rep.lots_covered} of ${rep.lots_in_set} lots covered`
-          + (rep.has_step_markers === false ? ' · the model has no step markers, so each sub-assembly is one step' : '')
-          + (un ? ` · ${un} part type(s) didn't match the inventory` : '') + (over ? ` · ${over} part(s) used more than the set has` : '') + (nis ? ` · ${nis} lot(s) never appear in a step` : '') + '.';
         $('#steps-file').value = '';
-        state.rev = -1; await loadSet(); setMode('build');
+        $('#steps-status').textContent = 'Importing… matching parts to the inventory (this can take a minute).';
+        state.stepsJob = j.job; watchStepsJob();
       } catch (e) { $('#steps-status').textContent = e.message; }
       finally { $('#steps-upload').disabled = false; }
     });

@@ -233,14 +233,16 @@ async def api_steps(request: Request):
     if not db.get_set(set_num):
         return JSONResponse({"error": "not found"}, status_code=404)
     if request.method == "GET":
-        if not db.steps_meta(set_num) and steps.bundled_path(set_num):
-            # First look at a set we ship a build order for: import it now (a few hundred ms).
-            try:
-                rep = await run_in_threadpool(steps.import_bundled, set_num)
-                log.info("bundled build order imported for %s: %s", set_num, {k: rep[k] for k in ("steps", "pieces_in_steps", "pieces_in_set", "lots_covered", "lots_in_set")})
-            except steps.StepsError as e:
-                log.warning("bundled build order for %s failed: %s", set_num, e)
-        return JSONResponse({"steps": db.steps(set_num), "meta": db.steps_meta(set_num), "rev": db.get_rev(set_num)})
+        job = jobs.status(f"steps:{set_num}")
+        meta = db.steps_meta(set_num)
+        if meta and steps.bundled_path(set_num) and job.get("state") not in ("running", "failed") and steps.needs_reimport(meta):
+            meta = None  # imported before element-id lookups existed: do it again
+        if not meta and steps.bundled_path(set_num) and job.get("state") not in ("running", "failed"):
+            # First look at a set we ship a build order for: import it in the background (element-id
+            # lookups on Rebrickable can take a minute) and let the page poll for it.
+            job = jobs.start_steps_import(set_num, bundled=True)
+            log.info("bundled build order import started for %s", set_num)
+        return JSONResponse({"steps": db.steps(set_num), "meta": db.steps_meta(set_num), "rev": db.get_rev(set_num), "job": job})
     if request.method == "DELETE":
         db.delete_steps(set_num)
         return JSONResponse({"ok": True, "rev": db.get_rev(set_num)})
@@ -258,12 +260,9 @@ async def api_steps(request: Request):
         text = (await request.body()).decode("utf-8", errors="replace")
     if not text.strip():
         return JSONResponse({"error": "no file or text given"}, status_code=400)
-    try:
-        report = await run_in_threadpool(steps.import_text, set_num, text, filename)
-    except steps.StepsError as e:
-        return JSONResponse({"error": str(e)}, status_code=400)
-    log.info("steps imported: %s from %s: %s", set_num, filename or "text", {k: report[k] for k in ("steps", "pieces_in_steps", "pieces_in_set", "lots_covered", "lots_in_set")})
-    return JSONResponse({"report": report, "rev": db.get_rev(set_num)})
+    job = jobs.start_steps_import(set_num, text=text, filename=filename)
+    log.info("steps import started: %s from %s (%d bytes)", set_num, filename or "text", len(text))
+    return JSONResponse({"job": job, "rev": db.get_rev(set_num)})
 
 
 async def api_prices(request: Request):

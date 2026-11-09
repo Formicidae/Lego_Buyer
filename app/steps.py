@@ -16,7 +16,11 @@ import pathlib
 import re
 from collections import Counter, OrderedDict
 
-from . import db
+import logging
+
+from . import db, rebrickable
+
+log = logging.getLogger("lego_buyer.steps")
 
 _PART_LINE = re.compile(r"^\s*1\s+(\S+)\s+(?:\S+\s+){12}(.+?)\s*$")
 
@@ -221,8 +225,23 @@ def resolve_json(set_num, data):
     steps_in = data.get("steps") if isinstance(data, dict) else data
     if not isinstance(steps_in, list) or not steps_in:
         raise StepsError("JSON needs a non-empty \"steps\" list")
-    unmatched = Counter()
+    unmatched, remapped = Counter(), {}
     out = []
+
+    def via_rebrickable(element_id):
+        """Instruction books and Rebrickable often use different element ids for the same part+colour:
+        ask Rebrickable what the book's id is, then find that part+colour in the inventory."""
+        cached = db.element_map_get(element_id)
+        if cached is None:
+            try:
+                res = rebrickable.element(element_id)
+            except Exception as e:  # network/API trouble: leave it unresolved this time
+                log.warning("element lookup %s failed: %s", element_id, e)
+                return None, None
+            db.element_map_put(element_id, res[0] if res else None, res[1] if res else None)
+            cached = {"part_num": res[0] if res else None, "color_id": res[1] if res else None}
+        return cached["part_num"], cached["color_id"]
+
     for i, st in enumerate(steps_in, start=1):
         rp = []
         for p in st.get("parts") or []:
@@ -232,6 +251,17 @@ def resolve_json(set_num, data):
                 row = by_elem.get(str(p["element_id"]))
                 if row:
                     part_num, color_id = row["part_num"], row["color_id"]
+                else:
+                    part_num, color_id = via_rebrickable(str(p["element_id"]))
+                    if part_num and part_num not in by_num:
+                        # Rebrickable may name a mould variant (3068b vs 3068a): fall back to the inventory
+                        # part sharing the same base number, if there is exactly one.
+                        base = re.match(r"^\d+", part_num)
+                        alts = [n for n in by_num if base and re.match(r"^\d+", n) and re.match(r"^\d+", n).group(0) == base.group(0)]
+                        if len(alts) == 1:
+                            part_num = alts[0]
+                    if part_num in by_num:
+                        remapped[str(p["element_id"])] = part_num
             if part_num not in by_num:
                 unmatched[f"{part_num or p.get('element_id') or '?'}"] += qty
                 continue
@@ -246,7 +276,9 @@ def resolve_json(set_num, data):
             rp.append({"part_num": part_num, "color_id": int(color_id), "qty": qty, "note": p.get("note")})
         label = st.get("label") or " · ".join(x for x in [f"Book {st['book']}" if st.get("book") else "", f"p.{st['page']}" if st.get("page") else "", f"Step {st.get('step', i)}"] if x)
         out.append({"book": st.get("book"), "page": st.get("page"), "step": st.get("step", i), "label": label, "note": st.get("note"), "parts": _merge(rp)})
-    return out, _report(set_num, out, unmatched, parts)
+    report = _report(set_num, out, unmatched, parts)
+    report["remapped_elements"] = len(remapped)
+    return out, report
 
 
 def _merge(rp):
@@ -323,6 +355,18 @@ def bundled_path(set_num):
         if p.exists():
             return p
     return None
+
+
+def needs_reimport(meta):
+    """A bundled build order whose unmatched element ids have never been looked up on Rebrickable."""
+    if not (meta.get("source") or "").startswith("ldraw:bundled") and "bundled" not in (meta.get("source") or ""):
+        return False
+    try:
+        notes = json.loads(meta.get("notes") or "{}")
+    except ValueError:
+        return False
+    ids = [k for k in (notes.get("unmatched") or {}) if re.fullmatch(r"\d{6,7}", str(k))]
+    return any(db.element_map_get(k) is None for k in ids)
 
 
 def import_bundled(set_num):

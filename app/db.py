@@ -127,6 +127,15 @@ CREATE TABLE IF NOT EXISTS set_steps (
 );
 CREATE INDEX IF NOT EXISTS set_steps_set ON set_steps(set_num, seq);
 
+-- LEGO element id -> Rebrickable part/color, looked up once (instruction books and Rebrickable often
+-- use different element ids for the same part in the same colour).
+CREATE TABLE IF NOT EXISTS element_map (
+    element_id TEXT PRIMARY KEY,
+    part_num TEXT,
+    color_id INTEGER,
+    checked_at REAL NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS set_steps_meta (
     set_num TEXT PRIMARY KEY,
     source TEXT NOT NULL,
@@ -451,6 +460,16 @@ def delete_steps(set_num):
         conn.execute("DELETE FROM set_steps_meta WHERE set_num=?", (set_num,))
         conn.execute("UPDATE sets SET build_pos=NULL WHERE set_num=?", (set_num,))
         bump_rev(conn, set_num)
+
+
+def element_map_get(element_id):
+    return q1("SELECT part_num, color_id FROM element_map WHERE element_id=?", (str(element_id),))
+
+
+def element_map_put(element_id, part_num, color_id):
+    with tx() as conn:
+        conn.execute("INSERT INTO element_map(element_id, part_num, color_id, checked_at) VALUES(?,?,?,?) ON CONFLICT(element_id) DO UPDATE SET part_num=excluded.part_num, color_id=excluded.color_id, checked_at=excluded.checked_at",
+                     (str(element_id), part_num, color_id, time.time()))
 
 
 def steps_meta(set_num):

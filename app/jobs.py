@@ -197,3 +197,30 @@ def start_brickowl_push(set_num, list_name, items):
 
     threading.Thread(target=run, name=name, daemon=True).start()
     return status(name)
+
+
+def start_steps_import(set_num, text=None, filename="", bundled=False):
+    """Import a build order (bundled file or uploaded text). Element ids unknown to the inventory are
+    looked up on Rebrickable, so this can take a minute for a big set."""
+    from . import steps
+    name = f"steps:{set_num}"
+    with _lock:
+        cur = _jobs.get(name)
+        if cur and cur.get("state") == "running":
+            return dict(cur)
+        _jobs[name] = {"state": "running", "started": time.time(), "bundled": bundled}
+
+    def run():
+        try:
+            report = steps.import_bundled(set_num) if bundled else steps.import_text(set_num, text, filename)
+            with _lock:
+                _jobs[name].update({"state": "done", "finished": time.time(), "report": report})
+        except steps.StepsError as e:
+            with _lock:
+                _jobs[name].update({"state": "failed", "message": str(e)})
+        except Exception as e:
+            with _lock:
+                _jobs[name].update({"state": "failed", "message": f"{type(e).__name__}: {e}"})
+
+    threading.Thread(target=run, name=name, daemon=True).start()
+    return status(name)
