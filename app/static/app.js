@@ -17,7 +17,7 @@
     search: '',
     sort: localStorage.getItem('lb_sort') || 'type',
     hideDone: localStorage.getItem('lb_hide_done') !== '0',
-    hideOwned: localStorage.getItem('lb_hide_owned') === '1',  // only lots with nothing owned yet (sorting a tub of unknown bricks)
+    onlyOwned: localStorage.getItem('lb_only_owned') === '1',  // only lots already checked off (which set does this tub belong to?)
     who: localStorage.getItem('lb_who') || '',
     rows: new Map(), // key -> [row elements] (a part can appear in several build steps)
     steps: [], stepsMeta: null,
@@ -133,7 +133,7 @@
     for (const it of visibleItems()) {
       if (!matches(it, q)) continue;
       if (state.hideDone && isDone(it)) continue;
-      if (state.hideOwned && it.owned > 0 && (state.mode === 'have' || state.mode === 'trip')) continue;
+      if (state.onlyOwned && it.owned === 0 && (state.mode === 'have' || state.mode === 'trip')) continue;
       if (state.mode === 'trip' && needed(it) === 0 && state.hideDone) continue;
       if (state.mode === 'buy' && remaining(it) === 0) continue;
       if (state.mode === 'build' && state.onlyMissing && missing(it) === 0) continue;
@@ -222,7 +222,7 @@
     }
     $('#empty').hidden = count !== 0;
     $('#empty').textContent = state.search ? 'Nothing matches that search.' :
-      state.mode === 'have' ? (state.hideOwned ? 'Every lot has at least one piece owned — untick “Hide anything owned” to see them.' : 'Everything is marked as owned. Switch to the store view or Buy.') :
+      state.mode === 'have' ? (state.onlyOwned ? 'Nothing is marked as owned yet — untick “Only show owned” to see the rest.' : 'Everything is marked as owned. Switch to the store view or Buy.') :
       state.mode === 'trip' ? 'Nothing left to find. Switch to Buy.' :
       state.mode === 'build' ? (state.onlyMissing ? 'Nothing marked missing yet.' : state.hidePast ? 'All steps are behind the current one — untick “hide steps before the current one” to see them.' : 'No parts to show.') : 'Nothing left to buy.';
     if (state.mode === 'build') renderBuildPanel();
@@ -449,7 +449,7 @@
       if (!res) return;
       state.rev = res.rev; delete res.rev;
       applyProgress(it, res);
-      if ((state.hideDone && isDone(it)) || (state.hideOwned && it.owned > 0)) scheduleRender();
+      if ((state.hideDone && isDone(it)) || (state.onlyOwned && it.owned === 0)) scheduleRender();
     } catch (e) {
       if (isNetworkError(e)) { const q = loadQueue(); q.push({ key: it.key, field, delta, who }); saveQueue(q); state.serverDown = true; updateNetBanner(); return; }
       Object.assign(it, before); applyProgress(it, {}); toast(e.message);
@@ -462,7 +462,7 @@
       const res = await api(`${state.api}/progress`, { method: 'POST', body: JSON.stringify({ key: it.key, field, value, who }) });
       if (!res) return;
       state.rev = res.rev; delete res.rev; applyProgress(it, res);
-      if ((state.hideDone && isDone(it)) || (state.hideOwned && it.owned > 0)) scheduleRender();
+      if ((state.hideDone && isDone(it)) || (state.onlyOwned && it.owned === 0)) scheduleRender();
     } catch (e) {
       if (isNetworkError(e)) { const q = loadQueue(); q.push({ key: it.key, field, value, who }); saveQueue(q); state.serverDown = true; updateNetBanner(); return; }
       toast(e.message);
@@ -488,7 +488,7 @@
       for (const it of [...state.parts, ...state.figs]) {
         const p = res.progress[it.key] || { owned: 0, found_exact: 0, found_alt: 0, updated_at: null, updated_by: null };
         const changed = ['owned', 'found_exact', 'found_alt'].some((k) => it[k] !== p[k]) || (p.members && JSON.stringify(p.members) !== JSON.stringify(it.members));
-        if (changed) { Object.assign(it, p); const els = rowsOf(it.key); for (const el of els) paintRow(it, el); if ((state.hideDone && isDone(it)) || (state.hideOwned && it.owned > 0)) structural = true; if (!els.length) structural = true; }
+        if (changed) { Object.assign(it, p); const els = rowsOf(it.key); for (const el of els) paintRow(it, el); if ((state.hideDone && isDone(it)) || (state.onlyOwned && it.owned === 0)) structural = true; if (!els.length) structural = true; }
       }
       if (structural) { syncFilterUI(); render(); } else renderSummary();
     } catch (e) { if (isNetworkError(e)) { state.serverDown = true; updateNetBanner(); } }
@@ -554,8 +554,8 @@
     $('#f-minifigs').checked = !!state.set.include_minifigs;
     $('#f-count-alt').checked = !!state.set.count_alt;
     $('#f-hide-done').checked = state.hideDone;
-    $('#f-hide-owned').checked = state.hideOwned;
-    const n = [state.set.include_spares, state.set.include_minifigs, !state.set.count_alt, !state.hideDone, state.hideOwned].filter(Boolean).length;
+    $('#f-hide-owned').checked = state.onlyOwned;
+    const n = [state.set.include_spares, state.set.include_minifigs, !state.set.count_alt, !state.hideDone, state.onlyOwned].filter(Boolean).length;
     $('#filter-count').hidden = n === 0; $('#filter-count').textContent = n;
     $('#link-pdf').href = `${state.page}/checklist.pdf?mode=${state.mode === 'have' ? 'have' : 'trip'}&order=${pdfOrder()}`;
     $('#link-print').href = `${state.page}/checklist?mode=${state.mode === 'have' ? 'have' : 'trip'}&order=${pdfOrder()}`;
@@ -871,7 +871,7 @@
     $('#sort').addEventListener('change', (e) => { state.sort = e.target.value; localStorage.setItem('lb_sort', state.sort); render(); });
     $('#btn-filters').addEventListener('click', () => { $('#filters').hidden = !$('#filters').hidden; });
     $('#f-hide-done').addEventListener('change', (e) => { state.hideDone = e.target.checked; localStorage.setItem('lb_hide_done', state.hideDone ? '1' : '0'); syncFilterUI(); render(); });
-    $('#f-hide-owned').addEventListener('change', (e) => { state.hideOwned = e.target.checked; localStorage.setItem('lb_hide_owned', state.hideOwned ? '1' : '0'); syncFilterUI(); render(); });
+    $('#f-hide-owned').addEventListener('change', (e) => { state.onlyOwned = e.target.checked; localStorage.setItem('lb_only_owned', state.onlyOwned ? '1' : '0'); syncFilterUI(); render(); });
     $('#f-spares').addEventListener('change', (e) => saveSetting({ include_spares: e.target.checked }));
     $('#f-minifigs').addEventListener('change', (e) => saveSetting({ include_minifigs: e.target.checked }));
     $('#f-count-alt').addEventListener('change', (e) => saveSetting({ count_alt: e.target.checked }));
