@@ -11,7 +11,7 @@ from assign import assign
 ap = argparse.ArgumentParser()
 ap.add_argument("pdf"); ap.add_argument("outdir")
 ap.add_argument("--book", type=int, default=1)
-ap.add_argument("--overrides", default=None, help="json {objid: element}")
+ap.add_argument("--overrides", default=None, help="json {objid: element}; null leaves that callout unidentified")
 ap.add_argument("--bags", default=None, help="only keep steps from these bag numbers, e.g. 1 or 1,2")
 ap.add_argument("--source", default=None)
 ap.add_argument("--no-match", action="store_true")
@@ -21,6 +21,7 @@ ap.add_argument("--extract-json", default=None, help="use this prebuilt extract.
 ap.add_argument("--main", default="26", help="main step numeral sizes, e.g. 26 or 38")
 ap.add_argument("--sub", default="16,22", help="sub-assembly step numeral sizes")
 ap.add_argument("--bag", default="30,36", help="bag marker numeral sizes")
+ap.add_argument("--leftovers-step", default=None, help="append a final step with this label holding every inventory piece not placed in a numbered step (minifigures, spares)")
 a = ap.parse_args()
 os.makedirs(a.outdir, exist_ok=True)
 
@@ -89,7 +90,10 @@ m = json.load(open(os.path.join(a.outdir, "match.json")))
 got, cap = assign(m, min_score=a.min_score)
 if a.overrides:
     for k, v in json.load(open(a.overrides)).items():
-        got[str(k)] = (v, 9.0)
+        if v is None:
+            got.pop(str(k), None)  # "I can't tell either": leave it unidentified rather than wrong
+        else:
+            got[str(k)] = (v, 9.0)
 un = [o for o in m["callouts"] if o not in got]
 print("unassigned:", [(o, m["callouts"][o]["qty"]) for o in un])
 left = {e: q for e, q in cap.items() if q > 0}
@@ -136,6 +140,20 @@ for s in sorted(d["steps"], key=lambda s: (s["page"], s["sub"], s["num"])):
     steps_out.append({"book": a.book, "page": s["page"], "step": s["num"], "bag": bag, "label": label,
                       "parts": [{"element_id": e, "qty": q} for e, q in parts.items()],
                       **({"note": f"{unknown} piece(s) in this step could not be identified"} if unknown else {})})
+if a.leftovers_step and not keep_bags:
+    used = collections.Counter()
+    for s in steps_out:
+        for p in s["parts"]:
+            used[p["element_id"]] += p["qty"]
+    inv = collections.Counter()
+    for e in d["inventory"]:
+        inv[e["element"]] += e["qty"]
+    rest = {e: q - used[e] for e, q in inv.items() if q - used[e] > 0}
+    if rest:
+        steps_out.append({"book": a.book, "step": len(steps_out) + 1, "label": a.leftovers_step,
+                          "parts": [{"element_id": e, "qty": q} for e, q in rest.items()],
+                          "note": "Pieces from the parts list that do not appear in any numbered step (minifigure parts and spares)"})
+        print(f"leftovers step: {sum(rest.values())} pieces")
 out = {"source": a.source or f"pdf {os.path.basename(a.pdf)}", "steps": steps_out}
 json.dump(out, open(os.path.join(a.outdir, "steps.json"), "w"), indent=1)
 print(f"wrote {len(steps_out)} steps, {sum(q['qty'] for s in steps_out for q in s['parts'])} pieces -> {a.outdir}/steps.json")

@@ -235,8 +235,8 @@ async def api_steps(request: Request):
     if request.method == "GET":
         job = jobs.status(f"steps:{set_num}")
         meta = db.steps_meta(set_num)
-        if meta and steps.bundled_path(set_num) and job.get("state") not in ("running", "failed") and steps.needs_reimport(meta):
-            meta = None  # imported before element-id lookups existed: do it again
+        if meta and steps.bundled_path(set_num) and job.get("state") not in ("running", "failed") and steps.needs_reimport(meta, set_num):
+            meta = None  # bundled file replaced, or imported before element-id lookups existed: do it again
         if not meta and steps.bundled_path(set_num) and job.get("state") not in ("running", "failed"):
             # First look at a set we ship a build order for: import it in the background (element-id
             # lookups on Rebrickable can take a minute) and let the page poll for it.

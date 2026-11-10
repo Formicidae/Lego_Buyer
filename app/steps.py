@@ -382,15 +382,22 @@ BUNDLED_DIR = pathlib.Path(__file__).parent / "buildorders"
 
 
 def bundled_path(set_num):
-    for ext in ("mpd", "ldr", "json"):
+    for ext in ("json", "mpd", "ldr"):  # a parsed-book JSON beats an LDraw model of the same set
         p = BUNDLED_DIR / f"{set_num}.{ext}"
         if p.exists():
             return p
     return None
 
 
-def needs_reimport(meta):
-    """A bundled build order whose unmatched element ids have never been looked up on Rebrickable."""
+def needs_reimport(meta, set_num=None):
+    """A bundled build order that should be imported again: the shipped file was replaced by a different
+    one (e.g. an LDraw model superseded by the book's own steps), or its unmatched element ids have never
+    been looked up on Rebrickable."""
+    source = meta.get("source") or ""
+    if set_num and "bundled " in source:
+        p = bundled_path(set_num)
+        if p and p.name not in source:
+            return True
     try:
         notes = json.loads(meta.get("notes") or "{}")
     except ValueError:

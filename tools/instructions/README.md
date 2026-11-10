@@ -23,9 +23,14 @@ Example
     python3 build_steps.py 6091463.pdf out_b2 --main 38 --sub 30,18 --bag 34,36 --book 2
     python3 build_steps.py 6091462.pdf out_b1 --main 38 --sub 30,18 --bag 34,36 --book 1 --inventory-from out_b2/extract.json
     python3 build_steps.py 6366005.pdf out_bag1 --bags 1      # one bag only
+    python3 build_steps.py 6282798.pdf out --extract-json out/extract.json --overrides ov.json \
+        --leftovers-step "Minifigures & extras (not in numbered steps)"   # re-run on a saved extraction
+                                                                          # and sweep unplaced pieces into a last step
 
 Results so far: 75174 254/277 pieces placed (the rest are minifigure parts), 75305 469/470, 75249
-551/577, 75054 ~1070/1134 (2014 book; more look-alike greys, treat as approximate). Books with no text
+551/577, 75054 ~1070/1134 (2014 book; more look-alike greys, treat as approximate), 75948 880/918
+placed + 38 in the extras step, 75954 769/875 (its callout boxes lay pieces diagonally, so the composite
+slicer cuts badly; the overrides file maps the composites by hand and sets `null` where even that is unclear). Books with no text
 layer (pre-2010 scans) would need OCR and are not handled.
 
 ## Scanned books (no text layer)
