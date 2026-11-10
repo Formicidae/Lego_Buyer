@@ -407,7 +407,7 @@ async def api_cart_import(request: Request):
     if not info:
         return JSONResponse({"error": "not found"}, status_code=404)
     ctype = request.headers.get("content-type", "")
-    text, name, source = "", "", "BrickOwl"
+    text, name, source, page = "", "", "BrickOwl", None
     if ctype.startswith("multipart/form-data"):
         form = await request.form()
         up = form.get("file")
@@ -420,6 +420,11 @@ async def api_cart_import(request: Request):
                     text = cartparse.pdf_text(data)
                 except ValueError as e:
                     return JSONResponse({"error": str(e)}, status_code=400)
+            elif cartparse.is_page(data, up.filename):
+                try:
+                    page = cartparse.parse_buy_wishlist_page(data)
+                except ValueError as e:
+                    return JSONResponse({"error": str(e)}, status_code=400)
             else:
                 text = data.decode("utf-8", "replace")
         else:
@@ -427,21 +432,37 @@ async def api_cart_import(request: Request):
     else:
         body = await request.json()
         text, name, source = body.get("text") or "", (body.get("name") or "")[:60], (body.get("source") or "BrickOwl")[:20]
-    parsed = cartparse.parse_buy_wishlist(text)
+    parsed = page or cartparse.parse_buy_wishlist(text)
     if not parsed["stores"]:
-        return JSONResponse({"error": "Couldn't find any store rows. Paste the whole Buy Wishlist page (or print it to PDF and upload that)."}, status_code=400)
+        return JSONResponse({"error": "Couldn't find any store rows. Save the Buy Wishlist page (Webpage, Single File .mht) and upload it, or paste the whole page text."}, status_code=400)
     items = sourcing.needed_items(info, parts)
     chosen_keys = body_keys = None
     if ctype.startswith("multipart/form-data"):
         body_keys = form.get("keys")
-    chosen_keys = [k for k in (body_keys or "").split(",") if k] if body_keys else [i["key"] for i in items if i["lego_price"] is None]
+    lot_prices, matched_keys, unmatched = {}, set(), []
+    n_lots = sum(len(st.get("lot_list") or []) for st in parsed["stores"])
+    if n_lots:
+        # The saved page lists every allocated lot: remember each part's real BrickOwl price for the per-part comparison.
+        lot_prices, matched_keys, unmatched = sourcing.match_lots(items, parsed["stores"])
+        if lot_prices:
+            await run_in_threadpool(db.save_bo_prices, lot_prices)
+    if body_keys:
+        chosen_keys = [k for k in body_keys.split(",") if k]
+    elif matched_keys:
+        chosen_keys = sorted(matched_keys)
+    else:
+        chosen_keys = [i["key"] for i in items if i["lego_price"] is None]
     label = name or f"{len(parsed['stores'])} store{'s' if len(parsed['stores']) != 1 else ''} · {time.strftime('%b %d %H:%M')}"
     parts_total = round(sum(st["subtotal"] for st in parsed["stores"]), 2)
     ship_total = round(sum(st["shipping"] for st in parsed["stores"]), 2)
-    cid = db.add_cart(ident, source, label, parsed["stores"], chosen_keys, parts_total, ship_total,
+    stores = [{**st, "lot_list": st.get("lot_list") or []} for st in parsed["stores"]]
+    cid = db.add_cart(ident, source, label, stores, chosen_keys, parts_total, ship_total,
                       parsed["lots_covered"], parsed["lots_missing"], parsed["url"])
-    log.info("cart imported from page: %s %s stores=%d total=%.2f missing=%s", ident, label, len(parsed["stores"]), parsed["total"], parsed["lots_missing"])
-    return JSONResponse({"id": cid, "stores": parsed["stores"], "total": parsed["total"], "lots_covered": parsed["lots_covered"], "lots_missing": parsed["lots_missing"]})
+    log.info("cart imported from page: %s %s stores=%d total=%.2f missing=%s lots=%d matched=%d unmatched=%d",
+             ident, label, len(parsed["stores"]), parsed["total"], parsed["lots_missing"], n_lots, len(matched_keys), len(unmatched))
+    return JSONResponse({"id": cid, "stores": [{k: v for k, v in st.items() if k != "lot_list"} for st in stores], "total": parsed["total"],
+                         "lots_covered": parsed["lots_covered"], "lots_missing": parsed["lots_missing"],
+                         "lots": n_lots, "matched": len(matched_keys), "priced": len(lot_prices), "unmatched": unmatched[:40]})
 
 
 async def api_sourcing_xml(request: Request):

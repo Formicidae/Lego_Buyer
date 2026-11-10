@@ -314,15 +314,17 @@
     if (it.lego_price == null || !it.lego_available) {
       pr.classList.add('na');
       const bl = it.bl_checked_at ? (it.bl_price != null ? ` · BL ~$${it.bl_price.toFixed(2)}` : ' · BL: none listed') : '';
-      pr.innerHTML = `Not sold by LEGO Pick a Brick${bl}${state.chosen && state.chosen.market && state.chosen.market.has(it.key) ? ' <span class="src-tag src-market">marketplace</span>' : ''}`;
+      const bo = it.bo_price != null ? ` · <a class="bo" href="${it.bo_url || '#'}" target="_blank" rel="noopener" title="${it.bo_store || ''}">BO $${it.bo_price.toFixed(2)}</a>` : '';
+      pr.innerHTML = `Not sold by LEGO Pick a Brick${bl}${bo}${state.chosen && state.chosen.market && state.chosen.market.has(it.key) ? ' <span class="src-tag src-market">marketplace</span>' : ''}`;
       return;
     }
     const rem = remaining(it);
     const t = it.tier || it.lego_tier;
     const tier = `<button type="button" class="tier-btn ${t === 'Bestseller' ? 'tier-pab' : t === 'Standard' ? 'tier-bap' : ''}" data-tier="${it.element_id || ''}" title="Tap to change Bestseller / Standard">${t || 'tier?'}</button>`;
     const bl = it.bl_checked_at ? (it.bl_price != null ? ` · <span class="bl">BL ~$${it.bl_price.toFixed(2)}</span>` : ' · <span class="bl">BL: none listed</span>') : '';
+    const bo = it.bo_price != null ? ` · <a class="bo" href="${it.bo_url || '#'}" target="_blank" rel="noopener" title="${it.bo_store || ''}">BO $${it.bo_price.toFixed(2)}</a>` : '';
     const src = state.chosen && state.chosen.market && state.chosen.market.has(it.key) ? ' <span class="src-tag src-market">marketplace</span>' : state.chosen && state.chosen.lego && state.chosen.lego.has(it.key) ? ' <span class="src-tag src-lego">LEGO</span>' : '';
-    pr.innerHTML = `<b>LEGO:</b> $${it.lego_price.toFixed(2)} each · $${(it.lego_price * rem).toFixed(2)} needed · ${tier}${it.lego_limit ? ` · limit ${it.lego_limit}` : ''}${bl}${src}`;
+    pr.innerHTML = `<b>LEGO:</b> $${it.lego_price.toFixed(2)} each · $${(it.lego_price * rem).toFixed(2)} needed · ${tier}${it.lego_limit ? ` · limit ${it.lego_limit}` : ''}${bl}${bo}${src}`;
   };
 
   const paintRow = (it, r) => {
@@ -630,7 +632,7 @@
       ? 'No BrickLink API keys yet: marketplace prices are unknown, so the comparison only counts LEGO. Add BRICKLINK_* keys to /etc/lego-buyer.env to enable (free with a BrickLink account).'
       : j.state === 'running' ? `Checking BrickLink… ${j.done} / ${j.total}`
       : srcData.unpriced_bl ? `${srcData.unpriced_bl} parts have no BrickLink price yet — tap Check BrickLink prices.`
-      : `Marketplace prices from the BrickLink price guide (new, current listings). Tap a scenario to choose it; cards show which side each part landed on.`;
+      : `Marketplace prices: real BrickOwl lot prices where a cart page was imported (BO on the cards), otherwise the BrickLink price guide (new, current listings). Tap a scenario to choose it; cards show which side each part landed on.`;
     $('#btn-bl-prices').disabled = !srcData.bricklink_configured || j.state === 'running';
     const mk = chosen.market_keys;
     $('#link-bl-xml').href = `/api/sourcing/${ident}/wanted.xml?keys=${encodeURIComponent(mk.join(','))}`;
@@ -909,14 +911,16 @@
       if (f) fd.append('file', f); else fd.append('text', $('#bo-cart-text').value);
       fd.append('name', $('#bo-cart-name').value.trim());
       if (state.chosen) fd.append('keys', [...state.chosen.market].join(','));
-      if (!f && !$('#bo-cart-text').value.trim()) { $('#bo-cart-status').textContent = 'Paste the page text or choose the PDF first.'; return; }
+      if (!f && !$('#bo-cart-text').value.trim()) { $('#bo-cart-status').textContent = 'Choose the saved page (or PDF) or paste the page text first.'; return; }
       $('#bo-cart-status').textContent = 'Reading…';
       try {
         const r = await fetch(`/api/sourcing/${ident}/carts/import`, { method: 'POST', body: fd });
         const j = await r.json();
         if (!r.ok) { $('#bo-cart-status').textContent = j.error || 'Import failed'; return; }
-        $('#bo-cart-status').textContent = `Imported ${j.stores.length} store${j.stores.length === 1 ? '' : 's'}, $${j.total.toFixed(2)} incl. shipping${j.lots_missing ? `, ${j.lots_missing} lot(s) unallocated` : ''}.`;
+        const lots = j.lots ? ` ${j.lots} lots read, ${j.matched} matched to parts${j.unmatched.length ? ` — ${j.unmatched.length} not matched: ${j.unmatched.slice(0, 6).map((u) => u.name).join('; ')}${j.unmatched.length > 6 ? '…' : ''}` : ''}.` : '';
+        $('#bo-cart-status').textContent = `Imported ${j.stores.length} store${j.stores.length === 1 ? '' : 's'}, $${j.total.toFixed(2)} incl. shipping${j.lots_missing ? `, ${j.lots_missing} lot(s) unallocated` : ''}.${lots}`;
         $('#bo-cart-text').value = ''; $('#bo-cart-file').value = ''; $('#bo-cart-name').value = '';
+        await loadSet();
         renderSourcing();
       } catch (e) { $('#bo-cart-status').textContent = e.message; }
     });

@@ -24,9 +24,13 @@ BrickOwl/BrickLink sellers.
   account with the marketplace parts; open it on BrickOwl and let their cart builder pick stores.
 - **BrickLink**: download or copy the wanted-list XML for the marketplace parts and upload it on
   BrickLink.
-- **Imported carts**: once BrickOwl/BrickLink has built a cart, enter each store's subtotal and
-  shipping (or POST to `/api/sourcing/{list}/carts`) and it appears as a scenario next to the
-  LEGO options.
+- **Imported carts**: once BrickOwl's cart builder has picked stores, save its *Buy Wishlist* page
+  (browser Save As → "Webpage, Single File" .mht, or .html) and upload it under *Import a BrickOwl
+  cart*. The store totals become a scenario, and every allocated lot's price is matched to the
+  part (by LEGO design id and BrickOwl colour name) and shown on the card as **BO $x.xx** linking
+  to the store lot; the marketplace scenarios then use those real prices instead of the BrickLink
+  guide. Pasting the page text or a printed PDF still works but only gives store totals; carts can
+  also be entered by hand (or POSTed to `/api/sourcing/{list}/carts`) for BrickLink.
 
 ## Run it on a Raspberry Pi (free, always on)
 

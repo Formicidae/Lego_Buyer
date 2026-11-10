@@ -1,9 +1,11 @@
 """Where to buy what's left: LEGO Pick a Brick vs the marketplaces (BrickLink/BrickOwl).
 
-Marketplace cost per part uses the BrickLink price guide (quantity-weighted average of current
-listings, new condition) as the estimate for both BrickLink and BrickOwl; the real cart will differ
-by seller but this is good enough to decide which side of the line a part belongs on.
+Marketplace cost per part uses the actual BrickOwl store price when a Buy Wishlist page has been
+imported for that part, otherwise the BrickLink price guide (quantity-weighted average of current
+listings, new condition) as the estimate for both marketplaces.
 """
+import re
+
 from . import lego
 
 DEFAULTS = {"market_shipping": 5.00, "market_min_order": 0.0, "max_lead_days": 60}
@@ -29,9 +31,15 @@ def needed_items(set_info, parts):
             "lego_price": p.get("lego_price") if sold else None, "tier": (p.get("tier") if sold else None),
             "lego_checked": p.get("price_checked_at") is not None,
             "bl_price": p.get("bl_price"), "bl_qty": p.get("bl_qty"), "bl_checked": p.get("bl_checked_at") is not None,
+            "bo_price": p.get("bo_price"), "bo_store": p.get("bo_store"),
             "external_ids": p.get("external_ids") or {},
         })
     return out
+
+
+def market_price(i):
+    """What one of this part costs on the marketplace: a real BrickOwl lot price if one was imported, else BrickLink's guide."""
+    return i["bo_price"] if i.get("bo_price") is not None else i["bl_price"]
 
 
 def _lego_cost(items):
@@ -40,8 +48,8 @@ def _lego_cost(items):
 
 
 def _market_cost(items, opts):
-    parts = sum((i["bl_price"] or 0) * i["qty"] for i in items)
-    unpriced = [i for i in items if i["bl_price"] is None]
+    parts = sum((market_price(i) or 0) * i["qty"] for i in items)
+    unpriced = [i for i in items if market_price(i) is None]
     ship = opts["market_shipping"] if items else 0.0
     return {"parts": round(parts, 2), "shipping": ship, "total": round(parts + ship, 2), "lots": len(items), "unpriced": len(unpriced)}
 
@@ -69,7 +77,7 @@ def scenarios(items, opts=None):
     for i in items:
         if i["lego_price"] is None:
             cheap_market.append(i)
-        elif i["bl_price"] is None or i["lego_price"] <= i["bl_price"]:
+        elif market_price(i) is None or i["lego_price"] <= market_price(i):
             cheap_lego.append(i)
         else:
             cheap_market.append(i)
@@ -134,3 +142,57 @@ def bricklink_xml(items):
         rows.append(f"<ITEM><ITEMTYPE>P</ITEMTYPE><ITEMID>{esc(bl_no)}</ITEMID>" + (f"<COLOR>{bl_col}</COLOR>" if bl_col is not None else "")
                     + f"<MINQTY>{i['qty']}</MINQTY><CONDITION>N</CONDITION></ITEM>")
     return "<INVENTORY>\n" + "\n".join(rows) + "\n</INVENTORY>"
+
+
+# ---------- matching an imported cart page's lots to our parts ----------
+
+# Rebrickable colour name -> BrickOwl's, for the common ones, in case Rebrickable's cross-reference is missing.
+_BO_COLOR_FALLBACK = {
+    "light bluish gray": "medium stone gray", "dark bluish gray": "dark stone gray", "light gray": "light gray",
+    "trans-clear": "transparent", "pearl gold": "pearl gold", "flat silver": "flat silver", "pearl dark gray": "pearl dark gray",
+    "metallic silver": "metallic silver", "chrome silver": "chrome silver", "medium nougat": "medium nougat", "nougat": "nougat",
+}
+
+
+def _bo_color_names(i):
+    ext = i.get("external_ids") or {}
+    names = set()
+    for group in (((ext.get("color") or {}).get("BrickOwl") or {}).get("ext_descrs") or []):
+        for n in (group if isinstance(group, list) else [group]):
+            names.add(str(n).lower())
+    cn = (i.get("color_name") or "").lower()
+    if cn:
+        names.add(cn)
+        names.add(_BO_COLOR_FALLBACK.get(cn, cn.replace("trans-", "transparent ")))
+    return names
+
+
+def _base(part_num):
+    m = re.match(r"^\d+", part_num or "")
+    return m.group(0) if m else (part_num or "")
+
+
+def match_lots(items, stores):
+    """Attach each store lot to the part it is for (same LEGO design id, same colour name as BrickOwl
+    calls it). Returns (prices {(part_num, color_id): {price, store, url}}, matched_keys, unmatched_lots)."""
+    by_id = {}
+    for i in items:
+        for pid in {i["part_num"], _base(i["part_num"])}:
+            by_id.setdefault(pid, []).append(i)
+    prices, matched, unmatched = {}, set(), []
+    for st in stores:
+        for lot in st.get("lot_list") or []:
+            cands = []
+            for pid in lot.get("ids") or []:
+                cands += by_id.get(pid, []) + by_id.get(_base(pid), [])
+            name = lot["name"].lower()
+            hit = [i for i in cands if any(name.startswith(cn + " ") for cn in _bo_color_names(i))]
+            if not hit:
+                unmatched.append({"store": st["name"], **{k: lot[k] for k in ("name", "qty", "price")}})
+                continue
+            for i in hit:
+                k = (i["part_num"], i["color_id"])
+                if k not in prices or lot["price"] < prices[k]["price"]:
+                    prices[k] = {"price": lot["price"], "store": st["name"], "url": lot["url"]}
+                matched.add(i["key"])
+    return prices, matched, unmatched

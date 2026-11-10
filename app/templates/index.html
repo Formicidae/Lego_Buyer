@@ -190,11 +190,11 @@
 
     <details class="cart-import" open>
       <summary>Import a BrickOwl cart</summary>
-      <p class="hint">On BrickOwl's <b>Buy Wishlist</b> page, tick the stores you want, then either select-all + copy the page and paste it here, or print it to PDF and upload the PDF. Each configuration becomes a scenario above.</p>
+      <p class="hint">On BrickOwl's <b>Buy Wishlist</b> page, tick the stores you want, then save the page (Ctrl/⌘-S → “Webpage, Single File” .mht, or “Complete” .html) and upload it: every allocated lot's price is read and shown on the part cards as <b>BO</b>, and the marketplace scenarios use those real prices. Pasting the page text or a printed PDF also works, but only gives store totals. Each configuration becomes a scenario above.</p>
       <div class="cart-form">
         <label>Name <input id="bo-cart-name" placeholder="e.g. 3 stores, North America"></label>
-        <textarea id="bo-cart-text" rows="4" placeholder="Paste the Buy Wishlist page text here…"></textarea>
-        <label>or PDF <input id="bo-cart-file" type="file" accept=".pdf,.txt"></label>
+        <label>Saved page / PDF <input id="bo-cart-file" type="file" accept=".mht,.mhtml,.html,.htm,.pdf,.txt"></label>
+        <textarea id="bo-cart-text" rows="3" placeholder="…or paste the Buy Wishlist page text here"></textarea>
         <button class="btn primary" id="bo-cart-import" type="button">Import cart</button>
         <span class="hint" id="bo-cart-status"></span>
       </div>

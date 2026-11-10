@@ -152,6 +152,7 @@ a { color: var(--green); }
 .price .tier-btn.tier-pab { color: var(--green); border-color: #cfe5d8; font-weight: 700; }
 .price .tier-btn.tier-bap { color: var(--amber-ink); border-color: #efe3b8; font-weight: 700; }
 .price .bl { color: var(--ink-2); }
+.price .bo { color: var(--ink-2); text-decoration: underline dotted; }
 .scenarios { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 10px; }
 .scenario { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; cursor: pointer; }
 .scenario.best { border-color: var(--green); box-shadow: inset 0 0 0 1.5px var(--green); }

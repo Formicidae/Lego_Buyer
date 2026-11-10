@@ -165,6 +165,10 @@ MIGRATIONS = [
     "ALTER TABLE set_parts ADD COLUMN bl_qty INTEGER",
     "ALTER TABLE set_parts ADD COLUMN bl_lots INTEGER",
     "ALTER TABLE set_parts ADD COLUMN bl_checked_at REAL",
+    "ALTER TABLE set_parts ADD COLUMN bo_price REAL",
+    "ALTER TABLE set_parts ADD COLUMN bo_store TEXT",
+    "ALTER TABLE set_parts ADD COLUMN bo_url TEXT",
+    "ALTER TABLE set_parts ADD COLUMN bo_checked_at REAL",
     "ALTER TABLE sets ADD COLUMN build_mode INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE sets ADD COLUMN build_pos INTEGER",
 ]
@@ -587,6 +591,19 @@ def save_bl_price(part_num, color_id, price, qty, lots):
             (price, qty, lots, time.time(), part_num, color_id),
         )
         for r in conn.execute("SELECT DISTINCT set_num FROM set_parts WHERE part_num=? AND color_id=?", (part_num, color_id)):
+            bump_rev(conn, r["set_num"])
+
+
+def save_bo_prices(prices):
+    """prices: {(part_num, color_id): {"price", "store", "url"}} from an imported BrickOwl cart page."""
+    now = time.time()
+    with tx() as conn:
+        for (part_num, color_id), v in prices.items():
+            conn.execute(
+                "UPDATE set_parts SET bo_price=?, bo_store=?, bo_url=?, bo_checked_at=? WHERE part_num=? AND color_id=?",
+                (v["price"], v["store"], v.get("url"), now, part_num, color_id),
+            )
+        for r in conn.execute("SELECT DISTINCT set_num FROM set_parts WHERE bo_checked_at=?", (now,)):
             bump_rev(conn, r["set_num"])
 
 
