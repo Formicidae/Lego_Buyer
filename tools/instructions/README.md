@@ -27,3 +27,18 @@ Example
 Results so far: 75174 254/277 pieces placed (the rest are minifigure parts), 75305 469/470, 75249
 551/577, 75054 ~1070/1134 (2014 book; more look-alike greys, treat as approximate). Books with no text
 layer (pre-2010 scans) would need OCR and are not handled.
+
+## Scanned books (no text layer)
+
+`ocr_extract.py` handles pre-2010 books that are flat 72 ppi scans: it finds the cyan callout boxes by
+colour, OCRs the "Nx" labels and the big step numeral below each box (tesseract, per-blob, upscaled),
+and reads the inventory page's element ids, snapping each against the set's published inventory
+(`inventory-<set>.txt`, `qty|part|element|colour`, e.g. from brickmissing.com) because 6-pixel digits
+mis-read. It writes the same extract.json, so the rest of the pipeline is unchanged:
+
+    python3 ocr_extract.py 4562894.pdf out/ocr.json --pages 3-64 --inv-pages 65 --inventory inventory-7671.txt
+    python3 build_steps.py 4562894.pdf out --extract-json out/ocr.json --min-score 1.2
+
+Expect it to be approximate: the inventory page loses some entries at that resolution and tiny parts
+(pins, axles) crop badly, so a third or so of the pieces come out as "could not be identified" in the
+step note rather than as a wrong part. 7671: 217 of 339 pieces identified; 8016: 155 of 207.

@@ -1,0 +1,115 @@
+5|2412b|4210631|Dark Bluish Gray
+2|2431|4539060|Dark Red
+7|2432|4211039|Dark Bluish Gray
+3|2444|4196768|Dark Bluish Gray
+1|2654|4278359|Black
+1|2714a|271402|Light Gray
+2|2730|273026|Black
+48|2780|278026|Black
+3|2877|287726|Black
+1|298c02|4221775|Light Bluish Gray
+2|30041|4210784|Dark Bluish Gray
+2|30042|4211077|Dark Bluish Gray
+2|30136|4218749|Tan
+6|3021|4211396|Light Bluish Gray
+8|3023|4211063|Dark Bluish Gray
+2|3031|4243831|Dark Bluish Gray
+1|3032|4211404|Light Bluish Gray
+2|3035|4509897|Tan
+1|30359b|6273322|Dark Bluish Gray
+3|30365|4210724|Dark Bluish Gray
+4|30414|4162443|Black
+5|30503|4210728|Dark Bluish Gray
+2|3068b|4211413|Light Bluish Gray
+9|3069b|4500125|Lime
+1|3069bpr0101|4227776|Light Bluish Gray
+2|32009|6271155|Dark Bluish Gray
+5|32013|6296856|Dark Bluish Gray
+2|32015|6271347|Light Bluish Gray
+3|32062|4142865|Red
+1|32064b|—|Dark Bluish Gray
+2|32316|4210686|Dark Bluish Gray
+1|32324|4211640|Light Bluish Gray
+2|32524|4495930|Light Bluish Gray
+2|32526|4211713|Light Bluish Gray
+4|32529|4162945|Light Bluish Gray
+6|32530|4144024|Black
+2|32531|4211716|Light Bluish Gray
+1|3298|4211421|Light Bluish Gray
+2|3460|4210998|Dark Bluish Gray
+3|3623|4211429|Light Bluish Gray
+2|3665|4211437|Light Bluish Gray
+2|3666|4539062|Dark Red
+1|3679|4540203|Light Bluish Gray
+1|3680|368026|Black
+3|3700|4211440|Light Bluish Gray
+4|3702|4211442|Light Bluish Gray
+5|3709|370926|Black
+5|3710|4211001|Dark Bluish Gray
+3|3738|4260707|Dark Bluish Gray
+1|3747b|4211064|Dark Bluish Gray
+3|3794a|4176959|Dark Red
+5|3795|4211452|Light Bluish Gray
+1|3829c01|73081|Black
+1|3832|4211462|Light Bluish Gray
+5|3894|4210917|Dark Bluish Gray
+2|3937|393726|Black
+1|3941|611649|Trans-Neon Green
+2|3960|4211664|Light Bluish Gray
+5|4032a|4211042|Dark Bluish Gray
+5|4032a|403223|Blue
+3|4079b|407926|Black
+1|4095|409521|Red
+1|4150|415001|White
+2|4150pr0002|4259840|Tan
+2|4150pr0022|4221881|Light Bluish Gray
+4|41532|4159335|Black
+1|41539|4166618|Light Bluish Gray
+2|41678|4211889|Light Bluish Gray
+1|41747|4210771|Dark Bluish Gray
+1|41748|4210772|Dark Bluish Gray
+2|41862|4211748|Light Bluish Gray
+5|42022|6058858|Dark Bluish Gray
+4|42023|6132260|Light Bluish Gray
+14|4274|4143005|Blue
+8|43093|4206482|Blue
+2|43337|4162951|Trans-Brown
+4|43722|4210869|Dark Bluish Gray
+4|43723|4210872|Dark Bluish Gray
+4|43898|4210865|Dark Bluish Gray
+2|44224|4182751|Dark Bluish Gray
+2|44225|6332151|Light Bluish Gray
+6|44302a|4211804|Light Bluish Gray
+3|44375a|4182294|Light Gray
+1|44567a|4185620|Black
+2|44568|6276045|Light Bluish Gray
+2|4510|4211498|Light Bluish Gray
+9|4519|4211815|Light Bluish Gray
+2|4588|4212352|Dark Bluish Gray
+2|4589|4210647|Dark Bluish Gray
+2|4623|4211505|Light Bluish Gray
+2|4740|4211512|Light Bluish Gray
+1|47457|4494474|White
+1|47753|4250256|Dark Bluish Gray
+2|47905|4213574|Dark Bluish Gray
+1|48169|6278974|Dark Bluish Gray
+2|4865a|4200798|Trans-Brown
+1|50955|4505087|Light Bluish Gray
+1|50956|4505088|Light Bluish Gray
+8|51739|4507056|Light Bluish Gray
+2|52107|4253815|Black
+2|54200|4504372|Lime
+1|54383|4282786|Light Bluish Gray
+1|54384|4282789|Light Bluish Gray
+2|57899|4498712|Black
+2|59443|4512363|Black
+2|60475a|4515357|Light Bluish Gray
+2|6106|4211520|Light Bluish Gray
+2|6134|4211881|Light Bluish Gray
+6|6141|4161734|Tan
+2|6536|6261374|Dark Bluish Gray
+13|6558|4514553|Blue
+1|6587|4211086|Dark Bluish Gray
+4|6629|6279885|Light Bluish Gray
+2|6636|4211549|Light Bluish Gray
+5|75535|4212355|Light Bluish Gray

@@ -16,6 +16,8 @@ ap.add_argument("--bags", default=None, help="only keep steps from these bag num
 ap.add_argument("--source", default=None)
 ap.add_argument("--no-match", action="store_true")
 ap.add_argument("--inventory-from", default=None, help="extract.json of another book of the same set that has the parts inventory")
+ap.add_argument("--min-score", type=float, default=-9, help="reject matches below this score (use ~1.6 for OCR'd scans)")
+ap.add_argument("--extract-json", default=None, help="use this prebuilt extract.json (e.g. from ocr_extract.py) instead of reading the PDF text layer")
 ap.add_argument("--main", default="26", help="main step numeral sizes, e.g. 26 or 38")
 ap.add_argument("--sub", default="16,22", help="sub-assembly step numeral sizes")
 ap.add_argument("--bag", default="30,36", help="bag marker numeral sizes")
@@ -23,7 +25,14 @@ a = ap.parse_args()
 os.makedirs(a.outdir, exist_ok=True)
 
 sizes = lambda v: tuple(int(x) for x in v.split(",") if x)
-d = ex.extract(a.pdf, main_sizes=sizes(a.main), sub_sizes=sizes(a.sub), bag_sizes=sizes(a.bag))
+if a.extract_json:
+    d = json.load(open(a.extract_json))
+    for s in d["steps"]:
+        s.setdefault("sub", False); s.setdefault("size", 26)
+        if s.get("num") is None:
+            s["num"] = 0
+else:
+    d = ex.extract(a.pdf, main_sizes=sizes(a.main), sub_sizes=sizes(a.sub), bag_sizes=sizes(a.bag))
 # Repeated sub-assembly sections: an "Nx" at the section start (18pt in 2014 books, 24pt from ~2017)
 # and a 40pt "Nx" at its end. Two layouts exist:
 #  A) a main step inside the span carries the full callout (quantities already multiplied) and the
@@ -77,7 +86,7 @@ if a.no_match:
     sys.exit()
 mt.main(os.path.join(a.outdir, "extract.json"), a.pdf, a.outdir)  # NOTE: match totals use un-multiplied qty
 m = json.load(open(os.path.join(a.outdir, "match.json")))
-got, cap = assign(m)
+got, cap = assign(m, min_score=a.min_score)
 if a.overrides:
     for k, v in json.load(open(a.overrides)).items():
         got[str(k)] = (v, 9.0)

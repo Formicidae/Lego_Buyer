@@ -43,7 +43,9 @@ def key_bg(im, tol=0.10):
     ring = np.concatenate([a[0], a[-1], a[:, 0], a[:, -1]])
     bg = np.median(ring, axis=0)
     dist = np.linalg.norm(a - bg, axis=2)
-    mask = dist > tol
+    # Scanned books have a marbled grey background: widen the tolerance to the ring's own spread.
+    spread = np.percentile(np.linalg.norm(ring - bg, axis=1), 90)
+    mask = dist > max(tol, min(0.22, spread * 1.3))
     # drop specks: keep the mask's bounding content only
     out = a.copy(); out[~mask] = 1.0
     return Image.fromarray((out * 255).astype(np.uint8)), mask
