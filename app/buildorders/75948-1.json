@@ -1,5 +1,5 @@
 {
- "source": "LEGO instructions PDF 6282798 (75948), parsed",
+ "source": "LEGO instructions PDF 6282798 (75948), parsed v2",
  "steps": [
   {
    "book": 1,
@@ -3256,6 +3256,8 @@
    "label": "Bag 5 \u00b7 p.117 \u00b7 Step 163",
    "parts": [
     {
+     "part_num": "92280",
+     "color_id": 71,
      "element_id": "4598526",
      "qty": 4
     },

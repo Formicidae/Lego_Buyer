@@ -21,6 +21,7 @@ ap.add_argument("--extract-json", default=None, help="use this prebuilt extract.
 ap.add_argument("--main", default="26", help="main step numeral sizes, e.g. 26 or 38")
 ap.add_argument("--sub", default="16,22", help="sub-assembly step numeral sizes")
 ap.add_argument("--bag", default="30,36", help="bag marker numeral sizes")
+ap.add_argument("--pins", default=None, help='json {element_id: {"part_num": .., "color_id": ..}} for ids Rebrickable cannot resolve')
 ap.add_argument("--leftovers-step", default=None, help="append a final step with this label holding every inventory piece not placed in a numbered step (minifigures, spares)")
 a = ap.parse_args()
 os.makedirs(a.outdir, exist_ok=True)
@@ -154,6 +155,10 @@ if a.leftovers_step and not keep_bags:
                           "parts": [{"element_id": e, "qty": q} for e, q in rest.items()],
                           "note": "Pieces from the parts list that do not appear in any numbered step (minifigure parts and spares)"})
         print(f"leftovers step: {sum(rest.values())} pieces")
+if a.pins:
+    pins = json.load(open(a.pins))
+    for s in steps_out:
+        s["parts"] = [{**pins[p["element_id"]], "element_id": p["element_id"], "qty": p["qty"]} if p["element_id"] in pins else p for p in s["parts"]]
 out = {"source": a.source or f"pdf {os.path.basename(a.pdf)}", "steps": steps_out}
 json.dump(out, open(os.path.join(a.outdir, "steps.json"), "w"), indent=1)
 print(f"wrote {len(steps_out)} steps, {sum(q['qty'] for s in steps_out for q in s['parts'])} pieces -> {a.outdir}/steps.json")

@@ -398,6 +398,14 @@ def needs_reimport(meta, set_num=None):
         p = bundled_path(set_num)
         if p and p.name not in source:
             return True
+        if p and p.suffix == ".json":
+            # same file, new contents: the JSON's own "source" label is part of the recorded source
+            try:
+                label = json.loads(p.read_text(encoding="utf-8", errors="replace")).get("source")
+            except ValueError:
+                label = None
+            if label and label not in source:
+                return True
     try:
         notes = json.loads(meta.get("notes") or "{}")
     except ValueError:
