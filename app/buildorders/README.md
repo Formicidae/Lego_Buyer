@@ -19,6 +19,7 @@ book never shows in a numbered step — minifigure parts and spares — are coll
 | 75174-1.json Desert Skiff Escape | book 6187644 | LEGO instructions |
 | 75249-1.json Resistance Y-wing | book 6296571 | LEGO instructions |
 | 75305-1.json Scout Trooper Helmet | book 6366005 (`pl-75305-bag-1.json`: bag 1 only) | LEGO instructions |
+| 75183-1.json Darth Vader Transformation | book 6200554 (268 placed + 16 minifig/extras) | LEGO instructions |
 | 75948-1.json Hogwarts Clock Tower | book 6282798 (all 918 pieces placed) | LEGO instructions |
 | 75954-1.json Hogwarts Great Hall | book 6263128 (769 placed; ~50 pieces in 17 steps flagged "could not be identified") | LEGO instructions |
 | 75953-1.mpd Hogwarts Whomping Willow | LDraw model by Stefan Frenz [smf], CCAL 2.0 — book 1 (6263122) still needed to parse the book instead | https://forums.ldraw.org/thread-24235.html |

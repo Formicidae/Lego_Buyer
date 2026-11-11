@@ -24,7 +24,8 @@ Example
     python3 build_steps.py 6091462.pdf out_b1 --main 38 --sub 30,18 --bag 34,36 --book 1 --inventory-from out_b2/extract.json
     python3 build_steps.py 6366005.pdf out_bag1 --bags 1      # one bag only
     python3 build_steps.py 6282798.pdf out --extract-json out/extract.json --overrides ov.json \
-        --leftovers-step "Minifigures & extras (not in numbered steps)"   # re-run on a saved extraction
+        --leftovers-step "Minifigures & extras (not in numbered steps)"   # re-run on a saved extraction (NB: books with repeated
+                                                                          # sub-assemblies lose the ×N on re-runs — run without it)
                                                                           # and sweep unplaced pieces into a last step
 
 Results so far: 75174 254/277 pieces placed (the rest are minifigure parts), 75305 469/470, 75249
