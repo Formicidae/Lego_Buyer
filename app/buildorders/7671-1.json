@@ -1,5 +1,5 @@
 {
-"source": "LEGO instructions PDF 4562894 (7671), OCR of a 72 ppi scan - approximate \u2014 gaps filled by hand v7",
+"source": "LEGO instructions PDF 4562894 (7671), OCR of a 72 ppi scan - approximate \u2014 gaps filled by hand v8",
 "steps": [
 {
 "book": 1,
@@ -1148,11 +1148,11 @@
 "qty": 3
 },
 {
-"element_id": "4505087",
+"element_id": "4282789",
 "qty": 1
 },
 {
-"element_id": "4505088",
+"element_id": "4282786",
 "qty": 1
 }
 ]
@@ -1623,11 +1623,11 @@
 "qty": 2
 },
 {
-"element_id": "4282786",
+"element_id": "4505088",
 "qty": 1
 },
 {
-"element_id": "4282789",
+"element_id": "4505087",
 "qty": 1
 }
 ]
