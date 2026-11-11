@@ -1,5 +1,5 @@
 {
-"source": "LEGO instructions PDF 4562894 (7671), OCR of a 72 ppi scan - approximate v3",
+"source": "LEGO instructions PDF 4562894 (7671), OCR of a 72 ppi scan - approximate v4",
 "steps": [
 {
 "book": 1,
@@ -238,9 +238,13 @@
 {
 "element_id": "278026",
 "qty": 7
+},
+{
+"element_id": "4211440",
+"qty": 2
 }
 ],
-"note": "10 piece(s) in this step could not be identified"
+"note": "8 piece(s) in this step could not be identified"
 },
 {
 "book": 1,
