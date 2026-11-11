@@ -1,5 +1,5 @@
 {
-"source": "LEGO instructions PDF 4562894 (7671), OCR of a 72 ppi scan - approximate v4",
+"source": "LEGO instructions PDF 4562894 (7671), OCR of a 72 ppi scan - approximate \u2014 gaps filled by hand v5",
 "steps": [
 {
 "book": 1,
@@ -20,8 +20,12 @@
 "step": 2,
 "bag": null,
 "label": "p.4 \u00b7 Step 2",
-"parts": [],
-"note": "2 piece(s) in this step could not be identified"
+"parts": [
+{
+"element_id": "278026",
+"qty": 2
+}
+]
 },
 {
 "book": 1,
@@ -42,8 +46,12 @@
 "step": 4,
 "bag": null,
 "label": "p.5 \u00b7 Step 4",
-"parts": [],
-"note": "6 piece(s) in this step could not be identified"
+"parts": [
+{
+"element_id": "278026",
+"qty": 6
+}
+]
 },
 {
 "book": 1,
@@ -53,7 +61,7 @@
 "label": "p.5 \u00b7 Step 5",
 "parts": [
 {
-"element_id": "4182751",
+"element_id": "4210917",
 "qty": 1
 }
 ]
@@ -66,7 +74,7 @@
 "label": "p.5 \u00b7 Step 6",
 "parts": [
 {
-"element_id": "4211815",
+"element_id": "278026",
 "qty": 2
 }
 ]
@@ -79,7 +87,7 @@
 "label": "p.6 \u00b7 Step 7",
 "parts": [
 {
-"element_id": "4211440",
+"element_id": "4211640",
 "qty": 1
 }
 ]
@@ -96,7 +104,7 @@
 "qty": 1
 },
 {
-"element_id": "4210631",
+"element_id": "4210917",
 "qty": 1
 }
 ]
@@ -119,9 +127,12 @@
 {
 "element_id": "4211039",
 "qty": 1
+},
+{
+"element_id": "4211815",
+"qty": 1
 }
-],
-"note": "1 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -133,9 +144,20 @@
 {
 "element_id": "4144024",
 "qty": 4
+},
+{
+"element_id": "4514553",
+"qty": 4
+},
+{
+"element_id": "278026",
+"qty": 6
+},
+{
+"element_id": "6271155",
+"qty": 2
 }
-],
-"note": "8 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -170,10 +192,6 @@
 "qty": 1
 },
 {
-"element_id": "4221775",
-"qty": 1
-},
-{
 "element_id": "4210728",
 "qty": 1
 },
@@ -188,9 +206,17 @@
 {
 "element_id": "4509897",
 "qty": 1
+},
+{
+"element_id": "4176959",
+"qty": 1
+},
+{
+"element_id": "407926",
+"qty": 1
 }
 ],
-"note": "2 piece(s) in this step could not be identified"
+"note": "1 piece(s) in this step could not be identified"
 },
 {
 "book": 1,
@@ -208,7 +234,7 @@
 "qty": 2
 },
 {
-"element_id": "4206482",
+"element_id": "4514553",
 "qty": 2
 },
 {
@@ -242,9 +268,24 @@
 {
 "element_id": "4211440",
 "qty": 2
+},
+{
+"element_id": "4159335",
+"qty": 4
+},
+{
+"element_id": "393726",
+"qty": 2
+},
+{
+"element_id": "4144024",
+"qty": 1
+},
+{
+"element_id": "4211039",
+"qty": 1
 }
-],
-"note": "8 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -254,7 +295,7 @@
 "label": "p.12 \u00b7 Step 14",
 "parts": [
 {
-"element_id": "4206482",
+"element_id": "4210686",
 "qty": 1
 },
 {
@@ -343,6 +384,14 @@
 "label": "p.14 \u00b7 Step 4",
 "parts": [
 {
+"element_id": "4210869",
+"qty": 2
+},
+{
+"element_id": "4210872",
+"qty": 2
+},
+{
 "element_id": "4211396",
 "qty": 2
 }
@@ -356,11 +405,14 @@
 "label": "p.15 \u00b7 Step 5",
 "parts": [
 {
-"element_id": "4210686",
+"element_id": "4211042",
+"qty": 1
+},
+{
+"element_id": "4182294",
 "qty": 1
 }
-],
-"note": "1 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -370,11 +422,18 @@
 "label": "p.15 \u00b7 Step 6",
 "parts": [
 {
-"element_id": "4211077",
+"element_id": "6296856",
 "qty": 1
+},
+{
+"element_id": "6271347",
+"qty": 1
+},
+{
+"element_id": "4211815",
+"qty": 2
 }
-],
-"note": "1 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -382,8 +441,20 @@
 "step": 7,
 "bag": null,
 "label": "p.16 \u00b7 Step 7",
-"parts": [],
-"note": "3 piece(s) in this step could not be identified"
+"parts": [
+{
+"element_id": "4206482",
+"qty": 2
+},
+{
+"element_id": "4211815",
+"qty": 2
+},
+{
+"element_id": "6279885",
+"qty": 1
+}
+]
 },
 {
 "book": 1,
@@ -407,9 +478,28 @@
 {
 "element_id": "4504372",
 "qty": 1
+},
+{
+"element_id": "278026",
+"qty": 2
+},
+{
+"element_id": "4500125",
+"qty": 1
+},
+{
+"element_id": "6058858",
+"qty": 1
+},
+{
+"element_id": "6132260",
+"qty": 1
+},
+{
+"element_id": "4211442",
+"qty": 1
 }
-],
-"note": "5 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -417,8 +507,16 @@
 "step": 9,
 "bag": null,
 "label": "p.18 \u00b7 Step 9",
-"parts": [],
-"note": "1 piece(s) in this step could not be identified"
+"parts": [
+{
+"element_id": "4143005",
+"qty": 3
+},
+{
+"element_id": "6279885",
+"qty": 1
+}
+]
 },
 {
 "book": 1,
@@ -430,9 +528,16 @@
 {
 "element_id": "4182751",
 "qty": 1
+},
+{
+"element_id": "4143005",
+"qty": 2
+},
+{
+"element_id": "6332151",
+"qty": 1
 }
-],
-"note": "1 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -450,27 +555,38 @@
 "label": "p.20 \u00b7 Step 11",
 "parts": [
 {
-"element_id": "4210686",
-"qty": 1
-},
-{
 "element_id": "4211889",
-"qty": 1
-},
-{
-"element_id": "4211498",
-"qty": 1
-},
-{
-"element_id": "4505088",
 "qty": 1
 },
 {
 "element_id": "4211442",
 "qty": 1
+},
+{
+"element_id": "6261374",
+"qty": 1
+},
+{
+"element_id": "6058858",
+"qty": 1
+},
+{
+"element_id": "4142865",
+"qty": 1
+},
+{
+"element_id": "4206482",
+"qty": 2
+},
+{
+"element_id": "278026",
+"qty": 5
+},
+{
+"element_id": "6132260",
+"qty": 1
 }
-],
-"note": "7 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -550,8 +666,20 @@
 "step": 4,
 "bag": null,
 "label": "p.23 \u00b7 Step 4",
-"parts": [],
-"note": "2 piece(s) in this step could not be identified"
+"parts": [
+{
+"element_id": "4211396",
+"qty": 2
+},
+{
+"element_id": "4210869",
+"qty": 2
+},
+{
+"element_id": "4210872",
+"qty": 2
+}
+]
 },
 {
 "book": 1,
@@ -561,11 +689,14 @@
 "label": "p.23 \u00b7 Step 5",
 "parts": [
 {
-"element_id": "4221881",
+"element_id": "4211042",
+"qty": 1
+},
+{
+"element_id": "4182294",
 "qty": 1
 }
-],
-"note": "1 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -575,11 +706,15 @@
 "label": "p.24 \u00b7 Step 6",
 "parts": [
 {
-"element_id": "4282789",
+"element_id": "4211815",
+"qty": 2
+},
+{
+"element_id": "6271347",
 "qty": 1
 },
 {
-"element_id": "4210869",
+"element_id": "6296856",
 "qty": 1
 }
 ]
@@ -590,8 +725,24 @@
 "step": 7,
 "bag": null,
 "label": "p.25 \u00b7 Step 7",
-"parts": [],
-"note": "1 piece(s) in this step could not be identified"
+"parts": [
+{
+"element_id": "4206482",
+"qty": 2
+},
+{
+"element_id": "4143005",
+"qty": 3
+},
+{
+"element_id": "4211815",
+"qty": 2
+},
+{
+"element_id": "6279885",
+"qty": 1
+}
+]
 },
 {
 "book": 1,
@@ -605,7 +756,23 @@
 "qty": 1
 },
 {
-"element_id": "4211815",
+"element_id": "4213574",
+"qty": 1
+},
+{
+"element_id": "6132260",
+"qty": 1
+},
+{
+"element_id": "278026",
+"qty": 2
+},
+{
+"element_id": "4500125",
+"qty": 1
+},
+{
+"element_id": "6058858",
 "qty": 1
 },
 {
@@ -616,8 +783,7 @@
 "element_id": "4211442",
 "qty": 1
 }
-],
-"note": "3 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -625,8 +791,12 @@
 "step": 9,
 "bag": null,
 "label": "p.27 \u00b7 Step 9",
-"parts": [],
-"note": "1 piece(s) in this step could not be identified"
+"parts": [
+{
+"element_id": "6279885",
+"qty": 1
+}
+]
 },
 {
 "book": 1,
@@ -636,11 +806,18 @@
 "label": "p.27 \u00b7 Step 10",
 "parts": [
 {
-"element_id": "4211804",
+"element_id": "6332151",
+"qty": 1
+},
+{
+"element_id": "4143005",
+"qty": 2
+},
+{
+"element_id": "4182751",
 "qty": 1
 }
-],
-"note": "1 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -662,15 +839,34 @@
 "qty": 1
 },
 {
-"element_id": "4211815",
+"element_id": "4142865",
+"qty": 1
+},
+{
+"element_id": "6132260",
+"qty": 1
+},
+{
+"element_id": "278026",
 "qty": 5
+},
+{
+"element_id": "6261374",
+"qty": 1
+},
+{
+"element_id": "6058858",
+"qty": 1
 },
 {
 "element_id": "4206482",
 "qty": 2
+},
+{
+"element_id": "4211442",
+"qty": 1
 }
-],
-"note": "5 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -694,9 +890,12 @@
 {
 "element_id": "4211549",
 "qty": 1
+},
+{
+"element_id": "4211664",
+"qty": 1
 }
-],
-"note": "1 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -719,7 +918,7 @@
 "label": "p.31 \u00b7 Step 2",
 "parts": [
 {
-"element_id": "4206482",
+"element_id": "4260707",
 "qty": 1
 }
 ]
@@ -766,11 +965,11 @@
 "label": "p.32 \u00b7 Step 5",
 "parts": [
 {
-"element_id": "4221881",
+"element_id": "4211042",
 "qty": 1
 },
 {
-"element_id": "4211664",
+"element_id": "4182294",
 "qty": 1
 }
 ]
@@ -783,11 +982,11 @@
 "label": "p.32 \u00b7 Step 6",
 "parts": [
 {
-"element_id": "4210869",
+"element_id": "6296856",
 "qty": 1
 },
 {
-"element_id": "4211442",
+"element_id": "4211815",
 "qty": 1
 }
 ]
@@ -800,7 +999,11 @@
 "label": "p.32 \u00b7 Step 7",
 "parts": [
 {
-"element_id": "4206482",
+"element_id": "4143005",
+"qty": 2
+},
+{
+"element_id": "4514553",
 "qty": 2
 },
 {
@@ -825,15 +1028,26 @@
 "label": "p.33 \u00b7 Step 8",
 "parts": [
 {
-"element_id": "4210869",
+"element_id": "4514553",
 "qty": 2
 },
 {
-"element_id": "4210631",
+"element_id": "4514553",
+"qty": 1
+},
+{
+"element_id": "6296856",
+"qty": 2
+},
+{
+"element_id": "6058858",
+"qty": 1
+},
+{
+"element_id": "4210917",
 "qty": 1
 }
-],
-"note": "2 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -877,7 +1091,7 @@
 "label": "p.37 \u00b7 Step 13",
 "parts": [
 {
-"element_id": "4505087",
+"element_id": "4221775",
 "qty": 1
 },
 {
@@ -906,7 +1120,15 @@
 "qty": 2
 },
 {
+"element_id": "4196768",
+"qty": 1
+},
+{
 "element_id": "4211452",
+"qty": 1
+},
+{
+"element_id": "4211421",
 "qty": 1
 },
 {
@@ -918,11 +1140,22 @@
 "qty": 2
 },
 {
-"element_id": "4211063",
+"element_id": "4211001",
+"qty": 1
+},
+{
+"element_id": "4211815",
 "qty": 3
+},
+{
+"element_id": "4505087",
+"qty": 1
+},
+{
+"element_id": "4505088",
+"qty": 1
 }
-],
-"note": "5 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -942,9 +1175,12 @@
 {
 "element_id": "4211520",
 "qty": 1
+},
+{
+"element_id": "4210784",
+"qty": 1
 }
-],
-"note": "1 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -977,9 +1213,12 @@
 {
 "element_id": "4211498",
 "qty": 1
+},
+{
+"element_id": "4211063",
+"qty": 1
 }
-],
-"note": "1 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -993,7 +1232,7 @@
 "qty": 1
 },
 {
-"element_id": "4211442",
+"element_id": "6276045",
 "qty": 1
 },
 {
@@ -1033,9 +1272,12 @@
 {
 "element_id": "4211039",
 "qty": 1
+},
+{
+"element_id": "4211063",
+"qty": 2
 }
-],
-"note": "2 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -1049,11 +1291,14 @@
 "qty": 1
 },
 {
-"element_id": "4211001",
+"element_id": "4162951",
+"qty": 1
+},
+{
+"element_id": "4211077",
 "qty": 1
 }
-],
-"note": "1 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -1083,7 +1328,7 @@
 "qty": 1
 },
 {
-"element_id": "4211042",
+"element_id": "4196768",
 "qty": 1
 },
 {
@@ -1110,9 +1355,12 @@
 {
 "element_id": "4211520",
 "qty": 1
+},
+{
+"element_id": "4210784",
+"qty": 1
 }
-],
-"note": "1 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -1143,11 +1391,11 @@
 "label": "p.45 \u00b7 Step 3",
 "parts": [
 {
-"element_id": "4211716",
+"element_id": "4211063",
 "qty": 1
 },
 {
-"element_id": "4211462",
+"element_id": "4211498",
 "qty": 1
 }
 ]
@@ -1164,11 +1412,11 @@
 "qty": 1
 },
 {
-"element_id": "4211452",
+"element_id": "6276045",
 "qty": 1
 },
 {
-"element_id": "4260707",
+"element_id": "4211001",
 "qty": 1
 }
 ]
@@ -1223,11 +1471,11 @@
 "qty": 1
 },
 {
-"element_id": "4211421",
+"element_id": "4162951",
 "qty": 1
 },
 {
-"element_id": "4211881",
+"element_id": "4211077",
 "qty": 1
 }
 ]
@@ -1260,7 +1508,7 @@
 "qty": 1
 },
 {
-"element_id": "4211042",
+"element_id": "4196768",
 "qty": 1
 },
 {
@@ -1277,7 +1525,7 @@
 "label": "p.50 \u00b7 Step 10",
 "parts": [
 {
-"element_id": "4211429",
+"element_id": "4211804",
 "qty": 2
 },
 {
@@ -1293,7 +1541,7 @@
 "qty": 1
 },
 {
-"element_id": "4210631",
+"element_id": "278026",
 "qty": 2
 },
 {
@@ -1322,11 +1570,18 @@
 "qty": 1
 },
 {
+"element_id": "4211748",
+"qty": 1
+},
+{
+"element_id": "278026",
+"qty": 2
+},
+{
 "element_id": "4243831",
 "qty": 1
 }
-],
-"note": "1 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -1336,15 +1591,46 @@
 "label": "p.52 \u00b7 Step 12",
 "parts": [
 {
-"element_id": "4211440",
+"element_id": "278026",
+"qty": 5
+},
+{
+"element_id": "4166618",
 "qty": 1
+},
+{
+"element_id": "4211039",
+"qty": 2
+},
+{
+"element_id": "4211452",
+"qty": 1
+},
+{
+"element_id": "4211462",
+"qty": 1
+},
+{
+"element_id": "4176959",
+"qty": 2
+},
+{
+"element_id": "4210917",
+"qty": 2
 },
 {
 "element_id": "4211001",
 "qty": 2
+},
+{
+"element_id": "4282786",
+"qty": 1
+},
+{
+"element_id": "4282789",
+"qty": 1
 }
-],
-"note": "15 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -1378,8 +1664,12 @@
 "step": 2,
 "bag": null,
 "label": "p.56 \u00b7 Step 2",
-"parts": [],
-"note": "2 piece(s) in this step could not be identified"
+"parts": [
+{
+"element_id": "278026",
+"qty": 2
+}
+]
 },
 {
 "book": 1,
@@ -1387,8 +1677,12 @@
 "step": 3,
 "bag": null,
 "label": "p.56 \u00b7 Step 3",
-"parts": [],
-"note": "2 piece(s) in this step could not be identified"
+"parts": [
+{
+"element_id": "4539062",
+"qty": 2
+}
+]
 },
 {
 "book": 1,
@@ -1428,11 +1722,11 @@
 "label": "p.57 \u00b7 Step 5",
 "parts": [
 {
-"element_id": "4211815",
+"element_id": "6058858",
 "qty": 1
 },
 {
-"element_id": "4211804",
+"element_id": "6132260",
 "qty": 1
 }
 ]
@@ -1466,11 +1760,26 @@
 "qty": 1
 },
 {
-"element_id": "4143005",
+"element_id": "4514553",
+"qty": 2
+},
+{
+"element_id": "4512363",
+"qty": 1
+},
+{
+"element_id": "4212355",
+"qty": 5
+},
+{
+"element_id": "278026",
+"qty": 4
+},
+{
+"element_id": "409521",
 "qty": 1
 }
-],
-"note": "10 piece(s) in this step could not be identified"
+]
 },
 {
 "book": 1,
@@ -1480,11 +1789,11 @@
 "label": "p.61 \u00b7 Step 10",
 "parts": [
 {
-"element_id": "4176959",
-"qty": 2
+"element_id": "4539060",
+"qty": 1
 },
 {
-"element_id": "4211086",
+"element_id": "4142865",
 "qty": 1
 },
 {
@@ -1496,7 +1805,7 @@
 "qty": 1
 },
 {
-"element_id": "4196768",
+"element_id": "287726",
 "qty": 3
 },
 {
@@ -1504,7 +1813,7 @@
 "qty": 1
 },
 {
-"element_id": "4253815",
+"element_id": "73081",
 "qty": 1
 },
 {
@@ -1512,11 +1821,26 @@
 "qty": 1
 },
 {
-"element_id": "4211396",
+"element_id": "4211429",
+"qty": 1
+},
+{
+"element_id": "4512363",
+"qty": 1
+},
+{
+"element_id": "4211042",
+"qty": 1
+},
+{
+"element_id": "4253815",
+"qty": 1
+},
+{
+"element_id": "271402",
 "qty": 1
 }
-],
-"note": "3 piece(s) in this step could not be identified"
+]
 }
 ]
 }
