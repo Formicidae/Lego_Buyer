@@ -34,6 +34,15 @@
     <dl id="diag" hidden></dl>
     <pre id="out" hidden></pre>
   </section>
+  <section class="panel">
+    <h2>API keys</h2>
+    <p class="hint">BrickOwl resets keys now and then; paste the new one from <b>brickowl.com → My Account → API Keys</b>. A key saved here overrides the one in the server's config file.</p>
+    <div class="row-btns">
+      <input id="bo-key" type="password" autocomplete="off" placeholder="BrickOwl API key" style="flex:1;min-width:16rem">
+      <button class="btn primary" id="btn-bo-key" type="button">Save &amp; test</button>
+    </div>
+    <p class="hint" id="bo-key-status">…</p>
+  </section>
 </main>
 <div class="toast" id="toast" hidden></div>
 <script>
@@ -69,6 +78,22 @@
     } catch (e) { status('Diagnostics failed: ' + e.message); }
   };
   $('#btn-diag').addEventListener('click', runDiag);
+  const showKey = (k, extra) => {
+    const where = k.source === 'admin' ? 'saved here' : k.source === 'env' ? 'from the server config file' : '';
+    $('#bo-key-status').textContent = (k.set ? `BrickOwl key set (…${k.tail}, ${where})` : 'No BrickOwl key set') + (extra ? ` — ${extra}` : '');
+  };
+  fetch('/api/admin/keys').then((r) => r.json()).then((j) => showKey(j.brickowl)).catch(() => {});
+  $('#btn-bo-key').addEventListener('click', async () => {
+    const key = $('#bo-key').value.trim();
+    if (!key && !confirm('Remove the key saved here and fall back to the server config file?')) return;
+    $('#bo-key-status').textContent = 'Saving and testing…';
+    try {
+      const r = await fetch('/api/admin/keys', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ brickowl: key }) });
+      const j = await r.json();
+      if (!r.ok) { $('#bo-key-status').textContent = j.error || 'Save failed'; return; }
+      showKey(j.brickowl, 'test: ' + j.brickowl.test); $('#bo-key').value = '';
+    } catch (e) { $('#bo-key-status').textContent = 'Save failed: ' + e.message; }
+  });
   $('#btn-discover').addEventListener('click', async () => {
     const pre = $('#out'); pre.hidden = false; pre.textContent = 'Reading lego.com scripts… (20–60 s)'; status('Discovering…');
     try {

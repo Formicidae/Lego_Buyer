@@ -142,6 +142,11 @@ CREATE TABLE IF NOT EXISTS set_steps_meta (
     imported_at REAL NOT NULL,
     notes TEXT
 );
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at REAL NOT NULL
+);
 """
 
 
@@ -212,6 +217,21 @@ def q(sql, params=()):
 def q1(sql, params=()):
     rows = q(sql, params)
     return rows[0] if rows else None
+
+
+def setting_get(key, default=None):
+    """App settings that can be changed from the Admin page (e.g. API keys), overriding the env file."""
+    r = q("SELECT value FROM settings WHERE key=?", (key,))
+    return r[0]["value"] if r else default
+
+
+def setting_set(key, value):
+    with tx() as conn:
+        if value is None or value == "":
+            conn.execute("DELETE FROM settings WHERE key=?", (key,))
+        else:
+            conn.execute("INSERT INTO settings(key, value, updated_at) VALUES (?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+                         (key, value, time.time()))
 
 
 def bump_rev(conn, set_num) -> int:

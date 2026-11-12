@@ -50,7 +50,9 @@ Works on a Pi 4 (any RAM) with Raspberry Pi OS, no monitor needed.
    port 8000, sets up a nightly database backup, and offers to set up **Tailscale Funnel**, which
    gives the Pi a stable public `https://legopi.<your-tailnet>.ts.net` address so both phones work
    from the store. The passcode gate protects it.
-4. **Update later:** `bash /opt/lego-buyer/deploy/update.sh`.
+4. **Update later:** `bash /opt/lego-buyer/deploy/update.sh` (or Admin → *Update to latest*).
+5. **Rotated BrickOwl key:** paste the new key under Admin → *API keys*; it is stored in the
+   database and overrides the one in `/etc/lego-buyer.env`, no restart needed.
 
 Phones keep working through short outages: the app caches the set and part images and queues taps
 made while offline, syncing them when the Pi is reachable again.

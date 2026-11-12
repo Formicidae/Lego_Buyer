@@ -13,6 +13,7 @@ import time
 import requests
 
 from . import rebrickable
+from . import db
 from .config import BRICKOWL_API_KEY, CHROMIUM_PATH
 
 BASE = "https://api.brickowl.com/v1"
@@ -22,10 +23,28 @@ class BrickOwlError(Exception):
     pass
 
 
+def api_key():
+    """The key saved on the Admin page wins; the server's BRICKOWL_API_KEY env var is the fallback."""
+    try:
+        return (db.setting_get("brickowl_api_key") or BRICKOWL_API_KEY or "").strip()
+    except Exception:
+        return BRICKOWL_API_KEY
+
+
+def key_source():
+    try:
+        if db.setting_get("brickowl_api_key"):
+            return "admin"
+    except Exception:
+        pass
+    return "env" if BRICKOWL_API_KEY else ""
+
+
 def _get(path, **params):
-    if not BRICKOWL_API_KEY:
-        raise BrickOwlError("BRICKOWL_API_KEY is not set on the server.")
-    r = requests.get(f"{BASE}/{path}", params={"key": BRICKOWL_API_KEY, **params}, timeout=30)
+    key = api_key()
+    if not key:
+        raise BrickOwlError("No BrickOwl API key: add it on the Admin page.")
+    r = requests.get(f"{BASE}/{path}", params={"key": key, **params}, timeout=30)
     if r.status_code == 401:
         raise BrickOwlError("BrickOwl rejected the API key.")
     if r.status_code == 403:
@@ -452,9 +471,10 @@ def resolve_bl_id(bl_id, notes, source):
 # ---------- Push a buy list into a BrickOwl wishlist (needs only the API key) ----------
 
 def _post(path, **params):
-    if not BRICKOWL_API_KEY:
-        raise BrickOwlError("BRICKOWL_API_KEY is not set on the server.")
-    r = requests.post(f"{BASE}/{path}", data={"key": BRICKOWL_API_KEY, **params}, timeout=30)
+    key = api_key()
+    if not key:
+        raise BrickOwlError("No BrickOwl API key: add it on the Admin page.")
+    r = requests.post(f"{BASE}/{path}", data={"key": key, **params}, timeout=30)
     data = r.json() if r.content else {}
     if r.status_code >= 400 or (isinstance(data, dict) and data.get("error")):
         raise BrickOwlError(str((data or {}).get("error") or f"HTTP {r.status_code}"))

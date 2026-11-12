@@ -23,7 +23,7 @@ from starlette.templating import Jinja2Templates
 
 from . import bricklink, brickowl, cartparse, db, jobs, lego, partlists, rebrickable, sourcing, steps, views
 from .checklist import build_checklist, render_checklist_html, render_checklist_pdf
-from .config import APP_PASSCODE, SECRET, BRICKOWL_API_KEY, REBRICKABLE_API_KEY, DATA_DIR, CHROMIUM_PATH
+from .config import APP_PASSCODE, SECRET, REBRICKABLE_API_KEY, DATA_DIR, CHROMIUM_PATH
 
 LOG_PATH = DATA_DIR / "app.log"
 _handler = logging.handlers.RotatingFileHandler(LOG_PATH, maxBytes=2_000_000, backupCount=3)
@@ -131,7 +131,7 @@ async def health(request: Request):
         {
             "ok": True,
             "rebrickable_key": bool(REBRICKABLE_API_KEY),
-            "brickowl_key": bool(BRICKOWL_API_KEY),
+            "brickowl_key": bool(brickowl.api_key()),
             "passcode": bool(APP_PASSCODE),
         }
     )
@@ -672,7 +672,7 @@ def QUERY_CACHE_LEN():
 
 def _diagnostics():
     out = {"version": _git("log", "-1", "--format=%h %s (%cd)", "--date=short"), "branch": _git("rev-parse", "--abbrev-ref", "HEAD")}
-    out["keys"] = {"rebrickable": bool(REBRICKABLE_API_KEY), "brickowl": bool(BRICKOWL_API_KEY), "passcode": bool(APP_PASSCODE)}
+    out["keys"] = {"rebrickable": bool(REBRICKABLE_API_KEY), "brickowl": (brickowl.key_source() or False), "passcode": bool(APP_PASSCODE)}
     out["pdf_engine"] = f"system chromium ({CHROMIUM_PATH})" if CHROMIUM_PATH else "playwright"
     if bricklink.configured():
         try:
@@ -759,6 +759,27 @@ async def api_admin_logs(request: Request):
     return Response("".join(lines) or "(no log yet)", media_type="text/plain")
 
 
+async def api_admin_keys(request: Request):
+    """GET: which keys are set (masked). POST {"brickowl": "..."}: save the BrickOwl key and test it;
+    an empty value removes the saved key and falls back to the server's env file."""
+    if request.method == "GET":
+        k = brickowl.api_key()
+        return JSONResponse({"brickowl": {"set": bool(k), "source": brickowl.key_source(), "tail": k[-4:] if k else ""}})
+    body = await request.json()
+    if "brickowl" in body:
+        key = (body.get("brickowl") or "").strip()
+        await run_in_threadpool(db.setting_set, "brickowl_api_key", key)
+        log.info("admin: BrickOwl API key %s", "saved" if key else "removed")
+        try:
+            n = len(await run_in_threadpool(brickowl.wishlists))
+            test = f"ok, {n} wishlists"
+        except Exception as e:  # bad key, or BrickOwl unreachable: the key is saved either way
+            test = f"FAIL: {e}"
+        k = brickowl.api_key()
+        return JSONResponse({"brickowl": {"set": bool(k), "source": brickowl.key_source(), "tail": k[-4:] if k else "", "test": test}})
+    return JSONResponse({"error": "nothing to save"}, status_code=400)
+
+
 async def api_admin_update(request: Request):
     """git pull + pip install, then exit so systemd (Restart=always) brings up the new code."""
     def run():
@@ -840,6 +861,7 @@ routes = [
     Route("/api/admin/diagnostics", api_admin_diagnostics),
     Route("/api/admin/logs", api_admin_logs),
     Route("/api/admin/update", api_admin_update, methods=["POST"]),
+    Route("/api/admin/keys", api_admin_keys, methods=["GET", "POST"]),
     Route("/api/admin/discover_lego", api_admin_discover, methods=["POST"]),
     Route("/s/{set_num}/checklist", checklist_html),
     Route("/s/{set_num}/checklist.pdf", checklist_pdf),
