@@ -1,5 +1,5 @@
 {
-"source": "LEGO instructions PDF 6200554 (75183), parsed v2",
+"source": "LEGO instructions PDF 6200554 (75183), parsed v3",
 "steps": [
 {
 "book": 1,
@@ -1202,7 +1202,9 @@
 "parts": [
 {
 "element_id": "6167933",
-"qty": 1
+"qty": 1,
+"part_num": "3957b",
+"color_id": 0
 },
 {
 "element_id": "473326",
@@ -1406,7 +1408,9 @@
 },
 {
 "element_id": "6167933",
-"qty": 1
+"qty": 1,
+"part_num": "3957b",
+"color_id": 0
 },
 {
 "element_id": "6112162",
