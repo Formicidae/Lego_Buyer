@@ -17,7 +17,7 @@ book never shows in a numbered step — minifigure parts and spares — are coll
 | 8016-1.json Hyena Droid Bomber | book 4583956 (scanned, OCR) | LEGO instructions |
 | 75054-1.json AT-AT | books 6091462 + 6091463 | LEGO instructions |
 | 75174-1.json Desert Skiff Escape | book 6187644 | LEGO instructions |
-| 75249-1.json Resistance Y-wing | book 6296571 | LEGO instructions |
+| 75249-1.json Resistance Y-wing | book 6296571 (audited step by step: 577 of 577 pieces, minifigures as their own steps) | LEGO instructions |
 | 75305-1.json Scout Trooper Helmet | book 6366005 (`pl-75305-bag-1.json`: bag 1 only) | LEGO instructions |
 | 75183-1.json Darth Vader Transformation | book 6200554 (268 placed + 16 minifig/extras) | LEGO instructions |
 | 75948-1.json Hogwarts Clock Tower | book 6282798 (all 918 pieces placed) | LEGO instructions |

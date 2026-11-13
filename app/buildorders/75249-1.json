@@ -1,53 +1,67 @@
 {
- "source": "LEGO instructions PDF 6296571 (75249), parsed",
+ "source": "LEGO instructions PDF 6296571 (75249), parsed and audited v2",
  "steps": [
   {
    "book": 1,
    "page": 5,
-   "step": 1,
+   "step": 0,
    "bag": 1,
-   "label": "Bag 1 \u00b7 p.5 \u00b7 Step 1",
-   "parts": []
-  },
-  {
-   "book": 1,
-   "page": 5,
-   "step": 1,
-   "bag": 1,
-   "label": "Bag 1 \u00b7 p.5 \u00b7 Step 1",
-   "parts": []
-  },
-  {
-   "book": 1,
-   "page": 5,
-   "step": 2,
-   "bag": 1,
-   "label": "Bag 1 \u00b7 p.5 \u00b7 Step 2",
-   "parts": []
-  },
-  {
-   "book": 1,
-   "page": 5,
-   "step": 2,
-   "bag": 1,
-   "label": "Bag 1 \u00b7 p.5 \u00b7 Step 2",
-   "parts": []
-  },
-  {
-   "book": 1,
-   "page": 5,
-   "step": 3,
-   "bag": 1,
-   "label": "Bag 1 \u00b7 p.5 \u00b7 Step 3",
-   "parts": []
-  },
-  {
-   "book": 1,
-   "page": 5,
-   "step": 3,
-   "bag": 1,
-   "label": "Bag 1 \u00b7 p.5 \u00b7 Step 3",
-   "parts": []
+   "label": "Bag 1 \u00b7 p.5 \u00b7 Minifigures: Poe Dameron, First Order Snowtrooper, D-O",
+   "parts": [
+    {
+     "element_id": "6279975",
+     "qty": 1
+    },
+    {
+     "element_id": "6279978",
+     "qty": 1
+    },
+    {
+     "element_id": "6125439",
+     "qty": 1
+    },
+    {
+     "element_id": "6134617",
+     "qty": 1
+    },
+    {
+     "element_id": "6277469",
+     "qty": 1
+    },
+    {
+     "element_id": "6124928",
+     "qty": 1
+    },
+    {
+     "element_id": "6124044",
+     "qty": 1
+    },
+    {
+     "element_id": "6124051",
+     "qty": 1
+    },
+    {
+     "element_id": "6021888",
+     "qty": 1
+    },
+    {
+     "element_id": "6124040",
+     "qty": 1
+    },
+    {
+     "element_id": "6208737",
+     "qty": 1
+    },
+    {
+     "element_id": "4498713",
+     "qty": 1
+    },
+    {
+     "element_id": "6279757",
+     "qty": 1
+    }
+   ],
+   "note": "Built without a parts box in the book"
   },
   {
    "book": 1,
@@ -815,7 +829,7 @@
      "qty": 1
     },
     {
-     "element_id": "6124051",
+     "element_id": "302301",
      "qty": 1
     },
     {
@@ -1072,9 +1086,12 @@
     {
      "element_id": "4210635",
      "qty": 2
+    },
+    {
+     "element_id": "4211133",
+     "qty": 2
     }
-   ],
-   "note": "2 piece(s) in this step could not be identified"
+   ]
   },
   {
    "book": 1,
@@ -1700,6 +1717,48 @@
      "qty": 1
     }
    ]
+  },
+  {
+   "book": 1,
+   "page": 49,
+   "step": 0,
+   "bag": 4,
+   "label": "Bag 4 \u00b7 p.49 \u00b7 Astromech droid and Zorii Bliss",
+   "parts": [
+    {
+     "element_id": "6279998",
+     "qty": 1
+    },
+    {
+     "element_id": "6280001",
+     "qty": 1
+    },
+    {
+     "element_id": "6278551",
+     "qty": 2
+    },
+    {
+     "element_id": "6284370",
+     "qty": 1
+    },
+    {
+     "element_id": "362626",
+     "qty": 1
+    },
+    {
+     "element_id": "6279995",
+     "qty": 1
+    },
+    {
+     "element_id": "6279996",
+     "qty": 1
+    },
+    {
+     "element_id": "6184874",
+     "qty": 2
+    }
+   ],
+   "note": "Built without a parts box in the book"
   },
   {
    "book": 1,
@@ -2560,6 +2619,18 @@
      "qty": 3
     }
    ]
+  },
+  {
+   "book": 1,
+   "step": 168,
+   "label": "Extras (brick separator)",
+   "parts": [
+    {
+     "element_id": "6240515",
+     "qty": 1
+    }
+   ],
+   "note": "Pieces from the parts list that do not appear in any numbered step (minifigure parts and spares)"
   }
  ]
 }

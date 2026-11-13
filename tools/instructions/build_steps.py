@@ -22,6 +22,9 @@ ap.add_argument("--main", default="26", help="main step numeral sizes, e.g. 26 o
 ap.add_argument("--sub", default="16,22", help="sub-assembly step numeral sizes")
 ap.add_argument("--bag", default="30,36", help="bag marker numeral sizes")
 ap.add_argument("--pins", default=None, help='json {element_id: {"part_num": .., "color_id": ..}} for ids Rebrickable cannot resolve')
+ap.add_argument("--extra-steps", default=None, help='json list of hand-written steps for builds the book shows without a parts box (minifigures, droids): '
+                '[{"page": 5, "bag": 1, "label": "...", "parts": [{"element_id": "...", "qty": 1}], "drop_empty": true}]; each goes before the first step '
+                'on or after its page, and drop_empty removes that page\'s numbered steps that have no parts')
 ap.add_argument("--leftovers-step", default=None, help="append a final step with this label holding every inventory piece not placed in a numbered step (minifigures, spares)")
 a = ap.parse_args()
 os.makedirs(a.outdir, exist_ok=True)
@@ -141,6 +144,16 @@ for s in sorted(d["steps"], key=lambda s: (s["page"], s["sub"], s["num"])):
     steps_out.append({"book": a.book, "page": s["page"], "step": s["num"], "bag": bag, "label": label,
                       "parts": [{"element_id": e, "qty": q} for e, q in parts.items()],
                       **({"note": f"{unknown} piece(s) in this step could not be identified"} if unknown else {})})
+if a.extra_steps and not keep_bags:
+    for ex in sorted(json.load(open(a.extra_steps)), key=lambda e: -e["page"]):
+        if ex.get("drop_empty"):
+            steps_out = [s for s in steps_out if not (s["page"] == ex["page"] and not s["parts"] and not s.get("note"))]
+        at = next((i for i, s in enumerate(steps_out) if s["page"] >= ex["page"]), len(steps_out))
+        bag = ex.get("bag")
+        steps_out.insert(at, {"book": a.book, "page": ex["page"], "step": 0, "bag": bag,
+                              "label": " · ".join(x for x in [f"Bag {bag}" if bag else "", f"p.{ex['page']}", ex["label"]] if x),
+                              "parts": ex["parts"], "note": ex.get("note", "Built without a parts box in the book")})
+    print("extra steps added:", len(json.load(open(a.extra_steps))))
 if a.leftovers_step and not keep_bags:
     used = collections.Counter()
     for s in steps_out:

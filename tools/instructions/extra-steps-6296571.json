@@ -1,0 +1,12 @@
+[
+ {"page": 5, "bag": 1, "label": "Minifigures: Poe Dameron, First Order Snowtrooper, D-O", "drop_empty": true,
+  "parts": [{"element_id": "6279975", "qty": 1}, {"element_id": "6279978", "qty": 1}, {"element_id": "6125439", "qty": 1}, {"element_id": "6134617", "qty": 1},
+            {"element_id": "6277469", "qty": 1}, {"element_id": "6124928", "qty": 1},
+            {"element_id": "6124044", "qty": 1}, {"element_id": "6124051", "qty": 1}, {"element_id": "6021888", "qty": 1}, {"element_id": "6124040", "qty": 1},
+            {"element_id": "6208737", "qty": 1}, {"element_id": "4498713", "qty": 1},
+            {"element_id": "6279757", "qty": 1}]},
+ {"page": 49, "bag": 4, "label": "Astromech droid and Zorii Bliss",
+  "parts": [{"element_id": "6279998", "qty": 1}, {"element_id": "6280001", "qty": 1}, {"element_id": "6278551", "qty": 2},
+            {"element_id": "6284370", "qty": 1}, {"element_id": "362626", "qty": 1}, {"element_id": "6279995", "qty": 1}, {"element_id": "6279996", "qty": 1},
+            {"element_id": "6184874", "qty": 2}]}
+]

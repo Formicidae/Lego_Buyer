@@ -23,6 +23,9 @@ Example
     python3 build_steps.py 6091463.pdf out_b2 --main 38 --sub 30,18 --bag 34,36 --book 2
     python3 build_steps.py 6091462.pdf out_b1 --main 38 --sub 30,18 --bag 34,36 --book 1 --inventory-from out_b2/extract.json
     python3 build_steps.py 6366005.pdf out_bag1 --bags 1      # one bag only
+    python3 build_steps.py 6296571.pdf out --overrides overrides-6296571.json \
+        --extra-steps extra-steps-6296571.json --leftovers-step "Extras"   # hand-written steps for the minifigure
+                                                                           # pages, which have no parts boxes
     python3 build_steps.py 6282798.pdf out --extract-json out/extract.json --overrides ov.json \
         --leftovers-step "Minifigures & extras (not in numbered steps)"   # re-run on a saved extraction (NB: books with repeated
                                                                           # sub-assemblies lose the ×N on re-runs — run without it)
