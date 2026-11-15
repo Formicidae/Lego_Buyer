@@ -16,6 +16,7 @@ book never shows in a numbered step — minifigure parts and spares — are coll
 | 7671-1.json AT-AP Walker | book 4562894 (scanned, OCR) | LEGO instructions |
 | 8016-1.json Hyena Droid Bomber | book 4583956 (scanned, OCR) | LEGO instructions |
 | 75054-1.json AT-AT | books 6091462 + 6091463 | LEGO instructions |
+| 75160-1.json U-wing Microfighter | book 6179372 (audited: 109 of 109 pieces, pilot as its own step) | LEGO instructions |
 | 75174-1.json Desert Skiff Escape | book 6187644 | LEGO instructions |
 | 75210-1.json Moloch's Landspeeder | book 6234653 (audited step by step: 464 of 464 pieces, minifigures and the cargo crate as their own steps) | LEGO instructions |
 | 75249-1.json Resistance Y-wing | book 6296571 (audited step by step: 577 of 577 pieces, minifigures as their own steps) | LEGO instructions |
