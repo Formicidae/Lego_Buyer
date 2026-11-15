@@ -22,6 +22,8 @@ ap.add_argument("--main", default="26", help="main step numeral sizes, e.g. 26 o
 ap.add_argument("--sub", default="16,22", help="sub-assembly step numeral sizes")
 ap.add_argument("--bag", default="30,36", help="bag marker numeral sizes")
 ap.add_argument("--pins", default=None, help='json {element_id: {"part_num": .., "color_id": ..}} for ids Rebrickable cannot resolve')
+ap.add_argument("--step-fixes", default=None, help='json {"page:step": [[element_id, qty], ...]}: replace the parts of that numbered step outright '
+                '(for boxes the matcher got wrong; qty is the total, repeats included)')
 ap.add_argument("--extra-steps", default=None, help='json list of hand-written steps for builds the book shows without a parts box (minifigures, droids): '
                 '[{"page": 5, "bag": 1, "label": "...", "parts": [{"element_id": "...", "qty": 1}], "drop_empty": true}]; each goes before the first step '
                 'on or after its page, and drop_empty removes that page\'s numbered steps that have no parts')
@@ -144,6 +146,15 @@ for s in sorted(d["steps"], key=lambda s: (s["page"], s["sub"], s["num"])):
     steps_out.append({"book": a.book, "page": s["page"], "step": s["num"], "bag": bag, "label": label,
                       "parts": [{"element_id": e, "qty": q} for e, q in parts.items()],
                       **({"note": f"{unknown} piece(s) in this step could not be identified"} if unknown else {})})
+if a.step_fixes:
+    for key, parts in json.load(open(a.step_fixes)).items():
+        pg, num = (int(x) for x in key.split(":"))
+        hit = [s for s in steps_out if s["page"] == pg and s["step"] == num and "Sub-assembly" not in s["label"]]
+        if len(hit) != 1:
+            sys.exit(f"--step-fixes {key}: {len(hit)} matching steps")
+        hit[0]["parts"] = [{"element_id": e, "qty": q} for e, q in parts]
+        hit[0].pop("note", None)
+    print("step fixes applied:", len(json.load(open(a.step_fixes))))
 if a.extra_steps and not keep_bags:
     for ex in sorted(json.load(open(a.extra_steps)), key=lambda e: -e["page"]):
         if ex.get("drop_empty"):

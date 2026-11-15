@@ -26,6 +26,10 @@ Example
     python3 build_steps.py 6296571.pdf out --overrides overrides-6296571.json \
         --extra-steps extra-steps-6296571.json --leftovers-step "Extras"   # hand-written steps for the minifigure
                                                                            # pages, which have no parts boxes
+    python3 audit.py 6234653.pdf out            # sheets in out/audit/: each step's box from the book beside the
+                                                # parts the list gives it, plus label and parts-list reconciliation
+    python3 build_steps.py 6234653.pdf out --bag 30,35,36 --step-fixes step-fixes-6234653.json \
+        --extra-steps extra-steps-6234653.json  # replace the parts of steps the matcher got wrong
     python3 build_steps.py 6282798.pdf out --extract-json out/extract.json --overrides ov.json \
         --leftovers-step "Minifigures & extras (not in numbered steps)"   # re-run on a saved extraction (NB: books with repeated
                                                                           # sub-assemblies lose the ×N on re-runs — run without it)

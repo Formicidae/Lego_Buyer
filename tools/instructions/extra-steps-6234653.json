@@ -1,0 +1,112 @@
+[
+ {
+  "page": 5,
+  "bag": 1,
+  "label": "Minifigure: Rebolt, with a Corellian hound",
+  "parts": [
+   {
+    "element_id": "6160476",
+    "qty": 1
+   },
+   {
+    "element_id": "6223305",
+    "qty": 1
+   },
+   {
+    "element_id": "6223308",
+    "qty": 1
+   },
+   {
+    "element_id": "6223314",
+    "qty": 1
+   },
+   {
+    "element_id": "6224071",
+    "qty": 1
+   },
+   {
+    "element_id": "6223408",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "page": 107,
+  "bag": 4,
+  "label": "Minifigure: Moloch, with a Corellian hound",
+  "parts": [
+   {
+    "element_id": "6223548",
+    "qty": 1
+   },
+   {
+    "element_id": "6223424",
+    "qty": 1
+   },
+   {
+    "element_id": "6223484",
+    "qty": 1
+   },
+   {
+    "element_id": "4609050",
+    "qty": 1
+   },
+   {
+    "element_id": "6194512",
+    "qty": 1
+   },
+   {
+    "element_id": "6040333",
+    "qty": 1
+   },
+   {
+    "element_id": "6093529",
+    "qty": 1
+   },
+   {
+    "element_id": "6223408",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "page": 134,
+  "bag": 4,
+  "label": "Cargo crate (after step 158)",
+  "note": "Parts box without a step number in the book",
+  "parts": [
+   {
+    "element_id": "4211063",
+    "qty": 1
+   },
+   {
+    "element_id": "4210633",
+    "qty": 1
+   },
+   {
+    "element_id": "4600294",
+    "qty": 2
+   },
+   {
+    "element_id": "242026",
+    "qty": 2
+   },
+   {
+    "element_id": "6092585",
+    "qty": 1
+   },
+   {
+    "element_id": "4541978",
+    "qty": 4
+   },
+   {
+    "element_id": "4495724",
+    "qty": 1
+   },
+   {
+    "element_id": "6035540",
+    "qty": 1
+   }
+  ]
+ }
+]
