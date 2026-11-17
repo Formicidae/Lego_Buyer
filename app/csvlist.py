@@ -12,6 +12,10 @@ import re
 import time
 from pathlib import Path
 
+import html as htmlmod
+
+import requests
+
 from . import rebrickable
 
 PREFIX = "csv-"
@@ -118,3 +122,56 @@ def fetch(slug, name, rows, on_progress=None, as_set=None):
         info = {"set_num": PREFIX + slug, "name": name or slug, "year": None, "num_parts": n, "set_img_url": None,
                 "kind": "partlist", "source_id": slug}
     return info, parts, [], cats, colors, problems
+
+
+# ---------- B-models and sub-sets straight from Rebrickable's website ----------
+# The API answers 404 for them, but each has a normal set page whose inventory can be exported as the
+# same parts CSV a person would download by hand.
+
+SITE = "https://rebrickable.com"
+_UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36"
+
+
+class SiteError(Exception):
+    pass
+
+
+def from_site(set_num, session=None):
+    """-> {"name", "year", "img", "rows"} for a set number, read from its Rebrickable page."""
+    if not re.fullmatch(r"[A-Za-z0-9-]+", set_num or ""):
+        raise SiteError("That doesn't look like a set number.")
+    sess = session or requests.Session()
+    head = {"User-Agent": _UA, "Accept": "text/html,*/*;q=0.8", "Accept-Language": "en-US,en;q=0.9"}
+    try:
+        r = sess.get(f"{SITE}/sets/{set_num}/", headers=head, timeout=30, allow_redirects=True)
+    except requests.RequestException as e:
+        raise SiteError(f"Couldn't reach rebrickable.com: {e}")
+    if r.status_code == 404:
+        raise SiteError(f"Rebrickable has no set numbered {set_num}.")
+    if r.status_code != 200:
+        raise SiteError(f"Rebrickable's website wouldn't show the page for {set_num} (HTTP {r.status_code}).")
+    page = r.text
+    inv_ids = list(dict.fromkeys(re.findall(r"/inventory/(\d+)/", page)))
+    if not inv_ids:
+        raise SiteError(f"Found the page for {set_num} but no inventory on it (the page layout may have changed).")
+    title = htmlmod.unescape((re.search(r"<title>(.*?)</title>", page, re.S) or [None, ""])[1]).strip()
+    m = re.search(r"LEGO\s+Set\s+\S+\s+(.+?)\s*\((\d{4})", title, re.I)
+    name, year = (m.group(1).strip(), int(m.group(2))) if m else (set_num, None)
+    img = re.search(r'<meta property="og:image" content="([^"]+)"', page)
+    last = None
+    for inv in inv_ids[:3]:
+        try:
+            c = sess.get(f"{SITE}/inventory/{inv}/parts/", params={"format": "rbpartscsv"}, headers={**head, "Accept": "text/csv,*/*;q=0.8", "Referer": r.url}, timeout=30)
+        except requests.RequestException as e:
+            last = str(e)
+            continue
+        if c.status_code != 200:
+            last = f"HTTP {c.status_code}"
+            continue
+        try:
+            rows = parse(c.content)
+        except ValueError as e:
+            last = str(e)
+            continue
+        return {"name": name, "year": year, "img": img.group(1) if img else None, "rows": rows}
+    raise SiteError(f"Found the page for {set_num} but couldn't download its parts list ({last}).")

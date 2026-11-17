@@ -741,6 +741,22 @@
     const sync = () => { $('#btn-combine').disabled = order.length < 2; $('#btn-combine').textContent = order.length < 2 ? 'Open selected together' : `Open ${order.length} together`; };
     picks.forEach((c) => c.addEventListener('change', () => { if (c.checked) order.push(c.value); else order.splice(order.indexOf(c.value), 1); sync(); }));
     $('#btn-combine').addEventListener('click', () => { if (order.length >= 2) location.href = `/v/${order.join(',')}`; });
+    // Minifigure matches to choose from, under whichever box found them.
+    const showCands = (cands, box, st) => {
+      box.replaceChildren();
+      for (const c of cands) {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'cand';
+        b.innerHTML = `<img alt="" src="${c.img_url || ''}" onerror="this.style.visibility='hidden'"><div><b></b><small>${c.fig_num} · ${c.num_parts || '?'} parts${c.match != null ? ` · ${Math.round(c.match * 100)}% name match` : ''}</small></div>`;
+        b.querySelector('b').textContent = c.name || c.fig_num;
+        b.addEventListener('click', async () => {
+          st.textContent = `Loading ${c.fig_num} from Rebrickable…`; box.hidden = true;
+          try { const res = await api('/api/sets', { method: 'POST', body: JSON.stringify({ set_num: c.fig_num }) }); if (res) location.href = `/s/${res.set.set_num}`; }
+          catch (e) { st.textContent = e.message; }
+        });
+        box.appendChild(b);
+      }
+      box.hidden = false;
+    };
     const figGo = async () => {
       const q = $('#fig-input').value.trim();
       console.log('minifig find clicked:', JSON.stringify(q));
@@ -758,18 +774,7 @@
           return;
         }
         $('#fig-status').textContent = r.candidates.length === 1 ? (src.name ? `BrickOwl: ${src.name}. Tap to add.` : 'Tap to add.') : `${r.candidates.length} matches${src.name ? ` for “${src.name}”` : ''} — tap the right one.`;
-        for (const c of r.candidates) {
-          const b = document.createElement('button'); b.type = 'button'; b.className = 'cand';
-          b.innerHTML = `<img alt="" src="${c.img_url || ''}" onerror="this.style.visibility='hidden'"><div><b></b><small>${c.fig_num} · ${c.num_parts || '?'} parts${c.match != null ? ` · ${Math.round(c.match * 100)}% name match` : ''}</small></div>`;
-          b.querySelector('b').textContent = c.name || c.fig_num;
-          b.addEventListener('click', async () => {
-            $('#fig-status').textContent = `Loading ${c.fig_num} from Rebrickable…`; box.hidden = true;
-            try { const res = await api('/api/sets', { method: 'POST', body: JSON.stringify({ set_num: c.fig_num }) }); if (res) location.href = `/s/${res.set.set_num}`; }
-            catch (e) { $('#fig-status').textContent = e.message; }
-          });
-          box.appendChild(b);
-        }
-        box.hidden = false;
+        showCands(r.candidates, box, $('#fig-status'));
       } catch (e) { console.error('minifig find failed', e); $('#fig-status').textContent = 'Lookup failed: ' + e.message; }
       finally { $('#btn-fig').disabled = false; }
     };
@@ -789,6 +794,9 @@
           if (p.job && p.job.state === 'running') running = p;
         }
         $('#btn-import-pl').disabled = false;
+        const dl = $('#set-suggest'); dl.replaceChildren();
+        for (const p of r.partlists) { const o = document.createElement('option'); o.value = p.name; o.label = `Parts list · ${p.num_parts} pieces`; dl.appendChild(o); }
+        if (running) $('#more-add').open = true;
         if (running) { $('#pl-status').textContent = `Importing ${running.name}… ${running.job.done} / ${running.job.total}`; setTimeout(fillPartlists, 3000); }
       } catch (e) { plSel.innerHTML = `<option value="">${e.message}</option>`; }
     };
@@ -850,23 +858,32 @@
     $('#load-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const v = $('#set-input').value.trim(); if (!v) return;
-      $('#btn-load').disabled = true; $('#load-status').textContent = 'Loading from Rebrickable… this takes a few seconds.';
+      const st = $('#load-status'), box = $('#load-cands'); box.hidden = true; box.replaceChildren();
+      $('#btn-load').disabled = true; st.textContent = 'Looking it up…';
       try {
         const res = await api('/api/sets', { method: 'POST', body: JSON.stringify({ set_num: v }) });
-        if (res && res.job && res.job.set_num && !res.set) {
-          // An inventory shipped with the app (a B-model Rebrickable's API doesn't serve): looked up lot by lot.
-          let j = res.job; const name = `import:${j.set_num}`;
+        if (!res) return;
+        if (res.set) { location.href = `/s/${res.set.set_num}`; return; }
+        if (res.job) {
+          // An import that takes a while: a bundled list or inventory, a B-model read from Rebrickable's website, a wishlist.
+          let j = res.job; const setNum = j.set_num, name = `import:${setNum}`;
           while (j.state === 'running') {
-            $('#load-status').textContent = `Rebrickable's API doesn't list this one; using the inventory shipped with the app… ${j.done} / ${j.total} lots`;
+            st.textContent = j.phase === 'site' ? "Not in Rebrickable's API; reading its page on rebrickable.com…"
+              : `Importing… ${j.done} / ${j.total} lots (Rebrickable allows about one lookup a second)`;
             await new Promise((r) => setTimeout(r, 1500));
             j = await api(`/api/jobs/${name}`);
           }
-          if (j.state === 'failed') throw new Error(j.message || 'Import failed');
-          location.href = `/s/${name.slice(7)}`;
+          if (j.state === 'failed') throw new Error((j.message || 'Import failed') + (/-[bs]\d+$/i.test(setNum) ? ' You can still add it from its parts CSV under “More ways to add a list”.' : ''));
+          location.href = `/s/${setNum}`;
           return;
         }
-        if (res) location.href = `/s/${res.set.set_num}`;
-      } catch (err) { $('#load-status').textContent = err.message; $('#btn-load').disabled = false; }
+        if (res.candidates) {
+          const src = res.source || {}, n = res.candidates.length;
+          st.textContent = `${res.tried_set ? `No set numbered ${v} on Rebrickable. ` : ''}${n === 1 ? 'One minifigure matches' : `${n} minifigures match`}${src.name ? ` “${src.name}”` : ''} — tap ${n === 1 ? 'it' : 'the right one'} to add.`;
+          showCands(res.candidates, box, st);
+        }
+      } catch (err) { st.textContent = err.message; }
+      finally { $('#btn-load').disabled = false; }
     });
     $$('[data-del]').forEach((b) => b.addEventListener('click', async () => {
       if (!confirm(`Remove ${b.dataset.del} and all its counts?`)) return;

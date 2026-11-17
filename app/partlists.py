@@ -47,6 +47,17 @@ def available():
     return out
 
 
+def find(text):
+    """The bundled list someone means by typing its slug, 'pl-<slug>' or its name, else None."""
+    t = (text or "").strip().lower()
+    if not t:
+        return None
+    for pl in available():
+        if t in (pl["slug"].lower(), pl["set_num"].lower(), pl["name"].lower()):
+            return pl
+    return None
+
+
 def load(slug):
     f = DIR / f"{slug}.json"
     if not f.is_file():

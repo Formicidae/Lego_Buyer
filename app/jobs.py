@@ -117,22 +117,30 @@ def start_partlist_import(slug):
     return status(name)
 
 
-def start_csv_import(slug, list_name, rows, as_set=None):
-    """Import a Rebrickable parts CSV (uploaded, or bundled for a set the API doesn't serve); one Rebrickable call per lot."""
+def start_csv_import(slug, list_name, rows, as_set=None, from_site=False):
+    """Import a Rebrickable parts CSV (uploaded, bundled for a set the API doesn't serve, or - with
+    from_site - fetched from that set's page on rebrickable.com first); one Rebrickable call per lot."""
     set_num = as_set["set_num"] if as_set else csvlist.PREFIX + slug
     name = f"import:{set_num}"
     with _lock:
         cur = _jobs.get(name)
         if cur and cur.get("state") == "running":
             return dict(cur)
-        _jobs[name] = {"state": "running", "done": 0, "total": len(rows), "started": time.time(), "set_num": set_num}
+        _jobs[name] = {"state": "running", "done": 0, "total": len(rows or []), "started": time.time(), "set_num": set_num,
+                       "phase": "site" if from_site else "lots"}
 
     def progress(done, total):
         with _lock:
             _jobs[name].update({"done": done, "total": total})
 
     def run():
+        nonlocal rows, list_name, as_set
         try:
+            if from_site:
+                inv = csvlist.from_site(set_num)
+                rows, list_name, as_set = inv["rows"], inv["name"], {"set_num": set_num, "year": inv["year"], "img": inv["img"]}
+                with _lock:
+                    _jobs[name].update({"phase": "lots", "total": len(rows)})
             info, parts, figs, cats, colors, problems = csvlist.fetch(slug, list_name, rows, on_progress=progress, as_set=as_set)
             info["import_notes"] = "\n".join(problems) if problems else None
             db.replace_set(info, parts, figs, cats, colors)

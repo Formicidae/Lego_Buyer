@@ -77,6 +77,8 @@ a { color: var(--green); }
 .load-row input { flex: 1 1 200px; min-width: 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; font-size: 18px; background: var(--card); }
 .hint { color: var(--ink-2); font-size: 13px; }
 .import-form { margin-top: 18px; }
+.more-add { margin-top: 18px; }
+.more-add > summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
 .import-form label { font-weight: 700; display: block; margin-bottom: 6px; }
 .import-form select { flex: 1 1 100%; min-width: 0; width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; font-size: 16px; background: var(--card); }
 .import-form .load-row > .btn { flex: 1 1 auto; }

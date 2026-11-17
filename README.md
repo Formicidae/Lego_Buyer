@@ -41,6 +41,12 @@ shipping* to override; without a cart the estimates use the BrickLink price guid
 JSON file for troubleshooting. LEGO prices that arrive without a Bestseller/Standard category are shown
 in a *Category unknown* box, with fees marked as a minimum, and are re-checked on the next price check.
 
+**One box to add anything.** The box at the top of the home page takes a set number, a B-model or
+sub-set number (`4488-1-b1`: an inventory shipped with the app if there is one, otherwise read from the
+set's page on rebrickable.com), a minifigure (`fig-…`, a BrickLink or BrickOwl id, or a name — matches
+are offered to tap), or the name of a bundled parts list. The separate minifigure, bundled-list and CSV
+forms are folded under *More ways to add a list* as fallbacks.
+
 **Rebrickable parts CSV.** B-models and sub-sets (e.g. `4488-1-b1`) exist on Rebrickable's site but
 its API does not serve them, so *Load a set* cannot find them. On the set's Rebrickable page use
 *Inventory → Export Parts → Rebrickable CSV*, then upload that file on the home page under *Or upload a

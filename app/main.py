@@ -140,33 +140,65 @@ async def health(request: Request):
 
 # ---------- API ----------
 
+def _looks_like_set_num(raw):
+    return bool(re.fullmatch(r"[A-Za-z0-9]+(?:-\d+)?(?:-[A-Za-z]\d+)*", raw)) and any(ch.isdigit() for ch in raw)
+
+
 async def api_sets(request: Request):
+    """POST {"set_num": text}: add whatever the text names. Tried in order: a BrickOwl wishlist (bo-<id>),
+    a parts list bundled with the app (its name or slug), a minifigure (fig-<n>), a Rebrickable set number
+    (falling back to an inventory bundled with the app, then - for B-models and sub-sets - the set's page
+    on rebrickable.com), and finally a minifigure search (BrickOwl / BrickLink id or name).
+    Answers {"set"} when it is loaded, {"job"} when an import was started, or {"candidates"} to choose from."""
     if request.method == "POST":
         body = await request.json()
         raw = (body.get("set_num") or "").strip()
+        low = raw.lower()
         log.info("load list: %r", raw)
-        if raw.lower().startswith("bo-"):
-            return JSONResponse({"job": jobs.start_wishlist_import(raw[3:]), "set": db.get_set(raw)})
-        if raw.lower().startswith(partlists.PREFIX):
-            return JSONResponse({"job": jobs.start_partlist_import(raw[len(partlists.PREFIX):]), "set": db.get_set(raw)})
+        if low.startswith("bo-"):
+            return JSONResponse({"job": jobs.start_wishlist_import(raw[3:]), "set": None})
+        pl = partlists.find(raw)
+        if pl:
+            return JSONResponse({"job": jobs.start_partlist_import(pl["slug"]), "set": None})
+        if low.startswith(partlists.PREFIX):
+            return JSONResponse({"error": f"No bundled parts list called {raw[len(partlists.PREFIX):]!r}."}, status_code=400)
+        tried_set = False
         try:
-            if raw.lower().startswith("fig-"):
-                set_info, parts, figs, cats, colors = await run_in_threadpool(rebrickable.fetch_minifig, raw.lower())
-            else:
+            if low.startswith("fig-"):
+                set_info, parts, figs, cats, colors = await run_in_threadpool(rebrickable.fetch_minifig, low)
+                db.replace_set(set_info, parts, figs, cats, colors)
+                return JSONResponse({"set": db.get_set(set_info["set_num"])})
+            if _looks_like_set_num(raw):
+                tried_set = True
                 set_num = rebrickable.normalize_set_num(raw)
-                set_info, parts, figs, cats, colors = await run_in_threadpool(rebrickable.fetch_set, set_num)
+                try:
+                    set_info, parts, figs, cats, colors = await run_in_threadpool(rebrickable.fetch_set, set_num)
+                    db.replace_set(set_info, parts, figs, cats, colors)
+                    return JSONResponse({"set": db.get_set(set_info["set_num"])})
+                except rebrickable.RebrickableError as e:
+                    if "doesn't know" not in str(e):
+                        raise
+                inv = csvlist.bundled(set_num)
+                if inv:
+                    # Not in the API, but its inventory ships with the app.
+                    return JSONResponse({"job": jobs.start_csv_import(set_num, inv["name"], inv["rows"], as_set={"set_num": set_num, "year": inv["year"], "img": inv["img"]}), "set": None})
+                if re.search(r"-[bs]\d+$", set_num):
+                    # B-models and sub-sets have a page on rebrickable.com but no API entry: read the page.
+                    return JSONResponse({"job": jobs.start_csv_import(set_num, set_num, None, as_set={"set_num": set_num}, from_site=True), "set": None})
         except rebrickable.RebrickableError as e:
-            inv = None if raw.lower().startswith("fig-") or "doesn't know" not in str(e) else csvlist.bundled(set_num)
-            if inv:
-                # A B-model or sub-set the API has no entry for, whose inventory ships with the app.
-                job = jobs.start_csv_import(set_num, inv["name"], inv["rows"], as_set={"set_num": set_num, "year": inv["year"], "img": inv["img"]})
-                return JSONResponse({"job": job, "set": None})
-            hint = " B-models and sub-sets (numbers ending -b1, -s1) aren't in Rebrickable's API: export the parts CSV from its Rebrickable page and upload it below." if re.search(r"-[bs]\d+$", raw.lower()) else ""
-            return JSONResponse({"error": str(e) + hint}, status_code=400)
+            return JSONResponse({"error": str(e)}, status_code=400)
         except Exception as e:  # network etc.
             return JSONResponse({"error": f"Couldn't load the set: {e}"}, status_code=502)
-        db.replace_set(set_info, parts, figs, cats, colors)
-        return JSONResponse({"set": db.get_set(set_info["set_num"])})
+        # Not a set: a minifigure by BrickOwl id, BrickLink id or name?
+        try:
+            cands, notes, source = await run_in_threadpool(brickowl.resolve_minifig, raw)
+        except Exception as e:
+            log.exception("load list: minifig resolve failed for %r", raw)
+            cands, notes, source = [], [f"minifigure lookup failed: {e}"], {}
+        if cands:
+            return JSONResponse({"candidates": cands, "notes": notes, "source": source, "tried_set": tried_set})
+        what = "a Rebrickable set number, a bundled parts list or a minifigure" if tried_set else "a bundled parts list or a minifigure"
+        return JSONResponse({"error": f"Nothing found for “{raw}”: it isn't {what}." + (f" ({'; '.join(notes)})" if notes else "")}, status_code=400)
     return JSONResponse({"sets": db.list_sets()})
 
 
