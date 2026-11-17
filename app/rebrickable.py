@@ -19,7 +19,18 @@ def normalize_set_num(raw: str) -> str:
         raise RebrickableError("Enter a set number.")
     if re.fullmatch(r"[A-Z0-9]+", s):
         s = f"{s}-1"
+    # Rebrickable's B-models and sub-sets end in a lower-case suffix: 4488-1-b1, 75192-1-s1.
+    s = re.sub(r"-([BS]\d+)$", lambda m: "-" + m.group(1).lower(), s)
     return s
+
+
+def _set_num_variants(set_num):
+    """The number as normalised, then other spellings of its case, for ids Rebrickable writes unusually."""
+    out = []
+    for v in (set_num, set_num.lower(), set_num.upper()):
+        if v not in out:
+            out.append(v)
+    return out
 
 
 def _get(path, params=None):
@@ -138,7 +149,16 @@ def fetch_minifig(fig_num: str):
 
 def fetch_set(set_num: str):
     """Returns (set_info, parts, minifigs, categories, colors)."""
-    info = _get(f"/sets/{set_num}/")
+    info = None
+    for i, cand in enumerate(_set_num_variants(set_num)):
+        try:
+            info = _get(f"/sets/{cand}/")
+            set_num = cand
+            break
+        except RebrickableError as e:
+            if "doesn't know" not in str(e) or i == len(_set_num_variants(set_num)) - 1:
+                raise
+            time.sleep(1.0)
     time.sleep(1.0)
     raw_parts = _paged(f"/sets/{set_num}/parts/", {"inc_part_details": 1, "inc_color_details": 1})
     time.sleep(1.0)
