@@ -778,6 +778,25 @@
         location.href = `/s/pl-${slug}`;
       } catch (e) { $('#pl-status').textContent = e.message; $('#btn-import-pl').disabled = false; }
     });
+    $('#btn-import-csv').addEventListener('click', async () => {
+      const f = $('#csv-file').files[0], st = $('#csv-status');
+      if (!f) { st.textContent = 'Choose the CSV file first.'; return; }
+      const fd = new FormData(); fd.append('file', f); fd.append('name', $('#csv-name').value.trim());
+      $('#btn-import-csv').disabled = true; st.textContent = 'Starting import… one Rebrickable lookup per lot.';
+      try {
+        const r = await fetch('/api/csvlists', { method: 'POST', body: fd });
+        let j = await r.json();
+        if (!r.ok) throw new Error(j.error || 'Import failed');
+        const name = `import:${j.set_num}`;
+        while (j.state === 'running') {
+          st.textContent = `Importing… ${j.done} / ${j.total} lots (Rebrickable allows about one lookup a second)`;
+          await new Promise((res) => setTimeout(res, 1500));
+          j = await api(`/api/jobs/${name}`);
+        }
+        if (j.state === 'failed') throw new Error(j.message || 'Import failed');
+        location.href = `/s/${name.slice(7)}`;
+      } catch (e) { st.textContent = e.message; $('#btn-import-csv').disabled = false; }
+    });
     const sel = $('#wl-select');
     try {
       const r = await api('/api/brickowl/wishlists');

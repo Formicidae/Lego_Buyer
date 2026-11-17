@@ -1,8 +1,11 @@
 """Background jobs (one thread each, status readable by the UI). Small enough not to need a queue."""
+import logging
 import threading
 import time
 
-from . import bricklink, brickowl, db, lego, partlists
+from . import bricklink, brickowl, csvlist, db, lego, partlists
+
+log = logging.getLogger("lego_buyer")
 
 _jobs = {}
 _lock = threading.Lock()
@@ -103,6 +106,36 @@ def start_partlist_import(slug):
             with _lock:
                 _jobs[name].update({"state": "done", "finished": time.time(), "lots": len(parts), "problems": problems})
         except Exception as e:
+            with _lock:
+                _jobs[name].update({"state": "failed", "message": str(e)})
+
+    threading.Thread(target=run, name=name, daemon=True).start()
+    return status(name)
+
+
+def start_csv_import(slug, list_name, rows):
+    """Import an uploaded Rebrickable parts CSV as a parts list; one Rebrickable call per lot."""
+    set_num = csvlist.PREFIX + slug
+    name = f"import:{set_num}"
+    with _lock:
+        cur = _jobs.get(name)
+        if cur and cur.get("state") == "running":
+            return dict(cur)
+        _jobs[name] = {"state": "running", "done": 0, "total": len(rows), "started": time.time(), "set_num": set_num}
+
+    def progress(done, total):
+        with _lock:
+            _jobs[name].update({"done": done, "total": total})
+
+    def run():
+        try:
+            info, parts, figs, cats, colors, problems = csvlist.fetch(slug, list_name, rows, on_progress=progress)
+            info["import_notes"] = "\n".join(problems) if problems else None
+            db.replace_set(info, parts, figs, cats, colors)
+            with _lock:
+                _jobs[name].update({"state": "done", "finished": time.time(), "lots": len(parts), "problems": problems})
+        except Exception as e:
+            log.exception("csv import failed: %s", set_num)
             with _lock:
                 _jobs[name].update({"state": "failed", "message": str(e)})
 

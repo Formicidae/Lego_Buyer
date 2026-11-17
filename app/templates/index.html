@@ -63,6 +63,16 @@
     <p class="hint" id="pl-status">Lists of specific bags of a set, shipped with the app (e.g. the bags missing from a second-hand set).</p>
   </div>
 
+  <div class="import-form">
+    <label for="csv-file">Or upload a Rebrickable parts CSV</label>
+    <div class="load-row">
+      <input id="csv-name" placeholder="Name, e.g. Mini Y-wing bonus build" autocomplete="off">
+      <button class="btn primary" type="button" id="btn-import-csv">Import</button>
+    </div>
+    <input id="csv-file" type="file" accept=".csv,text/csv">
+    <p class="hint" id="csv-status">For B-models and anything else the set loader can't find (e.g. 4488-1-b1): on its Rebrickable page open <b>Inventory → Export Parts → Rebrickable CSV</b> and upload that file.</p>
+  </div>
+
   <div class="lists-head"><h2>Your lists</h2><button class="btn primary" id="btn-combine" type="button" disabled>Open selected together</button></div>
   <p class="hint">Tick two or more and open them together for one combined store checklist. Each list keeps its own counts, so you can still buy for just one of them afterwards. Finds are credited to lists in the order you tick them.</p>
   <ul class="set-list" id="set-list">

@@ -32,6 +32,12 @@ BrickOwl/BrickLink sellers.
   guide. Pasting the page text or a printed PDF still works but only gives store totals; carts can
   also be entered by hand (or POSTed to `/api/sourcing/{list}/carts`) for BrickLink.
 
+**Rebrickable parts CSV.** B-models and sub-sets (e.g. `4488-1-b1`) exist on Rebrickable's site but
+its API does not serve them, so *Load a set* cannot find them. On the set's Rebrickable page use
+*Inventory → Export Parts → Rebrickable CSV*, then upload that file on the home page under *Or upload a
+Rebrickable parts CSV*; each lot is looked up for its name, picture and element id and the result is a
+parts list like any other.
+
 ## Run it on a Raspberry Pi (free, always on)
 
 Works on a Pi 4 (any RAM) with Raspberry Pi OS, no monitor needed.

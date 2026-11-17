@@ -5,6 +5,7 @@ import json
 import logging
 import logging.handlers
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -21,7 +22,7 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from . import bricklink, brickowl, cartparse, db, jobs, lego, partlists, rebrickable, sourcing, steps, views
+from . import bricklink, brickowl, cartparse, csvlist, db, jobs, lego, partlists, rebrickable, sourcing, steps, views
 from .checklist import build_checklist, render_checklist_html, render_checklist_pdf
 from .config import APP_PASSCODE, SECRET, REBRICKABLE_API_KEY, DATA_DIR, CHROMIUM_PATH
 
@@ -647,6 +648,23 @@ async def api_partlists(request: Request):
     return JSONResponse({"partlists": out})
 
 
+async def api_csvlist(request: Request):
+    """Upload a Rebrickable parts CSV (multipart: file, name) and import it as a parts list."""
+    form = await request.form()
+    up = form.get("file")
+    if up is None or not getattr(up, "filename", None):
+        return JSONResponse({"error": "Choose the CSV file first."}, status_code=400)
+    data = await up.read()
+    try:
+        rows = csvlist.parse(data)
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    name = (form.get("name") or "").strip() or re.sub(r"\.csv$", "", up.filename, flags=re.I)
+    slug = csvlist.slugify(name)
+    log.info("csv list: %r -> %s, %d rows", name, slug, len(rows))
+    return JSONResponse({**jobs.start_csv_import(slug, name, rows), "rows": len(rows)})
+
+
 async def api_job(request: Request):
     return JSONResponse(jobs.status(request.path_params["name"]))
 
@@ -857,6 +875,7 @@ routes = [
     Route("/api/brickowl/wishlists", api_bo_wishlists),
     Route("/api/brickowl/import", api_bo_import, methods=["POST"]),
     Route("/api/partlists", api_partlists, methods=["GET", "POST"]),
+    Route("/api/csvlists", api_csvlist, methods=["POST"]),
     Route("/api/jobs/{name}", api_job),
     Route("/api/admin/diagnostics", api_admin_diagnostics),
     Route("/api/admin/logs", api_admin_logs),
