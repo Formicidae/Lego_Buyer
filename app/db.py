@@ -173,6 +173,7 @@ MIGRATIONS = [
     "ALTER TABLE set_parts ADD COLUMN bo_price REAL",
     "ALTER TABLE set_parts ADD COLUMN bo_store TEXT",
     "ALTER TABLE set_parts ADD COLUMN bo_url TEXT",
+    "ALTER TABLE set_parts ADD COLUMN bo_qty INTEGER",
     "ALTER TABLE set_parts ADD COLUMN bo_checked_at REAL",
     "ALTER TABLE sets ADD COLUMN build_mode INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE sets ADD COLUMN build_pos INTEGER",
@@ -524,10 +525,14 @@ def steps(set_num):
 def elements_to_price(set_num, max_age_hours=24, include_spares=False):
     """Distinct element IDs in the set whose price is missing or stale."""
     cutoff = time.time() - max_age_hours * 3600
+    # A price without a Bestseller/Standard category came from the fallback lookup; try again sooner
+    # (after ten minutes) so the category fills in once LEGO's price API answers properly.
     rows = q(
         "SELECT DISTINCT element_id FROM set_parts WHERE set_num=? AND element_id IS NOT NULL AND element_id != '' "
-        "AND (price_checked_at IS NULL OR price_checked_at < ?)" + ("" if include_spares else " AND is_spare=0"),
-        (set_num, cutoff),
+        "AND (price_checked_at IS NULL OR price_checked_at < ? "
+        "     OR (lego_price IS NOT NULL AND lego_available=1 AND lego_tier IS NULL AND tier_manual IS NULL AND price_checked_at < ?))"
+        + ("" if include_spares else " AND is_spare=0"),
+        (set_num, cutoff, time.time() - 600),
     )
     return [r["element_id"] for r in rows]
 
@@ -615,13 +620,13 @@ def save_bl_price(part_num, color_id, price, qty, lots):
 
 
 def save_bo_prices(prices):
-    """prices: {(part_num, color_id): {"price", "store", "url"}} from an imported BrickOwl cart page."""
+    """prices: {(part_num, color_id): {"price" (average per piece), "qty", "store", "url"}} from an imported BrickOwl cart page."""
     now = time.time()
     with tx() as conn:
         for (part_num, color_id), v in prices.items():
             conn.execute(
-                "UPDATE set_parts SET bo_price=?, bo_store=?, bo_url=?, bo_checked_at=? WHERE part_num=? AND color_id=?",
-                (v["price"], v["store"], v.get("url"), now, part_num, color_id),
+                "UPDATE set_parts SET bo_price=?, bo_qty=?, bo_store=?, bo_url=?, bo_checked_at=? WHERE part_num=? AND color_id=?",
+                (v["price"], v.get("qty"), v["store"], v.get("url"), now, part_num, color_id),
             )
         for r in conn.execute("SELECT DISTINCT set_num FROM set_parts WHERE bo_checked_at=?", (now,)):
             bump_rev(conn, r["set_num"])

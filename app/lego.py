@@ -278,13 +278,32 @@ US_FEES = {"category_min": 14.00, "service_fee": 7.00, "free_ship_min": 35.00, "
 _session = requests.Session()
 
 
+_last_rediscover = [0.0]
+REDISCOVER_EVERY = 600
+
+
+def _query_rejected(r):
+    """True when the response says the query itself is invalid (stale), as opposed to an outage."""
+    if r.status_code == 400:
+        return True
+    return r.status_code in (200, 422, 500) and bool(re.search(r"validation error|Cannot query field|Unknown (?:argument|type|fragment)", r.text[:2000], re.I))
+
+
+def _may_rediscover():
+    if time.time() - _last_rediscover[0] < REDISCOVER_EVERY:
+        return False
+    _last_rediscover[0] = time.time()
+    return True
+
+
 def graphql_lookup(element_id: str, timeout=20):
     """Returns {"price", "tier", "available", "limit", "source": "graphql"} or None if not found."""
     q = discover_query()
     body = {"operationName": "PickABrickQuery", "variables": query_variables(q, element_id), "query": q}
     r = _session.post(GRAPHQL_URL, headers=HEADERS, data=json.dumps(body), timeout=timeout)
-    if r.status_code == 400 and QUERY_CACHE.exists():
-        # The cached query may be stale; re-discover once.
+    if _query_rejected(r) and _may_rediscover():
+        # LEGO changed its schema and the query we cached no longer validates: read the current one
+        # from the Pick a Brick page again (at most once every few minutes, not once per element).
         q = discover_query(force=True)
         body["query"], body["variables"] = q, query_variables(q, element_id)
         r = _session.post(GRAPHQL_URL, headers=HEADERS, data=json.dumps(body), timeout=timeout)
@@ -389,7 +408,10 @@ def lookup(element_id: str):
         err = e
     try:
         # The page is authoritative when it answers: a 404 there means LEGO doesn't sell the element.
-        return page_lookup(element_id)
+        res = page_lookup(element_id)
+        if res is not None and err is not None:
+            res["graphql_error"] = str(err)[:200]  # price came from the page, so the tier is usually unknown
+        return res
     except (LegoError, requests.RequestException) as e:
         raise LegoError(f"{e}" + (f" (GraphQL: {err})" if err else ""))
 
@@ -438,7 +460,14 @@ def plan_fees(items, fees=US_FEES):
         shipping = fees["ship_25_to_35"]
     else:
         shipping = fees["ship_under_25"]
+    unknown = {"lots": 0, "pieces": 0, "subtotal": 0.0}
+    for name, t in tiers.items():
+        if name not in ("Bestseller", "Standard"):
+            for k in unknown:
+                unknown[k] += t[k]
+    unknown["subtotal"] = round(unknown["subtotal"], 2)
     return {
+        "unknown": unknown,  # priced lots whose Bestseller/Standard category is not known: their service fees are not counted
         "tiers": tiers, "subtotal": round(total, 2), "service_fees": round(service, 2), "shipping": round(shipping, 2),
         "total": round(total + service + shipping, 2), "free_ship_min": fees["free_ship_min"],
         "free_ship_short": round(max(0.0, fees["free_ship_min"] - total), 2),

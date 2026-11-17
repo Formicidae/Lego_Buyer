@@ -143,6 +143,7 @@ a { color: var(--green); }
 .tier h3 { margin: 0 0 2px; font-size: 14px; display: flex; justify-content: space-between; }
 .tier small { color: var(--ink-2); font-size: 12px; }
 .tier .bar { margin: 6px 0 4px; }
+.tier.tier-unknown { grid-column: 1 / -1; border-color: var(--amber-ink); }
 .tier .ok { color: var(--green); font-weight: 700; }
 .tier .warn { color: var(--red); font-weight: 700; }
 .buy-total { margin-top: 10px; font-size: 14px; display: flex; gap: 16px; flex-wrap: wrap; }

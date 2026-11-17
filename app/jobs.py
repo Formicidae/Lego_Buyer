@@ -22,7 +22,8 @@ def start_price_job(set_num, force=False):
         cur = _jobs.get(name)
         if cur and cur.get("state") == "running":
             return dict(cur)
-        _jobs[name] = {"state": "running", "done": 0, "total": 0, "errors": 0, "not_sold": 0, "started": time.time(), "last_error": None}
+        _jobs[name] = {"state": "running", "done": 0, "total": 0, "errors": 0, "not_sold": 0, "no_tier": 0, "tier_error": None,
+                       "started": time.time(), "last_error": None}
 
     def run():
         try:
@@ -39,6 +40,9 @@ def start_price_job(set_num, force=False):
                         j["last_error"] = err
                     elif res is None:
                         j["not_sold"] += 1
+                    elif not res.get("tier"):
+                        j["no_tier"] += 1
+                        j["tier_error"] = res.get("graphql_error") or j["tier_error"]
                 # Stop hammering LEGO if everything is failing (blocked, outage).
                 with _lock:
                     j = _jobs[name]
@@ -113,9 +117,9 @@ def start_partlist_import(slug):
     return status(name)
 
 
-def start_csv_import(slug, list_name, rows):
-    """Import an uploaded Rebrickable parts CSV as a parts list; one Rebrickable call per lot."""
-    set_num = csvlist.PREFIX + slug
+def start_csv_import(slug, list_name, rows, as_set=None):
+    """Import a Rebrickable parts CSV (uploaded, or bundled for a set the API doesn't serve); one Rebrickable call per lot."""
+    set_num = as_set["set_num"] if as_set else csvlist.PREFIX + slug
     name = f"import:{set_num}"
     with _lock:
         cur = _jobs.get(name)
@@ -129,7 +133,7 @@ def start_csv_import(slug, list_name, rows):
 
     def run():
         try:
-            info, parts, figs, cats, colors, problems = csvlist.fetch(slug, list_name, rows, on_progress=progress)
+            info, parts, figs, cats, colors, problems = csvlist.fetch(slug, list_name, rows, on_progress=progress, as_set=as_set)
             info["import_notes"] = "\n".join(problems) if problems else None
             db.replace_set(info, parts, figs, cats, colors)
             with _lock:

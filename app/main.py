@@ -156,7 +156,13 @@ async def api_sets(request: Request):
                 set_num = rebrickable.normalize_set_num(raw)
                 set_info, parts, figs, cats, colors = await run_in_threadpool(rebrickable.fetch_set, set_num)
         except rebrickable.RebrickableError as e:
-            return JSONResponse({"error": str(e)}, status_code=400)
+            inv = None if raw.lower().startswith("fig-") or "doesn't know" not in str(e) else csvlist.bundled(set_num)
+            if inv:
+                # A B-model or sub-set the API has no entry for, whose inventory ships with the app.
+                job = jobs.start_csv_import(set_num, inv["name"], inv["rows"], as_set={"set_num": set_num, "year": inv["year"], "img": inv["img"]})
+                return JSONResponse({"job": job, "set": None})
+            hint = " B-models and sub-sets (numbers ending -b1, -s1) aren't in Rebrickable's API: export the parts CSV from its Rebrickable page and upload it below." if re.search(r"-[bs]\d+$", raw.lower()) else ""
+            return JSONResponse({"error": str(e) + hint}, status_code=400)
         except Exception as e:  # network etc.
             return JSONResponse({"error": f"Couldn't load the set: {e}"}, status_code=502)
         db.replace_set(set_info, parts, figs, cats, colors)
@@ -332,18 +338,36 @@ async def api_sourcing(request: Request):
     if not info:
         return JSONResponse({"error": "not found"}, status_code=404)
     items = sourcing.needed_items(info, parts)
-    opts = {}
+    ident = request.path_params["ident"]
+    carts = db.carts(ident)
+    opts = {"market_shipping": None}
     try:
-        opts["market_shipping"] = float(request.query_params.get("ship", "5"))
+        if request.query_params.get("ship") not in (None, ""):
+            opts["market_shipping"] = max(0.0, float(request.query_params["ship"]))
     except ValueError:
         pass
-    ident = request.path_params["ident"]
-    sc = sourcing.scenarios(items, opts) + sourcing.cart_scenarios(items, db.carts(ident), opts)
+    # The newest imported cart that lists its lots prices the estimates: what each part costs there and
+    # which stores (and so how much shipping) a given split still needs.
+    lot_cart = next((c for c in carts if any(st.get("lot_list") for st in c["stores"])), None)
+    ctx = sourcing.cart_context(items, lot_cart) if lot_cart else None
+    if ctx:
+        opts["cart"] = ctx
+        marker = f"{sourcing.ALLOC_VERSION}:{lot_cart['id']}"
+        if db.setting_get(f"bo_alloc:{ident}") != marker:
+            # Carts imported by an older version stored each part's cheapest lot price; store the real average once.
+            prices = sourcing.alloc_prices(items, ctx["alloc"])
+            if prices:
+                await run_in_threadpool(db.save_bo_prices, prices)
+            db.setting_set(f"bo_alloc:{ident}", marker)
+    sc = sourcing.scenarios(items, opts) + sourcing.cart_scenarios(items, carts, opts)
     sc.sort(key=lambda x: (bool(x.get("incomplete")), x["total"]))
+    ship_info = {"user": opts["market_shipping"], "default": sourcing.DEFAULTS["market_shipping"],
+                 "cart": ({"name": lot_cart["name"], "total": lot_cart["shipping_total"], "stores": len(lot_cart["stores"]),
+                           "unmatched_lots": len(ctx["unmatched"])} if ctx else None)}
     bl_job = jobs.status(f"blprices:{keys[0]}")
     bo_ok, bo_skipped = sourcing.brickowl_wishlist_items(items)
     return JSONResponse({
-        "items": items, "scenarios": sc, "bricklink_configured": bricklink.configured(), "bl_job": bl_job,
+        "items": items, "scenarios": sc, "shipping": ship_info, "bricklink_configured": bricklink.configured(), "bl_job": bl_job,
         "bo_push": jobs.status(f"bopush:{keys[0]}"), "bo_skipped": [i["key"] for i in bo_skipped],
         "unpriced_lego": sum(1 for i in items if not i["lego_checked"]), "unpriced_bl": sum(1 for i in items if not i["bl_checked"]),
     })
@@ -444,7 +468,8 @@ async def api_cart_import(request: Request):
     n_lots = sum(len(st.get("lot_list") or []) for st in parsed["stores"])
     if n_lots:
         # The saved page lists every allocated lot: remember each part's real BrickOwl price for the per-part comparison.
-        lot_prices, matched_keys, unmatched = sourcing.match_lots(items, parsed["stores"])
+        alloc, unmatched = sourcing.allocate(items, parsed["stores"])
+        lot_prices, matched_keys = sourcing.alloc_prices(items, alloc), set(alloc)
         if lot_prices:
             await run_in_threadpool(db.save_bo_prices, lot_prices)
     if body_keys:
@@ -459,11 +484,52 @@ async def api_cart_import(request: Request):
     stores = [{**st, "lot_list": st.get("lot_list") or []} for st in parsed["stores"]]
     cid = db.add_cart(ident, source, label, stores, chosen_keys, parts_total, ship_total,
                       parsed["lots_covered"], parsed["lots_missing"], parsed["url"])
+    if lot_prices:
+        db.setting_set(f"bo_alloc:{ident}", f"{sourcing.ALLOC_VERSION}:{cid}")
+    no_lot = [f"{i['color_name']} {i['name']}" for i in items if n_lots and i["key"] in set(chosen_keys) and i["key"] not in matched_keys]
     log.info("cart imported from page: %s %s stores=%d total=%.2f missing=%s lots=%d matched=%d unmatched=%d",
              ident, label, len(parsed["stores"]), parsed["total"], parsed["lots_missing"], n_lots, len(matched_keys), len(unmatched))
     return JSONResponse({"id": cid, "stores": [{k: v for k, v in st.items() if k != "lot_list"} for st in stores], "total": parsed["total"],
                          "lots_covered": parsed["lots_covered"], "lots_missing": parsed["lots_missing"],
-                         "lots": n_lots, "matched": len(matched_keys), "priced": len(lot_prices), "unmatched": unmatched[:40]})
+                         "lots": n_lots, "matched": len(matched_keys), "priced": len(lot_prices), "unmatched": unmatched[:40],
+                         "parts_without_lot": no_lot[:40]})
+
+
+async def api_sourcing_export(request: Request):
+    """Everything the Buy tab is computed from, as one JSON file to attach when something looks wrong:
+    each part with its counts and LEGO / BrickLink / BrickOwl prices, the imported carts with their lots,
+    and the scenarios as the server works them out."""
+    ident = request.path_params["ident"]
+    info, parts, keys = _target(ident)
+    if not info:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    items = sourcing.needed_items(info, parts)
+    carts = db.carts(ident)
+    lot_cart = next((c for c in carts if any(st.get("lot_list") for st in c["stores"])), None)
+    opts = {"market_shipping": None}
+    ctx = sourcing.cart_context(items, lot_cart) if lot_cart else None
+    if ctx:
+        opts["cart"] = ctx
+    fields = ("key", "part_num", "part_name", "color_id", "color_name", "element_id", "quantity", "is_spare", "owned", "found_exact", "found_alt",
+              "lego_price", "lego_tier", "tier_manual", "tier", "lego_available", "lego_limit", "lego_error", "price_checked_at",
+              "bl_price", "bl_qty", "bl_checked_at", "bo_price", "bo_qty", "bo_store", "bo_checked_at")
+    out = {
+        "exported_at": time.time(), "app_version": _git("rev-parse", "--short", "HEAD"), "ident": ident,
+        "list": {k: info.get(k) for k in ("set_num", "name", "kind", "num_parts", "include_spares", "count_alt", "import_notes")},
+        "parts": [{**{f: p.get(f) for f in fields},
+                   "ids": {k: v for k, v in ((p.get("external_ids") or {}).get("part") or {}).items() if k in ("LEGO", "BrickLink", "BrickOwl")},
+                   "bo_colors": ((p.get("external_ids") or {}).get("color") or {}).get("BrickOwl")} for p in parts],
+        "carts": carts,
+        "cart_match": ({"cart_id": ctx["cart_id"], "alloc": ctx["alloc"], "unmatched_lots": ctx["unmatched"],
+                        "parts_without_lot": [i["key"] for i in items if i["key"] not in ctx["alloc"]]} if ctx else None),
+        "scenarios": sourcing.scenarios(items, opts) + sourcing.cart_scenarios(items, carts, opts),
+        "lego_plan": _buyplan(info, parts, None)["lego"] if not ident.startswith("v:") else None,
+        "jobs": {n: jobs.status(f"{n}:{keys[0]}") for n in ("prices", "blprices", "bopush")},
+        "keys": {"brickowl": bool(brickowl.api_key()), "bricklink": bricklink.configured()},
+    }
+    fname = re.sub(r"[^A-Za-z0-9_.-]+", "-", f"lego-buyer-{ident}-{time.strftime('%Y%m%d-%H%M')}.json")
+    return Response(json.dumps(out, indent=1, default=str), media_type="application/json",
+                    headers={"Content-Disposition": f'attachment; filename="{fname}"'})
 
 
 async def api_sourcing_xml(request: Request):
@@ -649,17 +715,23 @@ async def api_partlists(request: Request):
 
 
 async def api_csvlist(request: Request):
-    """Upload a Rebrickable parts CSV (multipart: file, name) and import it as a parts list."""
-    form = await request.form()
-    up = form.get("file")
-    if up is None or not getattr(up, "filename", None):
+    """Import a Rebrickable parts CSV as a parts list. JSON {name, filename, text}, or multipart (file, name)."""
+    if request.headers.get("content-type", "").startswith("application/json"):
+        body = await request.json()
+        data, filename, name = (body.get("text") or "").encode("utf-8"), body.get("filename") or "list.csv", body.get("name") or ""
+    else:
+        form = await request.form()
+        up = form.get("file")
+        if up is None or not getattr(up, "filename", None):
+            return JSONResponse({"error": "Choose the CSV file first."}, status_code=400)
+        data, filename, name = await up.read(), up.filename, form.get("name") or ""
+    if not data.strip():
         return JSONResponse({"error": "Choose the CSV file first."}, status_code=400)
-    data = await up.read()
     try:
         rows = csvlist.parse(data)
     except ValueError as e:
         return JSONResponse({"error": str(e)}, status_code=400)
-    name = (form.get("name") or "").strip() or re.sub(r"\.csv$", "", up.filename, flags=re.I)
+    name = name.strip() or re.sub(r"\.csv$", "", filename, flags=re.I)
     slug = csvlist.slugify(name)
     log.info("csv list: %r -> %s, %d rows", name, slug, len(rows))
     return JSONResponse({**jobs.start_csv_import(slug, name, rows), "rows": len(rows)})
@@ -869,6 +941,7 @@ routes = [
     Route("/api/sourcing/{ident}/bricklink", api_sourcing_bl, methods=["POST"]),
     Route("/api/sourcing/{ident}/brickowl", api_sourcing_bo, methods=["POST"]),
     Route("/api/sourcing/{ident}/wanted.xml", api_sourcing_xml),
+    Route("/api/sourcing/{ident}/export.json", api_sourcing_export),
     Route("/api/sourcing/{ident}/carts", api_carts, methods=["GET", "POST", "DELETE"]),
     Route("/api/sourcing/{ident}/carts/import", api_cart_import, methods=["POST"]),
     Route("/api/tier", api_tier, methods=["POST"]),

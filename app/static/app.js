@@ -314,7 +314,7 @@
     if (it.lego_price == null || !it.lego_available) {
       pr.classList.add('na');
       const bl = it.bl_checked_at ? (it.bl_price != null ? ` · BL ~$${it.bl_price.toFixed(2)}` : ' · BL: none listed') : '';
-      const bo = it.bo_price != null ? ` · <a class="bo" href="${it.bo_url || '#'}" target="_blank" rel="noopener" title="${it.bo_store || ''}">BO $${it.bo_price.toFixed(2)}</a>` : '';
+      const bo = it.bo_price != null ? ` · <a class="bo" href="${it.bo_url || '#'}" target="_blank" rel="noopener" title="${it.bo_store || ''}">BO ${(it.bo_store || '').includes(' + ') ? '~' : ''}$${it.bo_price.toFixed(it.bo_price < 0.1 ? 3 : 2)}</a>` : '';
       pr.innerHTML = `Not sold by LEGO Pick a Brick${bl}${bo}${state.chosen && state.chosen.market && state.chosen.market.has(it.key) ? ' <span class="src-tag src-market">marketplace</span>' : ''}`;
       return;
     }
@@ -322,7 +322,7 @@
     const t = it.tier || it.lego_tier;
     const tier = `<button type="button" class="tier-btn ${t === 'Bestseller' ? 'tier-pab' : t === 'Standard' ? 'tier-bap' : ''}" data-tier="${it.element_id || ''}" title="Tap to change Bestseller / Standard">${t || 'tier?'}</button>`;
     const bl = it.bl_checked_at ? (it.bl_price != null ? ` · <span class="bl">BL ~$${it.bl_price.toFixed(2)}</span>` : ' · <span class="bl">BL: none listed</span>') : '';
-    const bo = it.bo_price != null ? ` · <a class="bo" href="${it.bo_url || '#'}" target="_blank" rel="noopener" title="${it.bo_store || ''}">BO $${it.bo_price.toFixed(2)}</a>` : '';
+    const bo = it.bo_price != null ? ` · <a class="bo" href="${it.bo_url || '#'}" target="_blank" rel="noopener" title="${it.bo_store || ''}">BO ${(it.bo_store || '').includes(' + ') ? '~' : ''}$${it.bo_price.toFixed(it.bo_price < 0.1 ? 3 : 2)}</a>` : '';
     const src = state.chosen && state.chosen.market && state.chosen.market.has(it.key) ? ' <span class="src-tag src-market">marketplace</span>' : state.chosen && state.chosen.lego && state.chosen.lego.has(it.key) ? ' <span class="src-tag src-lego">LEGO</span>' : '';
     pr.innerHTML = `<b>LEGO:</b> $${it.lego_price.toFixed(2)} each · $${(it.lego_price * rem).toFixed(2)} needed · ${tier}${it.lego_limit ? ` · limit ${it.lego_limit}` : ''}${bl}${bo}${src}`;
   };
@@ -587,10 +587,17 @@
         <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div><small>${verdict}</small></div>`;
     };
     const ship = L.shipping ? `<span class="warn">${money(L.shipping)} shipping</span> · ${money(L.free_ship_short)} short of free shipping (sets count too)` : `<span class="ok">free shipping</span>`;
+    // Priced lots whose Bestseller/Standard category LEGO did not give us: say so instead of showing two empty boxes.
+    const U = L.unknown && L.unknown.lots ? L.unknown : null;
+    const unknownCard = U ? `<div class="tier tier-unknown"><h3>Category unknown <span>${money(U.subtotal)}</span></h3>
+      <small>${U.lots} lots · ${U.pieces} pieces. LEGO gave a price for these but not whether each is Bestseller or Standard, so they are in neither box and their service fees can't be worked out yet.
+      Tap <b>Re-check all</b> to ask again, or tap “tier?” on a part to set it by hand.</small></div>` : '';
+    const noId = plan.unpriced.filter((i) => !i.element_id).length, toCheck = plan.unpriced.length - noId;
     el.innerHTML = `
-      <div class="tiers">${tierCard('Bestseller', L.tiers.Bestseller)}${tierCard('Standard', L.tiers.Standard)}</div>
-      <div class="buy-total"><span>Parts <b>${money(L.subtotal)}</b></span><span>Fees <b>${money(L.service_fees)}</b></span><span>${ship}</span><span>Total <b>${money(L.total)}</b></span></div>
-      <p class="hint">${plan.not_sold_by_lego.length} lot${plan.not_sold_by_lego.length === 1 ? '' : 's'} not sold by LEGO · see “Where to buy” below${plan.unpriced.length ? ` · ${plan.unpriced.length} not checked yet` : ''}</p>`;
+      <div class="tiers">${tierCard('Bestseller', L.tiers.Bestseller)}${tierCard('Standard', L.tiers.Standard)}${unknownCard}</div>
+      <div class="buy-total"><span>Parts <b>${money(L.subtotal)}</b></span><span>Fees <b>${U ? `${money(L.service_fees)}+` : money(L.service_fees)}</b></span><span>${ship}</span><span>Total <b>${money(L.total)}${U ? '+' : ''}</b></span></div>
+      ${U ? '<p class="hint warn-text">Fees and total are a minimum: up to $7 per category may be added once the categories are known.</p>' : ''}
+      <p class="hint">${plan.not_sold_by_lego.length} lot${plan.not_sold_by_lego.length === 1 ? '' : 's'} not sold by LEGO · see “Where to buy” below${toCheck ? ` · ${toCheck} not checked yet` : ''}${noId ? ` · ${noId} can't be checked (no LEGO element id)` : ''}</p>`;
   };
   const cycleTier = async (eid, cur) => {
     const next = cur === 'Bestseller' ? 'Standard' : cur === 'Standard' ? '' : 'Bestseller';
@@ -602,13 +609,25 @@
   };
 
   // ---------- sourcing (LEGO vs marketplace) ----------
-  const shipEst = () => Number(localStorage.getItem('lb_ship') || 5);
+  // A shipping figure the user typed for this list; blank means "work it out" (imported cart, else the default).
+  const srcIdent = () => state.isView ? `v:${viewKeys}` : state.setNum;
+  const shipEst = () => { let v = null; try { v = localStorage.getItem('lb_ship:' + srcIdent()); } catch {} return v == null || v === '' ? null : Number(v); };
+  // Chrome on Android can refuse to upload a picked file ("Failed to fetch") when the file's details
+  // changed after it was chosen; reading it into memory first avoids that.
+  const inMemory = async (f) => new File([await f.arrayBuffer()], f.name, { type: f.type || 'application/octet-stream' });
   let srcData = null;
   const renderSourcing = async () => {
     if (state.mode !== 'buy' || !state.setNum) return;
     const ident = state.isView ? `v:${viewKeys}` : state.setNum;
-    try { srcData = await api(`/api/sourcing/${ident}?ship=${shipEst()}`); } catch (e) { $('#src-status').textContent = e.message; return; }
+    const typed = shipEst();
+    try { srcData = await api(`/api/sourcing/${ident}${typed == null ? '' : `?ship=${typed}`}`); } catch (e) { $('#src-status').textContent = e.message; return; }
     if (!srcData) return;
+    const SH = srcData.shipping || {};
+    $('#ship-est').value = typed == null ? '' : typed;
+    $('#ship-est').placeholder = SH.cart ? 'cart' : String(SH.default ?? 5);
+    $('#ship-hint').textContent = typed != null ? 'Your figure is used for every estimate; clear the box to go back to automatic.'
+      : SH.cart ? `Blank = taken from your imported cart (${money(SH.cart.total)} across ${SH.cart.stores} stores; a split that needs fewer of those stores pays only for the ones it needs).`
+      : `Blank = ${money(SH.default)} for one order. Import a BrickOwl cart below for real store prices and shipping.`;
     const box = $('#scenarios'); box.replaceChildren();
     const best = srcData.scenarios.find((s) => !s.incomplete) || srcData.scenarios[0];
     const chosenName = localStorage.getItem('lb_scenario:' + ident) || best.name;
@@ -618,17 +637,22 @@
       const d = document.createElement('div'); d.className = 'scenario' + (sc === best ? ' best' : '') + (sc === chosen ? ' chosen' : '');
       const L = sc.lego; const M = sc.market;
       const stores = sc.imported ? `<div class="stores">${sc.stores.map((st) => `${st.name}: ${money(st.subtotal)} + ${money(st.shipping)} ship`).join(' · ')}${sc.url ? ` · <a href="${sc.url}" target="_blank" rel="noopener">open</a>` : ''} · <a href="#" data-delcart="${sc.cart_id}">remove</a></div>` : '';
-      d.innerHTML = `<h3><span>${sc.name}${sc === best ? ' · cheapest' : ''}</span><b>${sc.incomplete ? 'from ' : ''}${money(sc.total)}</b></h3><small>${sc.note}${sc.incomplete ? ` <b>Incomplete:</b> ${sc.market.unpriced} marketplace lot(s) have no price yet, so this is only a floor.` : ''}</small>
+      const names = (M.unpriced_names || []).join('; ');
+      const shipNote = sc.imported ? '' : M.shipping_from === 'cart' ? ` — ${M.stores} store${M.stores === 1 ? '' : 's'} at your imported cart's rates` : M.shipping_from === 'user' ? ' — your figure' : M.shipping_from === 'default' ? ' — flat estimate, real carts usually cost more' : '';
+      const feeNote = L && L.unknown && L.unknown.lots ? '+ (categories unknown)' : '';
+      d.innerHTML = `<h3><span>${sc.name}${sc === best ? ' · cheapest' : ''}</span><b>${sc.incomplete ? 'from ' : ''}${money(sc.total)}${feeNote ? '+' : ''}</b></h3><small>${sc.note}${sc.incomplete ? ` <b>Incomplete:</b> ${sc.market.unpriced} marketplace lot(s) have no price yet, so this is only a floor${names ? `: ${names}${M.unpriced > (M.unpriced_names || []).length ? '…' : ''}` : ''}.` : ''}</small>
         <div class="lines">
-          ${L ? `<span>LEGO: ${money(L.subtotal)} parts + ${money(L.service_fees)} fees + ${money(L.shipping)} ship (${sc.lego_keys.length} lots)</span>` : '<span>LEGO: nothing</span>'}
-          <span>Marketplace: ${money(M.parts)} parts + ${money(M.shipping)} ship (${M.lots} lots${M.unpriced ? `, ${M.unpriced} unpriced` : ''})</span>
+          ${L ? `<span>LEGO: ${money(L.subtotal)} parts + ${money(L.service_fees)}${feeNote} fees + ${money(L.shipping)} ship (${sc.lego_keys.length} lots)</span>` : '<span>LEGO: nothing</span>'}
+          <span>Marketplace: ${money(M.parts)} parts + ${money(M.shipping)} ship${shipNote} (${M.lots} lots${M.store_lots && M.store_lots !== M.lots ? `, bought as ${M.store_lots} store lots` : ''}${M.unpriced ? `, ${M.unpriced} unpriced` : ''})</span>
         </div>${stores}`;
       d.querySelector('[data-delcart]')?.addEventListener('click', async (e) => { e.preventDefault(); e.stopPropagation(); if (confirm('Remove this imported cart?')) { await api(`/api/sourcing/${ident}/carts?id=${sc.cart_id}`, { method: 'DELETE' }); renderSourcing(); } });
       d.addEventListener('click', () => { localStorage.setItem('lb_scenario:' + ident, sc.name); renderSourcing(); render(); });
       box.appendChild(d);
     }
     const j = srcData.bl_job;
-    $('#src-status').textContent = !srcData.bricklink_configured
+    $('#src-status').textContent = SH.cart
+      ? `Marketplace prices and shipping below come from your imported BrickOwl cart “${SH.cart.name}”${SH.cart.unmatched_lots ? ` (${SH.cart.unmatched_lots} of its lots could not be matched to a part)` : ''}; parts it doesn't cover fall back to the BrickLink price guide.`
+      : !srcData.bricklink_configured
       ? 'No BrickLink API keys yet: marketplace prices are unknown, so the comparison only counts LEGO. Add BRICKLINK_* keys to /etc/lego-buyer.env to enable (free with a BrickLink account).'
       : j.state === 'running' ? `Checking BrickLink… ${j.done} / ${j.total}`
       : srcData.unpriced_bl ? `${srcData.unpriced_bl} parts have no BrickLink price yet — tap Check BrickLink prices.`
@@ -636,6 +660,7 @@
     $('#btn-bl-prices').disabled = !srcData.bricklink_configured || j.state === 'running';
     const mk = chosen.market_keys;
     $('#link-bl-xml').href = `/api/sourcing/${ident}/wanted.xml?keys=${encodeURIComponent(mk.join(','))}`;
+    $('#link-export').href = `/api/sourcing/${ident}/export.json`;
     $('#btn-bo-push').disabled = mk.length === 0;
     $('#btn-bo-push').textContent = `Send ${mk.length} marketplace lot${mk.length === 1 ? '' : 's'} to a BrickOwl wishlist`;
     const bp = srcData.bo_push;
@@ -659,7 +684,7 @@
       if (j.state === 'running') { st.textContent = `Checking lego.com… ${j.done} / ${j.total}${j.errors ? ` (${j.errors} failed)` : ''}`; return; }
       clearInterval(priceTimer); $('#btn-prices').disabled = false; $('#btn-prices-force').disabled = false;
       if (j.state === 'failed') st.textContent = j.message || 'Price check failed.';
-      else if (j.state === 'done') st.textContent = `Checked ${j.done} elements${j.not_sold ? ` · ${j.not_sold} not sold by LEGO` : ''}${j.errors ? ` · ${j.errors} failed (${j.last_error})` : ''}.`;
+      else if (j.state === 'done') st.textContent = `Checked ${j.done} elements${j.not_sold ? ` · ${j.not_sold} not sold by LEGO` : ''}${j.no_tier ? ` · ${j.no_tier} priced without a Bestseller/Standard category${j.tier_error ? ` (LEGO's price API said: ${j.tier_error})` : ''}` : ''}${j.errors ? ` · ${j.errors} failed (${j.last_error})` : ''}.`;
       await loadSet(); renderBuyPlan();
     }, 1500);
   };
@@ -781,12 +806,11 @@
     $('#btn-import-csv').addEventListener('click', async () => {
       const f = $('#csv-file').files[0], st = $('#csv-status');
       if (!f) { st.textContent = 'Choose the CSV file first.'; return; }
-      const fd = new FormData(); fd.append('file', f); fd.append('name', $('#csv-name').value.trim());
       $('#btn-import-csv').disabled = true; st.textContent = 'Starting import… one Rebrickable lookup per lot.';
       try {
-        const r = await fetch('/api/csvlists', { method: 'POST', body: fd });
-        let j = await r.json();
-        if (!r.ok) throw new Error(j.error || 'Import failed');
+        // Sent as text, not as a file upload: see inMemory above.
+        let text; try { text = await f.text(); } catch (e) { throw new Error(`Couldn't read that file (${e.message}). Try choosing it again.`); }
+        let j = await api('/api/csvlists', { method: 'POST', body: JSON.stringify({ name: $('#csv-name').value.trim(), filename: f.name, text }) });
         const name = `import:${j.set_num}`;
         while (j.state === 'running') {
           st.textContent = `Importing… ${j.done} / ${j.total} lots (Rebrickable allows about one lookup a second)`;
@@ -829,6 +853,18 @@
       $('#btn-load').disabled = true; $('#load-status').textContent = 'Loading from Rebrickable… this takes a few seconds.';
       try {
         const res = await api('/api/sets', { method: 'POST', body: JSON.stringify({ set_num: v }) });
+        if (res && res.job && res.job.set_num && !res.set) {
+          // An inventory shipped with the app (a B-model Rebrickable's API doesn't serve): looked up lot by lot.
+          let j = res.job; const name = `import:${j.set_num}`;
+          while (j.state === 'running') {
+            $('#load-status').textContent = `Rebrickable's API doesn't list this one; using the inventory shipped with the app… ${j.done} / ${j.total} lots`;
+            await new Promise((r) => setTimeout(r, 1500));
+            j = await api(`/api/jobs/${name}`);
+          }
+          if (j.state === 'failed') throw new Error(j.message || 'Import failed');
+          location.href = `/s/${name.slice(7)}`;
+          return;
+        }
         if (res) location.href = `/s/${res.set.set_num}`;
       } catch (err) { $('#load-status').textContent = err.message; $('#btn-load').disabled = false; }
     });
@@ -874,7 +910,8 @@
     $('#steps-upload').addEventListener('click', async () => {
       const f = $('#steps-file').files[0];
       if (!f) { $('#steps-status').textContent = 'Choose an .ldr, .mpd or .json file first.'; return; }
-      const fd = new FormData(); fd.append('file', f);
+      const fd = new FormData();
+      try { fd.append('file', await inMemory(f)); } catch (e) { $('#steps-status').textContent = `Couldn't read that file (${e.message}). Try choosing it again.`; return; }
       $('#steps-status').textContent = 'Importing…'; $('#steps-upload').disabled = true;
       try {
         const r = await fetch(`${state.api}/steps`, { method: 'POST', body: fd });
@@ -908,8 +945,11 @@
     $('#bucket-cost').addEventListener('change', (e) => { localStorage.setItem('lb_bucket', String(Math.max(0, Number(e.target.value) || 0))); renderSummary(); });
     $('#btn-finish').addEventListener('click', finishTrip);
     $('#btn-prices').addEventListener('click', () => startPrices(false));
-    $('#ship-est').value = shipEst();
-    $('#ship-est').addEventListener('change', (e) => { localStorage.setItem('lb_ship', String(Math.max(0, Number(e.target.value) || 0))); renderSourcing(); });
+    $('#ship-est').addEventListener('change', (e) => {
+      const raw = e.target.value.trim();
+      try { if (raw === '') localStorage.removeItem('lb_ship:' + srcIdent()); else localStorage.setItem('lb_ship:' + srcIdent(), String(Math.max(0, Number(raw) || 0))); } catch {}
+      renderSourcing();
+    });
     $('#btn-bl-prices').addEventListener('click', async () => {
       const ident = state.isView ? `v:${viewKeys}` : state.setNum;
       try { await api(`/api/sourcing/${ident}/bricklink`, { method: 'POST', body: JSON.stringify({}) }); watchJob(() => srcData && srcData.bl_job.state !== 'running'); }
@@ -927,7 +967,8 @@
       const ident = state.isView ? `v:${viewKeys}` : state.setNum;
       const fd = new FormData();
       const f = $('#bo-cart-file').files[0];
-      if (f) fd.append('file', f); else fd.append('text', $('#bo-cart-text').value);
+      try { if (f) fd.append('file', await inMemory(f)); else fd.append('text', $('#bo-cart-text').value); }
+      catch (e) { $('#bo-cart-status').textContent = `Couldn't read that file (${e.message}). Try choosing it again.`; return; }
       fd.append('name', $('#bo-cart-name').value.trim());
       if (state.chosen) fd.append('keys', [...state.chosen.market].join(','));
       if (!f && !$('#bo-cart-text').value.trim()) { $('#bo-cart-status').textContent = 'Choose the saved page (or PDF) or paste the page text first.'; return; }
@@ -936,7 +977,8 @@
         const r = await fetch(`/api/sourcing/${ident}/carts/import`, { method: 'POST', body: fd });
         const j = await r.json();
         if (!r.ok) { $('#bo-cart-status').textContent = j.error || 'Import failed'; return; }
-        const lots = j.lots ? ` ${j.lots} lots read, ${j.matched} matched to parts${j.unmatched.length ? ` — ${j.unmatched.length} not matched: ${j.unmatched.slice(0, 6).map((u) => u.name).join('; ')}${j.unmatched.length > 6 ? '…' : ''}` : ''}.` : '';
+        const pw = j.parts_without_lot || [];
+        const lots = j.lots ? ` ${j.lots} store lots read, covering ${j.matched} of your parts${j.unmatched.length ? ` — ${j.unmatched.length} store lots not matched: ${j.unmatched.slice(0, 6).map((u) => u.name).join('; ')}${j.unmatched.length > 6 ? '…' : ''}` : ''}${pw.length ? ` — ${pw.length} of your parts have no lot in it: ${pw.slice(0, 6).join('; ')}${pw.length > 6 ? '…' : ''}` : ''}.` : '';
         $('#bo-cart-status').textContent = `Imported ${j.stores.length} store${j.stores.length === 1 ? '' : 's'}, $${j.total.toFixed(2)} incl. shipping${j.lots_missing ? `, ${j.lots_missing} lot(s) unallocated` : ''}.${lots}`;
         $('#bo-cart-text').value = ''; $('#bo-cart-file').value = ''; $('#bo-cart-name').value = '';
         await loadSet();

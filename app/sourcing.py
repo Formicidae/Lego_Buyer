@@ -8,6 +8,7 @@ import re
 
 from . import lego
 
+ALLOC_VERSION = 2  # bump when the way cart lots are turned into per-part prices changes
 DEFAULTS = {"market_shipping": 5.00, "market_min_order": 0.0, "max_lead_days": 60}
 
 
@@ -37,8 +38,14 @@ def needed_items(set_info, parts):
     return out
 
 
-def market_price(i):
-    """What one of this part costs on the marketplace: a real BrickOwl lot price if one was imported, else BrickLink's guide."""
+def market_price(i, ctx=None):
+    """What one of this part costs on the marketplace: what the imported BrickOwl cart charges for it
+    (averaged over the stores it is split across), else BrickLink's price guide."""
+    rows = (ctx or {}).get("alloc", {}).get(i["key"])
+    if rows:
+        q = sum(r["qty"] for r in rows)
+        if q:
+            return sum(r["qty"] * r["price"] for r in rows) / q
     return i["bo_price"] if i.get("bo_price") is not None else i["bl_price"]
 
 
@@ -48,15 +55,30 @@ def _lego_cost(items):
 
 
 def _market_cost(items, opts):
-    parts = sum((market_price(i) or 0) * i["qty"] for i in items)
-    unpriced = [i for i in items if market_price(i) is None]
-    ship = opts["market_shipping"] if items else 0.0
-    return {"parts": round(parts, 2), "shipping": ship, "total": round(parts + ship, 2), "lots": len(items), "unpriced": len(unpriced)}
+    ctx = opts.get("cart")
+    parts = sum((market_price(i, ctx) or 0) * i["qty"] for i in items)
+    unpriced = [i for i in items if market_price(i, ctx) is None]
+    # Shipping: what the user typed, else what the stores these parts come from charge in the imported
+    # cart (dropping a store only when none of the parts still come from it), else the flat default.
+    ship, how, n_stores = 0.0, None, None
+    if items:
+        if opts.get("market_shipping") is not None:
+            ship, how = opts["market_shipping"], "user"
+        else:
+            stores = {r["store"] for i in items for r in (ctx or {}).get("alloc", {}).get(i["key"], [])}
+            if stores:
+                ship, how, n_stores = sum(ctx["shipping"].get(st, 0.0) for st in stores), "cart", len(stores)
+            else:
+                ship, how = DEFAULTS["market_shipping"], "default"
+    return {"parts": round(parts, 2), "shipping": round(ship, 2), "shipping_from": how, "stores": n_stores,
+            "total": round(parts + ship, 2), "lots": len(items), "unpriced": len(unpriced),
+            "unpriced_names": [f"{i['color_name']} {i['name']}" for i in unpriced[:8]]}
 
 
 def scenarios(items, opts=None):
     """Three ways to split the order, each fully costed."""
-    opts = {**DEFAULTS, **(opts or {})}
+    opts = dict(opts or {})
+    ctx = opts.get("cart")
     lego_ok = [i for i in items if i["lego_price"] is not None]
     lego_no = [i for i in items if i["lego_price"] is None]
 
@@ -70,14 +92,14 @@ def scenarios(items, opts=None):
 
     out = [
         build("LEGO where possible", lego_ok, lego_no, "Everything LEGO sells from Pick a Brick; the rest from one marketplace order."),
-        build("All marketplace", [], items, "One BrickLink/BrickOwl order for everything (LEGO-only prices are irrelevant)."),
+        build("All marketplace", [], items, "Everything from BrickLink/BrickOwl sellers (LEGO-only prices are irrelevant)."),
     ]
     # Cheapest per part, then re-check LEGO's fee thresholds: if a LEGO category ends up tiny, push it to the market.
     cheap_lego, cheap_market = [], []
     for i in items:
         if i["lego_price"] is None:
             cheap_market.append(i)
-        elif market_price(i) is None or i["lego_price"] <= market_price(i):
+        elif market_price(i, ctx) is None or i["lego_price"] <= market_price(i, ctx):
             cheap_lego.append(i)
         else:
             cheap_market.append(i)
@@ -97,7 +119,6 @@ def scenarios(items, opts=None):
 
 def cart_scenarios(items, carts, opts=None):
     """One scenario per imported cart: the cart as-is for the lots it covers, LEGO for whatever's left."""
-    opts = {**DEFAULTS, **(opts or {})}
     out = []
     by_key = {i["key"]: i for i in items}
     for c in carts:
@@ -111,7 +132,7 @@ def cart_scenarios(items, carts, opts=None):
             "name": f"{c['source']} cart: {c['name']}", "cart_id": c["id"], "url": c.get("url"),
             "note": f"{len(c['stores'])} store{'s' if len(c['stores']) != 1 else ''} from {c['source']}'s cart builder"
                     + (f"; {len(leftover)} lot(s) not covered by anything" if leftover else ""),
-            "lego": L, "market": {"parts": c["parts_total"], "shipping": c["shipping_total"], "total": c["total"], "lots": c.get("lots_covered") or len(covered), "unpriced": 0},
+            "lego": L, "market": {"parts": c["parts_total"], "shipping": c["shipping_total"], "total": c["total"], "lots": len([k for k in covered if k in by_key]), "store_lots": c.get("lots_covered"), "unpriced": 0},
             "stores": c["stores"], "lego_keys": [i["key"] for i in lego_items], "market_keys": [k for k in covered if k in by_key],
             "total": round(total, 2), "imported": True,
         })
@@ -172,27 +193,87 @@ def _base(part_num):
     return m.group(0) if m else (part_num or "")
 
 
-def match_lots(items, stores):
-    """Attach each store lot to the part it is for (same LEGO design id, same colour name as BrickOwl
-    calls it). Returns (prices {(part_num, color_id): {price, store, url}}, matched_keys, unmatched_lots)."""
-    by_id = {}
+def _item_ids(i):
+    """(exact ids, looser ids) a store lot's design numbers may match: the part number and the ids
+    Rebrickable cross-references for it (LEGO design ids, BrickLink's number), then their numeric stems."""
+    ext = (i.get("external_ids") or {}).get("part") or {}
+    exact = {str(i["part_num"])}
+    for src in ("LEGO", "BrickLink"):
+        for x in ext.get(src) or []:
+            exact.add(str(x))
+    return exact, {_base(x) for x in exact} - exact
+
+
+def allocate(items, stores):
+    """Attach each store lot of an imported cart to the part it is for (same design id, same colour name
+    as BrickOwl calls it). A part bought from two stores gets two allocations.
+
+    Returns (alloc, unmatched): alloc is {item key: [{"store", "qty", "price", "url"}]} with prices
+    scaled so each store's lots add up to the subtotal BrickOwl charges (the page rounds unit prices to
+    the cent); unmatched lists the store lots no part could be found for."""
+    exact, loose = {}, {}
     for i in items:
-        for pid in {i["part_num"], _base(i["part_num"])}:
-            by_id.setdefault(pid, []).append(i)
-    prices, matched, unmatched = {}, set(), []
+        ex, lo = _item_ids(i)
+        for pid in ex:
+            exact.setdefault(pid, []).append(i)
+        for pid in lo:
+            loose.setdefault(pid, []).append(i)
+    alloc, pending = {}, []
+
+    def give(i, st, lot, factor):
+        alloc.setdefault(i["key"], []).append({"store": st["name"], "qty": lot["qty"], "price": lot["price"] * factor, "url": lot.get("url")})
+
     for st in stores:
-        for lot in st.get("lot_list") or []:
-            cands = []
-            for pid in lot.get("ids") or []:
-                cands += by_id.get(pid, []) + by_id.get(_base(pid), [])
+        lots = st.get("lot_list") or []
+        shown = sum(l["qty"] * l["price"] for l in lots)
+        factor = st["subtotal"] / shown if shown and 0.8 < (st.get("subtotal") or 0) / shown < 1.25 else 1.0
+        for lot in lots:
+            ids = [str(x) for x in lot.get("ids") or []]
             name = lot["name"].lower()
-            hit = [i for i in cands if any(name.startswith(cn + " ") for cn in _bo_color_names(i))]
-            if not hit:
-                unmatched.append({"store": st["name"], **{k: lot[k] for k in ("name", "qty", "price")}})
-                continue
-            for i in hit:
-                k = (i["part_num"], i["color_id"])
-                if k not in prices or lot["price"] < prices[k]["price"]:
-                    prices[k] = {"price": lot["price"], "store": st["name"], "url": lot["url"]}
-                matched.add(i["key"])
-    return prices, matched, unmatched
+            right_colour = lambda c: [i for i in {x["key"]: x for x in c}.values() if any(name.startswith(cn + " ") for cn in _bo_color_names(i))]
+            # Same design number first; a mould variant (3794a for a lot listed as 3794) only when that finds nothing in this colour.
+            tight = [i for pid in ids for i in exact.get(pid, [])]
+            wide = [i for pid in ids for i in exact.get(_base(pid), []) + loose.get(pid, []) + loose.get(_base(pid), [])]
+            hit = right_colour(tight) or right_colour(wide)
+            cands = list({i["key"]: i for i in tight + wide}.values())
+            if hit:
+                for i in hit:
+                    give(i, st, lot, factor)
+            else:
+                pending.append((st, lot, factor, cands))
+    unmatched = []
+    for st, lot, factor, cands in pending:
+        # The design number is on the list but under a colour name we don't recognise: if exactly one
+        # such part has no lot yet, this lot must be it.
+        free = [i for i in cands if i["key"] not in alloc]
+        if len(free) == 1:
+            give(free[0], st, lot, factor)
+            alloc[free[0]["key"]][-1]["by_number_only"] = True
+        else:
+            unmatched.append({"store": st["name"], **{k: lot[k] for k in ("name", "qty", "price")}})
+    return alloc, unmatched
+
+
+def alloc_prices(items, alloc):
+    """Per (part_num, color_id): what one piece costs across the stores it was allocated to
+    (quantity-weighted), for the part cards. -> {(part_num, color_id): {price, qty, store, url}}"""
+    out = {}
+    by_key = {i["key"]: i for i in items}
+    for key, rows in alloc.items():
+        i = by_key.get(key)
+        qty = sum(r["qty"] for r in rows)
+        if not i or not qty:
+            continue
+        stores = list(dict.fromkeys(r["store"] for r in rows))
+        out[(i["part_num"], i["color_id"])] = {
+            "price": round(sum(r["qty"] * r["price"] for r in rows) / qty, 4), "qty": qty,
+            "store": " + ".join(stores), "url": min(rows, key=lambda r: r["price"]).get("url"),
+        }
+    return out
+
+
+def cart_context(items, cart):
+    """What an imported cart tells the estimates: per-part cost and which stores each part comes from."""
+    alloc, unmatched = allocate(items, cart["stores"])
+    return {"cart_id": cart["id"], "name": cart["name"], "alloc": alloc, "unmatched": unmatched,
+            "shipping": {st["name"]: st.get("shipping") or 0.0 for st in cart["stores"]}}

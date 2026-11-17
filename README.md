@@ -32,11 +32,21 @@ BrickOwl/BrickLink sellers.
   guide. Pasting the page text or a printed PDF still works but only gives store totals; carts can
   also be entered by hand (or POSTed to `/api/sourcing/{list}/carts`) for BrickLink.
 
+**How the Buy tab prices the marketplace.** With an imported BrickOwl cart page, each part costs what
+that cart charges for it (averaged when the cart splits it across stores, scaled so every store adds up
+to its real subtotal) and shipping is the sum for the stores a given split still needs, so *All
+marketplace* equals the cart and the other splits are comparable with it. Type a figure in *Marketplace
+shipping* to override; without a cart the estimates use the BrickLink price guide and a flat $5.
+*Download this list's price data* (under the scenarios) saves everything those numbers come from as one
+JSON file for troubleshooting. LEGO prices that arrive without a Bestseller/Standard category are shown
+in a *Category unknown* box, with fees marked as a minimum, and are re-checked on the next price check.
+
 **Rebrickable parts CSV.** B-models and sub-sets (e.g. `4488-1-b1`) exist on Rebrickable's site but
 its API does not serve them, so *Load a set* cannot find them. On the set's Rebrickable page use
 *Inventory → Export Parts → Rebrickable CSV*, then upload that file on the home page under *Or upload a
 Rebrickable parts CSV*; each lot is looked up for its name, picture and element id and the result is a
-parts list like any other.
+parts list like any other. Inventories can also ship with the app (`app/inventories/<set_num>.csv` plus a
+name in `index.json`); *Load a set* falls back to one when Rebrickable has no entry, as for `4488-1-b1`.
 
 ## Run it on a Raspberry Pi (free, always on)
 
