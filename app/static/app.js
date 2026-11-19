@@ -124,7 +124,7 @@
   };
   const matches = (it, q) => {
     if (!q) return true;
-    const hay = [it.part_name || it.name, it.color_name, it.element_id, it.part_num, it.fig_num, it.cat_name]
+    const hay = [it.part_name || it.name, it.color_name, it.element_id, it.part_num, it.fig_num, it.cat_name, state.bins && state.bins[binPlace(it.kind === 'minifig' ? 'Minifigure' : it.cat_name || '')[0]]]
       .filter(Boolean).join(' ').toLowerCase();
     return q.split(/\s+/).every((w) => hay.includes(w));
   };
@@ -149,13 +149,15 @@
           cat: it.kind === 'minifig' ? 'Minifigure' : (it.cat_name || ''),
           rows: [],
         });
+        const place = binPlace(cards.get(id).cat); cards.get(id).bin = place[0]; cards.get(id).rank = place[1];
       }
       cards.get(id).rows.push(it);
     }
     const list = [...cards.values()];
     for (const c of list) c.rows.sort((a, b) => (a.color_name || '').localeCompare(b.color_name || ''));
     const cmp = {
-      type: (a, b) => a.cat.localeCompare(b.cat) || a.title.localeCompare(b.title),
+      // Bin by bin, in the order the bins are kept; inside a bin by category, then by name.
+      type: (a, b) => a.bin - b.bin || a.rank - b.rank || a.cat.localeCompare(b.cat) || a.title.localeCompare(b.title),
       color: (a, b) => (a.rows[0].color_name || '').localeCompare(b.rows[0].color_name || '') || a.title.localeCompare(b.title),
       name: (a, b) => a.title.localeCompare(b.title),
       remaining: (a, b) => sum(b.rows, remaining) - sum(a.rows, remaining) || a.title.localeCompare(b.title),
@@ -165,6 +167,15 @@
     }[state.sort] || ((a, b) => 0);
     list.sort(cmp);
     return list;
+  };
+  // Storage bins: categories grouped and ordered (see /bins). Unknown until loaded, or offline: one bin, alphabetical.
+  const binPlace = (cat) => (state.binOf && state.binOf[cat]) || [state.bins ? state.bins.length - 1 : 0, 0];
+  const loadBins = async () => {
+    try {
+      const r = await api('/api/bins'); if (!r) return;
+      state.bins = r.bins.map((b) => b.name); state.binOf = {};
+      r.bins.forEach((b, bi) => b.cats.forEach((c, ci) => { state.binOf[c.name] = [bi, ci]; }));
+    } catch (e) { console.warn('bins not loaded', e); }
   };
   const sum = (rows, f) => rows.reduce((n, r) => n + f(r), 0);
   const tierRank = (it) => it.price_checked_at == null ? 3 : it.lego_tier === 'Bestseller' && it.lego_available ? 0 : it.lego_tier === 'Standard' && it.lego_available ? 1 : 2;
@@ -214,7 +225,19 @@
     } else {
       const cards = buildCards();
       count = cards.length;
+      const byBin = state.sort === 'type' && state.bins;
+      let lastBin = -1;
       for (const c of cards) {
+        if (byBin && c.bin !== lastBin) {
+          // A heading where the next bin starts, so the list can be worked through one bin at a time.
+          lastBin = c.bin;
+          const mine = cards.filter((x) => x.bin === c.bin);
+          const h = document.createElement('div'); h.className = 'bin-head';
+          h.innerHTML = '<b></b><small></small>';
+          h.firstChild.textContent = `Bin ${c.bin + 1} · ${state.bins[c.bin]}`;
+          h.lastChild.textContent = `${mine.length} part${mine.length === 1 ? '' : 's'} · ${[...new Set(mine.map((x) => x.cat).filter(Boolean))].join(', ')}`;
+          grid.appendChild(h);
+        }
         const el = tplCard.cloneNode(true).firstElementChild;
         $('.design', el).textContent = c.cat ? `${c.cat.toUpperCase()} · DESIGN ${c.design}` : `DESIGN ${c.design}`;
         $('.part-name', el).textContent = c.title;
@@ -512,6 +535,7 @@
       it.updated_by = q.who || it.updated_by;
     }
     updateNetBanner();
+    if (!state.bins) await loadBins();
     if (!state.isView) await loadSteps();
     $('#hdr-small').textContent = viewName();
     $('#hdr-title').textContent = state.set.name;

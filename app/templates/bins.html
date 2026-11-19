@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Storage bins · Lego Buyer</title>
+<link rel="stylesheet" href="/static/style.css?v={{ asset_v }}">
+<style>
+  .bins { max-width: 760px; margin: 0 auto; padding: 16px 16px 150px; display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
+  #list { min-width: 0; }
+  .bin { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .bin-top { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--card-head); border-bottom: 1px solid var(--line); }
+  .bin-top .num { font-family: var(--mono); font-size: 12px; color: var(--ink-3); min-width: 2.2em; }
+  .bin-top input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 16px; font-weight: 600; background: var(--card); }
+  .bin-top button { padding: 8px 0; min-width: 38px; flex: 0 0 auto; }
+  .bin-top .num { flex: 0 0 auto; }
+  .bin-total { font-size: 12px; color: var(--ink-2); padding: 6px 12px 0; }
+  .cat { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--line); }
+  .cat:first-of-type { border-top: 0; }
+  .cat .nm { flex: 1; min-width: 0; font-size: 14px; }
+  .cat .nm small { display: block; color: var(--ink-2); font-size: 12px; }
+  .cat.unused .nm { color: var(--ink-3); }
+  .cat select { flex: 0 1 44%; min-width: 0; width: 44%; text-overflow: ellipsis; padding: 8px; border: 1px solid var(--line); border-radius: 10px; font-size: 14px; background: var(--card); }
+  .cat .ord { padding: 6px 0; min-width: 34px; flex: 0 0 auto; }
+  .empty-bin { padding: 10px 12px; color: var(--ink-3); font-size: 13px; }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--card); border-top: 1px solid var(--line);
+         padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .bar .msg { flex: 1 1 100%; font-size: 13px; color: var(--ink-2); }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/"><span class="brand-dots"></span><div><small>LEGO BUYER</small><b>Storage bins</b></div></a>
+  <div class="topbar-actions"><a class="btn ghost" href="/" id="back">Back</a></div>
+</header>
+<main class="bins">
+  <p class="hint">Part types are Rebrickable's categories, grouped into your physical bins. The parts list sorted by <b>Bin</b> goes through the bins in this order, top to bottom, so number your bins to match. Rename a bin, move it up or down, or move a category to a different bin, then <b>Save</b>.</p>
+  <label class="hint"><input type="checkbox" id="show-unused"> Also show categories none of your lists use</label>
+  <div id="list"></div>
+  <button class="btn ghost" id="add" type="button">Add a bin</button>
+</main>
+<div class="bar">
+  <span class="msg" id="msg">Loading…</span>
+  <button class="btn primary" id="save" type="button" disabled>Save</button>
+  <button class="btn ghost" id="reset" type="button">Back to the suggested bins</button>
+</div>
+<script>
+(() => {
+  const $ = (s, el) => (el || document).querySelector(s);
+  let bins = [], dirty = false, custom = false;
+  const msg = (t) => { $('#msg').textContent = t; };
+  const touch = () => { dirty = true; $('#save').disabled = false; msg('Changes not saved yet.'); draw(); };
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const btn = (text, title, fn, cls) => { const b = el('button', 'btn ghost ' + (cls || ''), text); b.type = 'button'; b.title = title; b.addEventListener('click', fn); return b; };
+
+  const draw = () => {
+    const list = $('#list'); const showUnused = $('#show-unused').checked; const y = window.scrollY;
+    list.replaceChildren();
+    bins.forEach((b, bi) => {
+      const box = el('section', 'bin'); box.style.marginBottom = '12px';
+      const top = el('div', 'bin-top');
+      top.appendChild(el('span', 'num', `Bin ${bi + 1}`));
+      const name = el('input'); name.value = b.name; name.setAttribute('aria-label', `Name of bin ${bi + 1}`);
+      name.addEventListener('change', () => { b.name = name.value.trim() || b.name; touch(); });
+      top.appendChild(name);
+      const up = btn('↑', 'Move this bin up', () => { if (bi > 0) { [bins[bi - 1], bins[bi]] = [bins[bi], bins[bi - 1]]; touch(); } }); up.disabled = bi === 0; top.appendChild(up);
+      const dn = btn('↓', 'Move this bin down', () => { if (bi < bins.length - 1) { [bins[bi + 1], bins[bi]] = [bins[bi], bins[bi + 1]]; touch(); } }); dn.disabled = bi === bins.length - 1; top.appendChild(dn);
+      const rm = btn('✕', 'Remove this bin (its part types move to the last bin)', () => {
+        if (bins.length < 2) return;
+        if (b.cats.length && !confirm(`Remove “${b.name}”? Its ${b.cats.length} part types move to the last bin.`)) return;
+        bins.splice(bi, 1); bins[bins.length - 1].cats.push(...b.cats); touch();
+      }); rm.disabled = bins.length < 2; top.appendChild(rm);
+      box.appendChild(top);
+      const pieces = b.cats.reduce((n, c) => n + c.pieces, 0), lots = b.cats.reduce((n, c) => n + c.lots, 0);
+      box.appendChild(el('div', 'bin-total', `${pieces} pieces in ${lots} lots across your lists`));
+      const shown = b.cats.filter((c) => showUnused || c.pieces > 0);
+      shown.forEach((c) => {
+        const ci = b.cats.indexOf(c);
+        const row = el('div', 'cat' + (c.pieces ? '' : ' unused'));
+        const nm = el('div', 'nm', c.name); nm.appendChild(el('small', '', c.pieces ? `${c.pieces} pieces · ${c.lots} lots` : 'not in your lists')); row.appendChild(nm);
+        const cu = btn('↑', 'Earlier within this bin', () => { if (ci > 0) { [b.cats[ci - 1], b.cats[ci]] = [b.cats[ci], b.cats[ci - 1]]; touch(); } }, 'ord'); cu.disabled = ci === 0; row.appendChild(cu);
+        const sel = el('select'); sel.setAttribute('aria-label', `Bin for ${c.name}`);
+        bins.forEach((t, ti) => { const o = el('option', '', `${ti + 1} · ${t.name}`); o.value = ti; o.selected = ti === bi; sel.appendChild(o); });
+        sel.addEventListener('change', () => { const to = Number(sel.value); if (to === bi) return; b.cats.splice(ci, 1); bins[to].cats.push(c); touch(); });
+        row.appendChild(sel);
+        box.appendChild(row);
+      });
+      if (!shown.length) box.appendChild(el('div', 'empty-bin', b.cats.length ? 'Only part types your lists don’t use (tick the box at the top to see them).' : 'No part types in this bin yet: pick this bin on a part type in another one.'));
+      list.appendChild(box);
+    });
+    window.scrollTo(0, y);
+  };
+
+  const take = (r) => { bins = r.bins; custom = r.custom; dirty = false; $('#save').disabled = true; $('#reset').disabled = !custom; draw(); };
+  const call = async (method, body) => {
+    const r = await fetch('/api/bins', { method, headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || 'Request failed'); return j;
+  };
+  $('#show-unused').addEventListener('change', draw);
+  $('#add').addEventListener('click', () => { let n = bins.length + 1, name = `Bin ${n}`; while (bins.some((b) => b.name.toLowerCase() === name.toLowerCase())) name = `Bin ${++n}`; bins.push({ name, cats: [] }); touch(); window.scrollTo(0, document.body.scrollHeight); });
+  $('#save').addEventListener('click', async () => {
+    try { take(await call('POST', { bins: bins.map((b) => ({ name: b.name, cats: b.cats.map((c) => c.name) })) })); msg('Saved. Lists sorted by Bin now follow this order.'); }
+    catch (e) { msg(e.message); }
+  });
+  $('#reset').addEventListener('click', async () => {
+    if (!confirm('Throw away your bins and go back to the suggested grouping?')) return;
+    try { take(await call('DELETE')); msg('Back to the suggested bins.'); } catch (e) { msg(e.message); }
+  });
+  window.addEventListener('beforeunload', (e) => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+  if (document.referrer && new URL(document.referrer).origin === location.origin) $('#back').href = document.referrer;
+  call('GET').then((r) => { take(r); msg(r.custom ? 'These are your saved bins.' : `These ${r.bins.length} bins are a suggestion; nothing is saved until you change something.`); }).catch((e) => msg(e.message));
+})();
+</script>
+</body>
+</html>

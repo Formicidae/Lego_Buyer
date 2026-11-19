@@ -41,6 +41,12 @@ shipping* to override; without a cart the estimates use the BrickLink price guid
 JSON file for troubleshooting. LEGO prices that arrive without a Bestseller/Standard category are shown
 in a *Category unknown* box, with fees marked as a minimum, and are re-checked on the next price check.
 
+**Storage bins.** Part types are Rebrickable's part categories. They are grouped into about a dozen
+bins in part-type order (bricks, slopes, plates, tiles, Technic, hinges, panels, wheels, minifigures,
+the rest) so the list sorted by *Bin* can be worked through one physical bin at a time, with a sticky
+heading per bin. `/bins` (linked from the home page and the Filters panel) renames, reorders and regroups
+them; the suggestion lives in `app/bins.py` and a saved layout in the settings table.
+
 **One box to add anything.** The box at the top of the home page takes a set number, a B-model or
 sub-set number (`4488-1-b1`: an inventory shipped with the app if there is one, otherwise read from the
 set's page on rebrickable.com), a minifigure (`fig-…`, a BrickLink or BrickOwl id, or a name — matches

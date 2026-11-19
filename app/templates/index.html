@@ -94,6 +94,7 @@
     </li>
     {% endfor %}
   </ul>
+  <p class="hint"><a href="/bins">Storage bins: how part types are grouped and ordered</a></p>
   <p class="hint"><a href="/admin">Admin: update, diagnostics, logs</a></p>
 </section>
 
@@ -114,7 +115,7 @@
     <div class="search"><span class="search-icon">&#x2315;</span><input id="search" type="search" placeholder="Search name, color, element or design ID"></div>
     <label class="sort"><span>Sort</span>
       <select id="sort">
-        <option value="type">Piece type</option>
+        <option value="type">Bin (piece type)</option>
         <option value="color">Color</option>
         <option value="name">Name</option>
         <option value="remaining">Most needed</option>
@@ -128,6 +129,7 @@
 
   <div class="filters" id="filters" hidden>
     <label><input type="checkbox" id="f-hide-done" checked> Hide completed</label>
+    <a class="hint" href="/bins">Edit storage bins</a>
     <label><input type="checkbox" id="f-hide-owned"> Only show owned</label>
     <label><input type="checkbox" id="f-spares"> Include spare parts</label>
     <label><input type="checkbox" id="f-minifigs"> Include minifigures (sourced whole)</label>

@@ -22,7 +22,7 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from . import bricklink, brickowl, cartparse, csvlist, db, jobs, lego, partlists, rebrickable, sourcing, steps, views
+from . import bins, bricklink, brickowl, cartparse, csvlist, db, jobs, lego, partlists, rebrickable, sourcing, steps, views
 from .checklist import build_checklist, render_checklist_html, render_checklist_pdf
 from .config import APP_PASSCODE, SECRET, REBRICKABLE_API_KEY, DATA_DIR, CHROMIUM_PATH
 
@@ -105,6 +105,22 @@ async def view_page(request: Request):
     if not views.view_info(keys):
         return RedirectResponse("/", status_code=303)
     return templates.TemplateResponse(request, "index.html", {"set_num": "", "view_keys": ",".join(keys), "sets": db.list_sets()})
+
+
+async def bins_page(request: Request):
+    return templates.TemplateResponse(request, "bins.html", {})
+
+
+async def api_bins(request: Request):
+    """GET the storage bins (categories grouped and ordered); POST {"bins": [...]} to save; DELETE to go back to the suggestion."""
+    if request.method == "GET":
+        return JSONResponse(bins.layout())
+    if request.method == "DELETE":
+        return JSONResponse(bins.reset())
+    try:
+        return JSONResponse(bins.save((await request.json()).get("bins")))
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
 
 
 async def admin_page(request: Request):
@@ -961,6 +977,8 @@ routes = [
     Route("/v/{keys}/checklist", view_checklist_html),
     Route("/v/{keys}/checklist.pdf", view_checklist_pdf),
     Route("/admin", admin_page),
+    Route("/bins", bins_page),
+    Route("/api/bins", api_bins, methods=["GET", "POST", "DELETE"]),
     Route("/api/views/{keys}", api_view),
     Route("/api/views/{keys}/progress", api_view_progress, methods=["GET", "POST"]),
     Route("/api/views/{keys}/settings", api_view_settings, methods=["POST"]),
