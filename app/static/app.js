@@ -764,10 +764,19 @@
   });
   const initHome = async () => {
     const picks = $$('.pick');
-    const order = [];
-    const sync = () => { $('#btn-combine').disabled = order.length < 2; $('#btn-combine').textContent = order.length < 2 ? 'Open selected together' : `Open ${order.length} together`; };
-    picks.forEach((c) => c.addEventListener('change', () => { if (c.checked) order.push(c.value); else order.splice(order.indexOf(c.value), 1); sync(); }));
-    $('#btn-combine').addEventListener('click', () => { if (order.length >= 2) location.href = `/v/${order.join(',')}`; });
+    // The lists ticked, in the order they were ticked (finds are credited in that order). The boxes
+    // themselves are the truth: coming back to this page the browser restores their ticks without
+    // telling us, so the order is rebuilt from them every time instead of only following taps.
+    let order = [];
+    const sync = () => {
+      const ticked = picks.filter((c) => c.checked).map((c) => c.value);
+      order = order.filter((v) => ticked.includes(v)).concat(ticked.filter((v) => !order.includes(v)));
+      $('#btn-combine').disabled = order.length < 2; $('#btn-combine').textContent = order.length < 2 ? 'Open selected together' : `Open ${order.length} together`;
+    };
+    picks.forEach((c) => c.addEventListener('change', () => { if (c.checked && !order.includes(c.value)) order.push(c.value); sync(); }));
+    $('#btn-combine').addEventListener('click', () => { sync(); if (order.length >= 2) location.href = `/v/${order.join(',')}`; });
+    window.addEventListener('pageshow', sync);
+    sync();
     // Minifigure matches to choose from, under whichever box found them.
     const showCands = (cands, box, st) => {
       box.replaceChildren();
