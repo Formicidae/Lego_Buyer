@@ -41,6 +41,12 @@ shipping* to override; without a cart the estimates use the BrickLink price guid
 JSON file for troubleshooting. LEGO prices that arrive without a Bestseller/Standard category are shown
 in a *Category unknown* box, with fees marked as a minimum, and are re-checked on the next price check.
 
+**Brick-built figures.** Rebrickable files some builds (destroyer droids, creatures, mechs) as
+"minifigs", which keeps their pieces out of a set's parts list. On load, any figure of ten parts or
+more is treated as ordinary building: its pieces are added to the set's parts and it is not listed as a
+whole minifigure. Real minifigures stay whole and are left out unless *Include minifigures* is on; the
+summary line says how many are hidden.
+
 **Storage bins.** Part types are Rebrickable's part categories. They are grouped into about a dozen
 bins in part-type order (bricks, slopes, plates, tiles, Technic, hinges, panels, wheels, minifigures,
 the rest) so the list sorted by *Bin* can be worked through one physical bin at a time, with a sticky

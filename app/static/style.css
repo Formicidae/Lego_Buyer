@@ -125,6 +125,7 @@ a { color: var(--green); }
 
 .summary { max-width: 1400px; margin: 12px auto 0; padding: 0 16px; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--ink-2); }
 .summary b { color: var(--ink); }
+.summary .s-note { color: var(--ink-3); }
 .s-rem b { color: var(--red); }
 .s-found b { color: var(--green); }
 

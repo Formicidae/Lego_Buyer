@@ -147,6 +147,37 @@ def fetch_minifig(fig_num: str):
     return list_info, parts, figs, part_categories(), colors
 
 
+# Rebrickable files brick-built figures (destroyer droids, creatures, mechs) as "minifigs", which keeps
+# their pieces out of the set's parts list: 7203 Jedi Defense I is 58 pieces but lists only two loose
+# parts, the rest being two droidekas. A real minifigure is a handful of parts, so anything this big is
+# treated as ordinary building: its pieces join the set's parts and it is not offered as a whole figure.
+BRICK_BUILT_MIN_PARTS = 10
+
+
+def _split_brick_built(raw_figs):
+    """-> (figures to keep whole, raw part rows of the brick-built ones multiplied by how many the set has)."""
+    whole, rows = [], []
+    for f in raw_figs:
+        fig, qty = f.get("set_num"), f.get("quantity") or 1
+        if not fig:
+            continue
+        n = f.get("num_parts")
+        try:
+            if n is None:
+                n = (_get(f"/minifigs/{fig}/") or {}).get("num_parts") or 0
+                time.sleep(1.0)
+            if n < BRICK_BUILT_MIN_PARTS:
+                whole.append(f)
+                continue
+            fig_rows = _paged(f"/minifigs/{fig}/parts/", {"inc_part_details": 1, "inc_color_details": 1})
+            time.sleep(1.0)
+        except RebrickableError:
+            whole.append(f)  # can't tell: leave it as a figure, as before
+            continue
+        rows += [{**r, "quantity": (r.get("quantity") or 0) * qty, "is_spare": False} for r in fig_rows]
+    return whole, rows
+
+
 def fetch_set(set_num: str):
     """Returns (set_info, parts, minifigs, categories, colors)."""
     info = None
@@ -165,7 +196,8 @@ def fetch_set(set_num: str):
     raw_figs = _paged(f"/sets/{set_num}/minifigs/")
     time.sleep(1.0)
     cats = part_categories()
-    parts, colors = _convert_parts(raw_parts)
+    raw_figs, built_rows = _split_brick_built(raw_figs)
+    parts, colors = _convert_parts(raw_parts + built_rows)
 
     figs = [
         {

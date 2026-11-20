@@ -432,6 +432,9 @@
       <span class="s-own"><b>${owned}</b> owned</span>
       <span class="s-found"><b>${found}</b> found at store</span>
       <span class="s-rem"><b>${rem}</b> still to buy</span>`;
+    // Whole minifigures are left out unless asked for: say so, or a set that is mostly figures looks half empty.
+    const hiddenFigs = state.set.include_minifigs ? 0 : sum(state.figs, (f) => f.quantity);
+    if (hiddenFigs) $('#summary').insertAdjacentHTML('beforeend', `<span class="s-note">+ ${hiddenFigs} minifigure${hiddenFigs === 1 ? '' : 's'} not shown (turn on in Filters)</span>`);
     renderBucket(items);
     if (state.mode === 'build') renderBuildPanel();
   };
