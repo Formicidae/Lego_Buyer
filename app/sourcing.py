@@ -220,6 +220,27 @@ def bricklink_xml(items):
     return "<INVENTORY>\n" + "\n".join(rows) + "\n</INVENTORY>"
 
 
+PAB_MAX_LOTS = 200  # LEGO's Pick a Brick "Upload list" takes up to 200 different pieces per file
+PAB_MAX_QTY = 999
+
+
+def pick_a_brick_rows(items):
+    """-> ([(element id, quantity)], [items that have no element id]) for LEGO's Pick a Brick upload."""
+    merged, skipped = {}, []
+    for i in items:
+        el = str(i.get("element_id") or "").strip()
+        if not el.isdigit():
+            skipped.append(i)
+            continue
+        merged[el] = min(PAB_MAX_QTY, merged.get(el, 0) + i["qty"])
+    return list(merged.items()), skipped
+
+
+def pick_a_brick_csv(rows):
+    """The format of LEGO's own CSV template: a header line, then element id and quantity."""
+    return "elementId,quantity\n" + "".join(f"{el},{qty}\n" for el, qty in rows)
+
+
 # ---------- matching an imported cart page's lots to our parts ----------
 
 # Rebrickable colour name -> BrickOwl's, for the common ones, in case Rebrickable's cross-reference is missing.

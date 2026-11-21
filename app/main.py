@@ -22,7 +22,7 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from . import bins, bricklink, brickowl, cartparse, csvlist, db, jobs, lego, partlists, rebrickable, sourcing, steps, views
+from . import bins, bricklink, brickowl, cartparse, csvlist, db, jobs, lego, partlists, rebrickable, sourcing, steps, swaps, views
 from .checklist import build_checklist, render_checklist_html, render_checklist_pdf
 from .config import APP_PASSCODE, SECRET, REBRICKABLE_API_KEY, DATA_DIR, CHROMIUM_PATH
 
@@ -109,6 +109,11 @@ async def view_page(request: Request):
 
 async def bins_page(request: Request):
     return templates.TemplateResponse(request, "bins.html", {})
+
+
+async def bins_print_page(request: Request):
+    """One printable page: every bin in order with the part types filed in it and what those look like."""
+    return templates.TemplateResponse(request, "bins_print.html", {"layout": bins.layout(), "hint": bins.hint})
 
 
 async def api_bins(request: Request):
@@ -600,6 +605,69 @@ async def api_sourcing_xml(request: Request):
                     headers={"Content-Disposition": f'attachment; filename="wanted-{time.strftime("%Y%m%d")}.xml"'})
 
 
+async def api_sourcing_pab(request: Request):
+    """LEGO Pick a Brick upload file (elementId,quantity). ?keys= limits it to those parts; LEGO takes 200
+    different pieces per file, so ?part=2 is the second 200."""
+    info, parts, keys = _target(request.path_params["ident"])
+    if not info:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    items = sourcing.needed_items(info, parts)
+    chosen = request.query_params.get("keys")
+    if chosen is not None:
+        ks = set(chosen.split(","))
+        items = [i for i in items if i["key"] in ks]
+    rows, _ = sourcing.pick_a_brick_rows(items)
+    try:
+        part = max(1, int(request.query_params.get("part") or 1))
+    except ValueError:
+        part = 1
+    n = sourcing.PAB_MAX_LOTS
+    chunk = rows[(part - 1) * n:part * n]
+    suffix = f"-{part}" if len(rows) > n else ""
+    return Response(sourcing.pick_a_brick_csv(chunk), media_type="text/csv",
+                    headers={"Content-Disposition": f'attachment; filename="pick-a-brick-{time.strftime("%Y%m%d")}{suffix}.csv"'})
+
+
+def _market_pricer(ident, items):
+    """item -> what one costs on the marketplace (imported cart, else stored BrickOwl / BrickLink price), else at LEGO."""
+    lot_cart = next((c for c in db.carts(ident) if any(st.get("lot_list") for st in c["stores"])), None)
+    ctx = sourcing.cart_context(items, lot_cart) if lot_cart else None
+
+    def price(i):
+        p = sourcing.market_price(i, ctx)
+        return p if p is not None else i.get("lego_price")
+    return price
+
+
+async def api_sourcing_swaps(request: Request):
+    """GET: the colour-swap scan for this list (a job: {"state", "done", "total", "result"}).
+    POST {"min": 0.5}: start a scan of the parts costing at least that much each.
+    POST {"name", "swaps": {part key: colour id}}: write everything still needed, with those colours swapped, to a new parts list."""
+    ident = request.path_params["ident"]
+    info, parts, keys = _target(ident)
+    if not info:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    if request.method == "GET":
+        return JSONResponse(jobs.status(f"swaps:{ident}"))
+    body = await request.json()
+    items = sourcing.needed_items(info, parts)
+    if "swaps" in body:
+        chosen = {str(k): int(v) for k, v in (body.get("swaps") or {}).items()}
+        name = (body.get("name") or "").strip() or f"{info['name']} color swap"
+        rows = swaps.rows_with_swaps(items, chosen)
+        if not rows:
+            return JSONResponse({"error": "Nothing is left to buy on this list."}, status_code=400)
+        slug = csvlist.slugify(name)
+        log.info("colour swap list: %r -> %s, %d rows, %d swapped", name, slug, len(rows), len(chosen))
+        return JSONResponse({**jobs.start_csv_import(slug, name, rows), "rows": len(rows), "name": name})
+    try:
+        min_price = max(0.0, float(body.get("min") if body.get("min") not in (None, "") else 0.5))
+    except (TypeError, ValueError):
+        min_price = 0.5
+    price = await run_in_threadpool(_market_pricer, ident, items)
+    return JSONResponse(jobs.start_swap_scan(ident, items, price, min_price))
+
+
 async def api_tier(request: Request):
     body = await request.json()
     eid, tier = str(body.get("element_id") or ""), body.get("tier")
@@ -985,6 +1053,7 @@ routes = [
     Route("/v/{keys}/checklist.pdf", view_checklist_pdf),
     Route("/admin", admin_page),
     Route("/bins", bins_page),
+    Route("/bins/print", bins_print_page),
     Route("/api/bins", api_bins, methods=["GET", "POST", "DELETE"]),
     Route("/api/views/{keys}", api_view),
     Route("/api/views/{keys}/progress", api_view_progress, methods=["GET", "POST"]),
@@ -998,6 +1067,8 @@ routes = [
     Route("/api/sourcing/{ident}/bricklink", api_sourcing_bl, methods=["POST"]),
     Route("/api/sourcing/{ident}/brickowl", api_sourcing_bo, methods=["POST"]),
     Route("/api/sourcing/{ident}/wanted.xml", api_sourcing_xml),
+    Route("/api/sourcing/{ident}/pick-a-brick.csv", api_sourcing_pab),
+    Route("/api/sourcing/{ident}/swaps", api_sourcing_swaps, methods=["GET", "POST"]),
     Route("/api/sourcing/{ident}/export.json", api_sourcing_export),
     Route("/api/sourcing/{ident}/carts", api_carts, methods=["GET", "POST", "DELETE"]),
     Route("/api/sourcing/{ident}/carts/import", api_cart_import, methods=["POST"]),

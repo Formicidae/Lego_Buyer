@@ -210,6 +210,24 @@
       <button class="btn ghost" id="btn-copy-csv" type="button">Copy CSV</button>
     </div>
     <p class="hint" id="bo-status"></p>
+    <div class="buy-actions buy-exports" id="pab-links"></div>
+    <p class="hint" id="pab-hint">Pick a Brick format: on lego.com open <b>Pick a Brick → Upload list</b> and choose the file (element id and quantity, up to 200 different pieces per file). LEGO puts what it sells in your bag and lists the rest as unavailable.</p>
+
+    <details class="swap-box" id="swap-box">
+      <summary>Cheaper colours for expensive parts</summary>
+      <p class="hint">A part that only came in one or two sets can cost many times what the same shape costs in a common colour. This looks up the other colours of every part costing at least the amount below, and writes your picks to a new list; this list is left as it is.</p>
+      <div class="cart-form">
+        <label>Parts costing at least $<input id="swap-min" type="number" min="0" step="0.05" value="0.50" style="width:80px"> each</label>
+        <button class="btn primary" id="swap-scan" type="button">Find cheaper colours</button>
+        <span class="hint" id="swap-status"></span>
+      </div>
+      <div id="swap-list"></div>
+      <div class="cart-form" id="swap-make" hidden>
+        <label>New list name <input id="swap-name"></label>
+        <button class="btn primary" id="swap-create" type="button">Create the swapped list</button>
+        <span class="hint" id="swap-make-status"></span>
+      </div>
+    </details>
     <p class="hint"><a id="link-export" href="#" download>Download this list's price data</a> — one file with every part's prices, the imported carts and how the totals above were worked out; attach it when something here looks wrong.</p>
 
     <details class="cart-import" open>

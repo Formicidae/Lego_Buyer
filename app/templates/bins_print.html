@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bin guide · Lego Buyer</title>
+<style>
+  @page { size: letter portrait; margin: 8mm; }
+  * { box-sizing: border-box; }
+  body { font: 8.1pt/1.2 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #111; background: #fff; margin: 0; padding: 12px; }
+  header { display: flex; align-items: baseline; gap: 10px; border-bottom: 1.5pt solid #111; padding-bottom: 3px; margin-bottom: 6px; }
+  h1 { font-size: 13pt; margin: 0; }
+  header p { margin: 0; color: #444; font-size: 8pt; flex: 1; }
+  .tools { display: flex; gap: 12px; align-items: center; margin: 0 0 8px; font-size: 11pt; flex-wrap: wrap; }
+  .tools button, .tools a { font: inherit; padding: 6px 12px; border: 1px solid #888; border-radius: 8px; background: #f3f3f3; color: #111; text-decoration: none; }
+  .cols { columns: 2; column-gap: 14px; }
+  .bin { break-inside: avoid; margin: 0 0 4px; border: 0.8pt solid #999; border-radius: 4px; overflow: hidden; }
+  .bin h2 { margin: 0; font-size: 9.2pt; padding: 1.5px 6px; background: #e9e9e9; display: flex; gap: 6px; align-items: baseline; }
+  .bin h2 .n { display: inline-block; min-width: 1.5em; text-align: center; background: #111; color: #fff; border-radius: 3px; padding: 0 3px; }
+  .bin ul { list-style: none; margin: 0; padding: 2px 6px 3px; }
+  .bin li { padding: 0.5px 0; }
+  .bin li b { font-weight: 650; }
+  .bin li span { color: #333; }
+  .bin li.unused { color: #777; }
+  .bin li.unused span { color: #888; }
+  body.used-only li.unused { display: none; }
+  body.used-only .bin.none { display: none; }
+  footer { margin-top: 4px; font-size: 7.4pt; color: #555; }
+  @media print { .tools { display: none; } body { padding: 0; } }
+  @media (max-width: 700px) { .cols { columns: 1; } body { font-size: 11pt; } .bin h2 { font-size: 12pt; } }
+</style>
+</head>
+<body>
+<div class="tools">
+  <button type="button" onclick="window.print()">Print</button>
+  <label><input type="checkbox" id="used"> Only part types my lists use</label>
+  <a href="/bins">Edit bins</a>
+</div>
+<header>
+  <h1>LEGO storage bins</h1>
+  <p>Part types are Rebrickable's standard categories. The app's parts list sorted by <b>Bin</b> runs through the bins in this order.{% if layout.custom %} Your saved layout.{% endif %}</p>
+</header>
+<div class="cols">
+{% for b in layout.bins %}
+  {% set used = b.cats | selectattr('pieces') | list %}
+  <section class="bin{{ '' if used else ' none' }}">
+    <h2><span class="n">{{ loop.index }}</span>{{ b.name }}</h2>
+    <ul>
+    {% for c in b.cats %}
+      <li class="{{ '' if c.pieces else 'unused' }}"><b>{{ c.name }}</b>{% if hint(c.name) %} <span>&ndash; {{ hint(c.name) }}</span>{% endif %}</li>
+    {% else %}
+      <li class="unused">nothing filed here yet</li>
+    {% endfor %}
+    </ul>
+  </section>
+{% endfor %}
+</div>
+<footer>Grey lines are part types none of your lists use yet. Colour is not part of the bin: sort by colour inside a bin only if it gets too full.</footer>
+<script>
+  const cb = document.getElementById('used');
+  try { cb.checked = localStorage.getItem('lb_bins_used') === '1'; } catch (e) {}
+  const apply = () => { document.body.classList.toggle('used-only', cb.checked); try { localStorage.setItem('lb_bins_used', cb.checked ? '1' : '0'); } catch (e) {} };
+  cb.addEventListener('change', apply); apply();
+</script>
+</body>
+</html>

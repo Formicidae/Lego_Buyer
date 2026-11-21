@@ -718,6 +718,28 @@
     const mk = chosen.market_keys;
     $('#link-bl-xml').href = `/api/sourcing/${ident}/wanted.xml?keys=${encodeURIComponent(mk.join(','))}`;
     $('#link-export').href = `/api/sourcing/${ident}/export.json`;
+    // Pick a Brick upload files (elementId,quantity; 200 different pieces per file): the LEGO side of the
+    // chosen plan, and the whole list for seeing what LEGO stocks at all.
+    const pab = $('#pab-links'); pab.replaceChildren();
+    const elOf = new Map(srcData.items.filter((i) => /^\d+$/.test(String(i.element_id || ''))).map((i) => [i.key, String(i.element_id)]));
+    const pabFiles = (label, keys, all) => {
+      const n = new Set(keys.map((k) => elOf.get(k)).filter(Boolean)).size;
+      const files = Math.ceil(n / 200);
+      for (let f = 1; f <= files; f++) {
+        const a = document.createElement('a'); a.className = 'btn ghost'; a.setAttribute('download', '');
+        a.href = `/api/sourcing/${ident}/pick-a-brick.csv?${all ? '' : `keys=${encodeURIComponent(keys.join(','))}&`}part=${f}`;
+        const inFile = f < files ? 200 : n - 200 * (files - 1);
+        a.textContent = `Pick a Brick file: ${label} (${files > 1 ? `file ${f} of ${files}, ` : ''}${inFile} lot${inFile === 1 ? '' : 's'})`;
+        pab.appendChild(a);
+      }
+      return n;
+    };
+    pabFiles('LEGO side of this plan', chosen.lego_keys, false);
+    pabFiles('whole list', srcData.items.map((i) => i.key), true);
+    const noEl = srcData.items.length - srcData.items.filter((i) => elOf.has(i.key)).length;
+    $('#pab-hint').hidden = !pab.children.length;
+    $('#pab-hint').dataset.base = $('#pab-hint').dataset.base || $('#pab-hint').innerHTML;
+    $('#pab-hint').innerHTML = $('#pab-hint').dataset.base + (noEl ? ` ${noEl} lot${noEl === 1 ? ' has' : 's have'} no LEGO element id and ${noEl === 1 ? 'is' : 'are'} left out.` : '');
     $('#btn-bo-push').disabled = mk.length === 0;
     $('#btn-bo-push').textContent = `Send ${mk.length} marketplace lot${mk.length === 1 ? '' : 's'} to a BrickOwl wishlist`;
     const bp = srcData.bo_push;
@@ -1094,6 +1116,80 @@
       copy(blXml(), 'BrickLink XML');
     });
     $('#btn-copy-csv').addEventListener('click', () => copy(csv(), 'CSV'));
+
+    // ---------- colour swaps: other colours for the expensive parts, written to a new list ----------
+    let swapData = null; const swapPick = {};
+    const swapEsc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+    const swapLine = (a) => `${a.color_name} · ${a.price != null ? `${money(a.price)} each${a.price_source === 'bricklink' ? ' (BrickLink)' : ''} · ` : ''}in ${a.num_sets} set${a.num_sets === 1 ? '' : 's'}`;
+    const swapSummary = () => {
+      if (!swapData) return;
+      let n = 0, before = 0, after = 0, unknown = 0;
+      for (const l of swapData.lots) {
+        const to = swapPick[l.key]; if (to == null) continue;
+        const a = l.alts.find((x) => x.color_id === to); if (!a) continue;
+        n++; if (a.price != null) { before += l.price * l.qty; after += a.price * l.qty; } else unknown++;
+      }
+      $('#swap-make').hidden = false;
+      $('#swap-make-status').textContent = n
+        ? `${n} colour${n === 1 ? '' : 's'} swapped${before ? `: ${money(before)} → ${money(after)} for the ones with a known price` : ''}${unknown ? `; ${unknown} without a price yet (more sets usually means cheaper)` : ''}.`
+        : 'No colours swapped yet: pick one from a part\'s menu.';
+    };
+    const drawSwaps = () => {
+      const box = $('#swap-list'); box.replaceChildren();
+      if (!swapData) return;
+      for (const l of swapData.lots) {
+        const row = document.createElement('div'); row.className = 'swap-row';
+        const to = swapPick[l.key]; const alt = l.alts.find((x) => x.color_id === to);
+        const dot = (rgb) => `<i class="swap-dot" style="background:#${swapEsc(rgb || 'ccc')}"></i>`;
+        row.innerHTML = `<img alt="" loading="lazy" src="${swapEsc((alt && alt.img_url) || l.img_url || '')}">
+          <div class="swap-main"><b>${swapEsc(l.name)}</b>
+          <span>${dot(l.rgb)}${swapEsc(l.color_name)} · ${l.qty} × ${money(l.price)} = ${money(l.qty * l.price)} · in ${l.num_sets} set${l.num_sets === 1 ? '' : 's'}</span>
+          <select aria-label="Colour for ${swapEsc(l.name)}"><option value="">Keep ${swapEsc(l.color_name)}</option>${l.alts.map((a) => `<option value="${a.color_id}"${a.color_id === to ? ' selected' : ''}>${swapEsc(swapLine(a))}${a.color_id === l.suggest ? ' ★' : ''}</option>`).join('')}</select>
+          ${alt ? `<span class="swap-to">${dot(alt.rgb)}→ ${swapEsc(alt.color_name)}${alt.price != null ? `, saves ${money((l.price - alt.price) * l.qty)}` : ''}</span>` : ''}</div>`;
+        row.querySelector('select').addEventListener('change', (e) => { if (e.target.value === '') delete swapPick[l.key]; else swapPick[l.key] = Number(e.target.value); drawSwaps(); });
+        if (!l.alts.length) row.querySelector('select').disabled = true;
+        box.appendChild(row);
+      }
+      swapSummary();
+    };
+    const takeSwaps = (j) => {
+      const st = $('#swap-status');
+      if (!j || j.state === 'idle') return false;
+      if (j.state === 'running') { st.textContent = `Looking up colours… ${j.done} / ${j.total || '?'} parts (about a second each)`; return true; }
+      if (j.state === 'failed') { st.textContent = j.message || 'The lookup failed.'; return false; }
+      swapData = j.result; for (const k of Object.keys(swapPick)) delete swapPick[k];
+      for (const l of swapData.lots) if (l.suggest != null) swapPick[l.key] = l.suggest;
+      st.textContent = swapData.lots.length
+        ? `${swapData.lots.length} part${swapData.lots.length === 1 ? '' : 's'} at ${money(swapData.min)} or more${swapData.skipped ? ` (the ${swapData.skipped} cheapest of them left out)` : ''}. ★ marks the suggestion: the closest-looking colour that is clearly cheaper${swapData.bricklink ? '' : ' or, with no price, far more common'}. ${swapData.bricklink ? 'Prices are BrickLink\'s guide or another of your lists.' : 'Prices are shown where another of your lists already has that colour; add BrickLink keys for the rest.'}`
+        : `No part on this list costs ${money(swapData.min)} or more.`;
+      if (!$('#swap-name').value) $('#swap-name').value = `${state.set.name} color swap`.slice(0, 60);
+      drawSwaps(); return false;
+    };
+    const pollSwaps = async () => {
+      const j = await api(`/api/sourcing/${srcIdent()}/swaps`).catch(() => null);
+      if (takeSwaps(j)) setTimeout(pollSwaps, 1500); else $('#swap-scan').disabled = false;
+    };
+    $('#swap-scan').addEventListener('click', async () => {
+      $('#swap-scan').disabled = true; $('#swap-status').textContent = 'Starting…';
+      try { await api(`/api/sourcing/${srcIdent()}/swaps`, { method: 'POST', body: JSON.stringify({ min: $('#swap-min').value }) }); pollSwaps(); }
+      catch (e) { $('#swap-status').textContent = e.message; $('#swap-scan').disabled = false; }
+    });
+    $('#swap-box').addEventListener('toggle', () => { if ($('#swap-box').open && !swapData) pollSwaps(); });
+    $('#swap-create').addEventListener('click', async () => {
+      const st = $('#swap-make-status'); $('#swap-create').disabled = true;
+      try {
+        const r = await api(`/api/sourcing/${srcIdent()}/swaps`, { method: 'POST', body: JSON.stringify({ name: $('#swap-name').value.trim(), swaps: swapPick }) });
+        const name = `import:${r.set_num}`;
+        const tick = async () => {
+          const j = await api(`/api/jobs/${name}`).catch(() => null);
+          if (!j || j.state === 'running') { st.textContent = `Building “${r.name}”… ${j ? j.done : 0} / ${j ? j.total : r.rows} lots (Rebrickable allows about one lookup a second)`; setTimeout(tick, 1500); return; }
+          $('#swap-create').disabled = false;
+          if (j.state === 'failed') { st.textContent = j.message || 'Could not build the list.'; return; }
+          st.innerHTML = `Done: <a href="/s/${encodeURIComponent(r.set_num)}">open “${swapEsc(r.name)}”</a> (${j.lots} lots). Send it to a BrickOwl wishlist from its Buy tab to see real prices.`;
+        };
+        tick();
+      } catch (e) { st.textContent = e.message; $('#swap-create').disabled = false; }
+    });
 
     // Clicking a row's picture also acts as the primary tap (handy with one thumb at the wall).
     $('#grid').addEventListener('click', (e) => {

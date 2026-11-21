@@ -3,7 +3,7 @@ import logging
 import threading
 import time
 
-from . import bricklink, brickowl, csvlist, db, lego, partlists
+from . import bricklink, brickowl, csvlist, db, lego, partlists, swaps
 
 log = logging.getLogger("lego_buyer")
 
@@ -148,6 +148,33 @@ def start_csv_import(slug, list_name, rows, as_set=None, from_site=False):
                 _jobs[name].update({"state": "done", "finished": time.time(), "lots": len(parts), "problems": problems})
         except Exception as e:
             log.exception("csv import failed: %s", set_num)
+            with _lock:
+                _jobs[name].update({"state": "failed", "message": str(e)})
+
+    threading.Thread(target=run, name=name, daemon=True).start()
+    return status(name)
+
+
+def start_swap_scan(ident, items, price_of, min_price):
+    """Look up the other colours of a list's most expensive parts (see swaps.scan); the result is kept on the job."""
+    name = f"swaps:{ident}"
+    with _lock:
+        cur = _jobs.get(name)
+        if cur and cur.get("state") == "running":
+            return dict(cur)
+        _jobs[name] = {"state": "running", "done": 0, "total": 0, "started": time.time()}
+
+    def progress(done, total):
+        with _lock:
+            _jobs[name].update({"done": done, "total": total})
+
+    def run():
+        try:
+            res = swaps.scan(items, price_of, min_price, on_progress=progress)
+            with _lock:
+                _jobs[name].update({"state": "done", "finished": time.time(), "result": res})
+        except Exception as e:
+            log.exception("colour swap scan failed: %s", ident)
             with _lock:
                 _jobs[name].update({"state": "failed", "message": str(e)})
 

@@ -55,7 +55,20 @@ summary line says how many are hidden.
 bins in part-type order (bricks, slopes, plates, tiles, Technic, hinges, panels, wheels, minifigures,
 the rest) so the list sorted by *Bin* can be worked through one physical bin at a time, with a sticky
 heading per bin. `/bins` (linked from the home page and the Filters panel) renames, reorders and regroups
-them; the suggestion lives in `app/bins.py` and a saved layout in the settings table.
+them; the suggestion lives in `app/bins.py` and a saved layout in the settings table. `/bins/print` is a
+one-page guide to tape inside the lid: every bin in order with its part types and what each looks like.
+
+**Pick a Brick file.** The Buy tab downloads LEGO's "Upload list" format (`elementId,quantity`, 200
+different pieces per file, split into several files past that) for the LEGO side of the chosen plan or
+for the whole list. Uploading the whole list is the quickest way to see what LEGO stocks: it fills the
+bag with what it sells and lists the rest as unavailable.
+
+**Cheaper colours.** *Cheaper colours for expensive parts* on the Buy tab takes every part costing at
+least a set amount (50¢ by default, the 40 most expensive), asks Rebrickable which other colours the
+part was made in and how many sets each appeared in, and shows them closest-looking first. Prices are
+shown where another list already has that colour, and from BrickLink's price guide when its keys are
+set. The picks are written to a new parts list (everything still to buy, with those colours swapped),
+so the original list is untouched; send the new list to a BrickOwl wishlist for real prices.
 
 **One box to add anything.** The box at the top of the home page takes a set number, a B-model or
 sub-set number (`4488-1-b1`: an inventory shipped with the app if there is one, otherwise read from the
@@ -173,6 +186,7 @@ app/main.py         Starlette app: routes, passcode auth
 app/db.py           SQLite schema + queries (sets, parts, minifigs, progress, revisions)
 app/rebrickable.py  Rebrickable API client
 app/partlists.py    Bundled element-ID lists (app/partlists/*.json) → list rows via Rebrickable
+app/swaps.py        Other colours for a list's expensive parts → a new list with the picks swapped
 app/checklist.py    Printable checklist → HTML → PDF (Chromium)
 app/templates/      index.html (the app), checklist.html (print), login.html
 app/static/         app.js, style.css (no build step)
