@@ -277,3 +277,9 @@ a { color: var(--green); }
   .pic img { width: 96px; height: 96px; }
   .stage small { display: none; }
 }
+
+.what-if { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+.basket { margin-top: 8px; font-size: 13px; }
+.basket summary { cursor: pointer; font-weight: 700; }
+.basket ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; }
+.basket p { margin: 6px 0 0; }

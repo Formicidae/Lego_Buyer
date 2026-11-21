@@ -394,6 +394,12 @@ async def api_sourcing(request: Request):
             opts["market_shipping"] = max(0.0, float(request.query_params["ship"]))
     except ValueError:
         pass
+    # "What if" assumptions for LEGO: a cash-back / discount percentage, and fees + shipping waived.
+    try:
+        opts["lego_off"] = min(90.0, max(0.0, float(request.query_params.get("lego_off") or 0))) / 100
+    except ValueError:
+        opts["lego_off"] = 0.0
+    opts["lego_free"] = request.query_params.get("lego_free") in ("1", "true")
     # The newest imported cart that lists its lots prices the estimates: what each part costs there and
     # which stores (and so how much shipping) a given split still needs.
     lot_cart = next((c for c in carts if any(st.get("lot_list") for st in c["stores"])), None)
@@ -409,13 +415,14 @@ async def api_sourcing(request: Request):
             db.setting_set(f"bo_alloc:{ident}", marker)
     sc = sourcing.scenarios(items, opts) + sourcing.cart_scenarios(items, carts, opts)
     sc.sort(key=lambda x: (bool(x.get("incomplete")), x["total"]))
+    lego_info = {"off": round(opts["lego_off"] * 100, 2), "free": opts["lego_free"]}
     ship_info = {"user": opts["market_shipping"], "default": sourcing.DEFAULTS["market_shipping"],
                  "cart": ({"name": lot_cart["name"], "total": lot_cart["shipping_total"], "stores": len(lot_cart["stores"]),
                            "unmatched_lots": len(ctx["unmatched"])} if ctx else None)}
     bl_job = jobs.status(f"blprices:{keys[0]}")
     bo_ok, bo_skipped = sourcing.brickowl_wishlist_items(items)
     return JSONResponse({
-        "items": items, "scenarios": sc, "shipping": ship_info, "bricklink_configured": bricklink.configured(), "bl_job": bl_job,
+        "items": items, "scenarios": sc, "shipping": ship_info, "lego_assume": lego_info, "bricklink_configured": bricklink.configured(), "bl_job": bl_job,
         "bo_push": jobs.status(f"bopush:{keys[0]}"), "bo_skipped": [i["key"] for i in bo_skipped],
         "unpriced_lego": sum(1 for i in items if not i["lego_checked"]), "unpriced_bl": sum(1 for i in items if not i["bl_checked"]),
     })

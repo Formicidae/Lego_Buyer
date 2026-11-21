@@ -651,11 +651,16 @@
   // changed after it was chosen; reading it into memory first avoids that.
   const inMemory = async (f) => new File([await f.arrayBuffer()], f.name, { type: f.type || 'application/octet-stream' });
   let srcData = null;
+  let basketOpen = false;
   const renderSourcing = async () => {
     if (state.mode !== 'buy' || !state.setNum) return;
     const ident = state.isView ? `v:${viewKeys}` : state.setNum;
     const typed = shipEst();
-    try { srcData = await api(`/api/sourcing/${ident}${typed == null ? '' : `?ship=${typed}`}`); } catch (e) { $('#src-status').textContent = e.message; return; }
+    // "What if" for LEGO, remembered per list: a cash-back percentage, and fees + shipping waived.
+    let off = 0, free = false; try { off = Number(localStorage.getItem('lb_lego_off:' + srcIdent())) || 0; free = localStorage.getItem('lb_lego_free:' + srcIdent()) === '1'; } catch {}
+    $('#lego-off').value = off || ''; $('#lego-free').checked = free;
+    const qs = [typed == null ? '' : `ship=${typed}`, off ? `lego_off=${off}` : '', free ? 'lego_free=1' : ''].filter(Boolean).join('&');
+    try { srcData = await api(`/api/sourcing/${ident}${qs ? `?${qs}` : ''}`); } catch (e) { $('#src-status').textContent = e.message; return; }
     if (!srcData) return;
     const SH = srcData.shipping || {};
     $('#ship-est').value = typed == null ? '' : typed;
@@ -674,13 +679,30 @@
       const stores = sc.imported ? `<div class="stores">${sc.stores.map((st) => `${st.name}: ${money(st.subtotal)} + ${money(st.shipping)} ship`).join(' · ')}${sc.url ? ` · <a href="${sc.url}" target="_blank" rel="noopener">open</a>` : ''} · <a href="#" data-delcart="${sc.cart_id}">remove</a></div>` : '';
       const names = (M.unpriced_names || []).join('; ');
       const shipNote = sc.imported ? '' : M.shipping_from === 'cart' ? ` — ${M.stores} store${M.stores === 1 ? '' : 's'} at your imported cart's rates` : M.shipping_from === 'user' ? ' — your figure' : M.shipping_from === 'default' ? ' — flat estimate, real carts usually cost more' : '';
-      const feeNote = L && L.unknown && L.unknown.lots ? '+ (categories unknown)' : '';
+      const feeNote = L && L.unknown && L.unknown.lots && !L.waived ? '+ (categories unknown)' : '';
+      const legoLine = !L ? '<span>LEGO: nothing</span>'
+        : `<span>LEGO: ${money(L.subtotal)} parts${L.cashback ? ` − ${money(L.cashback)} cash back` : ''}${L.waived ? ', fees and shipping assumed waived' : ` + ${money(L.service_fees)}${feeNote} fees + ${money(L.shipping)} ship`} (${sc.lego_keys.length} lots)</span>`;
+      // The LEGO basket for the mixed plan: what to buy there and what each line saves.
+      let basket = '';
+      if (sc.lego_detail && sc.lego_detail.length) {
+        const esc = (t) => String(t).replace(/[&<>]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[ch]));
+        const cents = (v) => (v < 0.1 ? `$${v.toFixed(3)}` : money(v));
+        const rowsHtml = sc.lego_detail.map((d) => `<li><b>${d.qty}×</b> ${esc(d.name)} — LEGO ${cents(d.lego)}${d.market != null ? ` vs ${cents(d.market)}` : ' (no marketplace price)'}${d.drops_store ? ` · moved so <i>${esc(d.drops_store)}</i> isn't needed` : d.saving != null ? ` · saves ${money(d.saving)}` : ''}</li>`).join('');
+        const dropped = (sc.stores_dropped || []).map((x) => `${esc(x.store)} (${money(x.shipping)} shipping)`).join(', ');
+        basket = `<details class="basket"><summary>What to buy from LEGO (${sc.lego_detail.length} lots)</summary>${dropped ? `<p>Stores no longer needed: ${dropped}.</p>` : ''}<ul>${rowsHtml}</ul></details>`;
+      }
       d.innerHTML = `<h3><span>${sc.name}${sc === best ? ' · cheapest' : ''}</span><b>${sc.incomplete ? 'from ' : ''}${money(sc.total)}${feeNote ? '+' : ''}</b></h3><small>${sc.note}${sc.incomplete ? ` <b>Incomplete:</b> ${sc.market.unpriced} marketplace lot(s) have no price yet, so this is only a floor${names ? `: ${names}${M.unpriced > (M.unpriced_names || []).length ? '…' : ''}` : ''}.` : ''}</small>
         <div class="lines">
-          ${L ? `<span>LEGO: ${money(L.subtotal)} parts + ${money(L.service_fees)}${feeNote} fees + ${money(L.shipping)} ship (${sc.lego_keys.length} lots)</span>` : '<span>LEGO: nothing</span>'}
+          ${legoLine}
           <span>Marketplace: ${money(M.parts)} parts + ${money(M.shipping)} ship${shipNote} (${M.lots} lots${M.store_lots && M.store_lots !== M.lots ? `, bought as ${M.store_lots} store lots` : ''}${M.unpriced ? `, ${M.unpriced} unpriced` : ''})</span>
-        </div>${stores}`;
+        </div>${stores}${basket}`;
       d.querySelector('[data-delcart]')?.addEventListener('click', async (e) => { e.preventDefault(); e.stopPropagation(); if (confirm('Remove this imported cart?')) { await api(`/api/sourcing/${ident}/carts?id=${sc.cart_id}`, { method: 'DELETE' }); renderSourcing(); } });
+      const bk = d.querySelector('.basket');
+      if (bk) { // opening the list must not count as choosing the scenario, and should survive a redraw
+        bk.open = basketOpen;
+        bk.addEventListener('click', (e) => e.stopPropagation());
+        bk.addEventListener('toggle', () => { basketOpen = bk.open; });
+      }
       d.addEventListener('click', () => { localStorage.setItem('lb_scenario:' + ident, sc.name); renderSourcing(); render(); });
       box.appendChild(d);
     }
@@ -1007,6 +1029,8 @@
     $('#bucket-cost').addEventListener('change', (e) => { localStorage.setItem('lb_bucket', String(Math.max(0, Number(e.target.value) || 0))); renderSummary(); });
     $('#btn-finish').addEventListener('click', finishTrip);
     $('#btn-prices').addEventListener('click', () => startPrices(false));
+    $('#lego-off').addEventListener('change', (e) => { try { localStorage.setItem('lb_lego_off:' + srcIdent(), String(Math.min(90, Math.max(0, Number(e.target.value) || 0)))); } catch {} renderSourcing(); });
+    $('#lego-free').addEventListener('change', (e) => { try { localStorage.setItem('lb_lego_free:' + srcIdent(), e.target.checked ? '1' : '0'); } catch {} renderSourcing(); });
     $('#ship-est').addEventListener('change', (e) => {
       const raw = e.target.value.trim();
       try { if (raw === '') localStorage.removeItem('lb_ship:' + srcIdent()); else localStorage.setItem('lb_ship:' + srcIdent(), String(Math.max(0, Number(raw) || 0))); } catch {}

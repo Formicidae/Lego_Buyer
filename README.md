@@ -37,6 +37,10 @@ that cart charges for it (averaged when the cart splits it across stores, scaled
 to its real subtotal) and shipping is the sum for the stores a given split still needs, so *All
 marketplace* equals the cart and the other splits are comparable with it. Type a figure in *Marketplace
 shipping* to override; without a cart the estimates use the BrickLink price guide and a flat $5.
+Two "what if" boxes sit under the shipping figure: a LEGO cash-back / discount percentage, and *assume
+LEGO's fees and shipping are waived*; the *Cheapest per part* plan then lists exactly what to buy from
+LEGO, what each line saves, and which cart stores are no longer needed (a store is dropped when LEGO can
+supply everything it would send for less than its shipping).
 *Download this list's price data* (under the scenarios) saves everything those numbers come from as one
 JSON file for troubleshooting. LEGO prices that arrive without a Bestseller/Standard category are shown
 in a *Category unknown* box, with fees marked as a minimum, and are re-checked on the next price check.

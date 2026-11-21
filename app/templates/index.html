@@ -198,6 +198,10 @@
     </div>
     <p class="hint" id="src-status">Compares LEGO against marketplace prices (BrickLink price guide, also used as the BrickOwl estimate).</p>
     <label class="hint">Marketplace shipping $<input id="ship-est" type="number" min="0" step="0.5" style="width:70px"> <span id="ship-hint"></span></label>
+    <div class="hint what-if">
+      <label>LEGO cash back / discount <input id="lego-off" type="number" min="0" max="90" step="1" placeholder="0" style="width:60px">%</label>
+      <label><input type="checkbox" id="lego-free"> Assume LEGO's fees and shipping are waived (order is big enough)</label>
+    </div>
     <div id="scenarios" class="scenarios"></div>
     <div class="buy-actions buy-exports">
       <button class="btn primary" id="btn-bo-push" type="button">Send marketplace parts to a BrickOwl wishlist</button>

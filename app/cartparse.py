@@ -92,7 +92,15 @@ def page_html(data: bytes) -> str:
         msg = email.message_from_bytes(data, policy=policy.default)
         for part in msg.walk():
             if part.get_content_type() == "text/html":
-                return part.get_content()
+                # Chrome saves the page as UTF-8 without saying so; decoding by the (missing) declared
+                # charset would turn every non-ASCII character (75° slopes) into a replacement mark.
+                raw = part.get_payload(decode=True) or b""
+                for enc in ([part.get_content_charset()] if part.get_content_charset() else []) + ["utf-8", "cp1252"]:
+                    try:
+                        return raw.decode(enc)
+                    except (UnicodeDecodeError, LookupError):
+                        continue
+                return raw.decode("utf-8", "replace")
         raise ValueError("No HTML in this .mht file")
     return data.decode("utf-8", "replace")
 

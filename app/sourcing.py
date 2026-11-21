@@ -49,8 +49,23 @@ def market_price(i, ctx=None):
     return i["bo_price"] if i.get("bo_price") is not None else i["bl_price"]
 
 
-def _lego_cost(items):
+def lego_price(i, opts=None):
+    """LEGO's price for one piece after any cash back / discount the user entered."""
+    return None if i["lego_price"] is None else i["lego_price"] * (1 - ((opts or {}).get("lego_off") or 0))
+
+
+def _lego_cost(items, opts=None):
+    opts = opts or {}
     plan = lego.plan_fees([{"price": i["lego_price"], "tier": i["tier"] or "Unknown", "qty": i["qty"]} for i in items])
+    if opts.get("lego_free"):
+        # "Assume the order is big enough": no service fees, no shipping.
+        for t in plan["tiers"].values():
+            if "fee" in t:
+                t["fee"] = 0.0
+        plan.update({"service_fees": 0.0, "shipping": 0.0, "waived": True})
+    off = opts.get("lego_off") or 0
+    plan["cashback"] = round(plan["subtotal"] * off, 2)
+    plan["total"] = round(plan["subtotal"] + plan["service_fees"] + plan["shipping"] - plan["cashback"], 2)
     return plan
 
 
@@ -83,7 +98,7 @@ def scenarios(items, opts=None):
     lego_no = [i for i in items if i["lego_price"] is None]
 
     def build(name, lego_items, market_items, note):
-        L = _lego_cost(lego_items) if lego_items else None
+        L = _lego_cost(lego_items, opts) if lego_items else None
         M = _market_cost(market_items, opts)
         total = (L["total"] if L else 0) + M["total"]
         return {"name": name, "note": note, "lego": L, "market": M, "lego_keys": [i["key"] for i in lego_items],
@@ -91,7 +106,7 @@ def scenarios(items, opts=None):
                 "incomplete": M["unpriced"] > 0}  # marketplace lots with no price make the total a floor, not an estimate
 
     out = [
-        build("LEGO where possible", lego_ok, lego_no, "Everything LEGO sells from Pick a Brick; the rest from one marketplace order."),
+        build("LEGO where possible", lego_ok, lego_no, "Everything LEGO sells from Pick a Brick; the rest from the marketplace."),
         build("All marketplace", [], items, "Everything from BrickLink/BrickOwl sellers (LEGO-only prices are irrelevant)."),
     ]
     # Cheapest per part, then re-check LEGO's fee thresholds: if a LEGO category ends up tiny, push it to the market.
@@ -99,12 +114,12 @@ def scenarios(items, opts=None):
     for i in items:
         if i["lego_price"] is None:
             cheap_market.append(i)
-        elif market_price(i, ctx) is None or i["lego_price"] <= market_price(i, ctx):
+        elif market_price(i, ctx) is None or lego_price(i, opts) <= market_price(i, ctx):
             cheap_lego.append(i)
         else:
             cheap_market.append(i)
-    plan = _lego_cost(cheap_lego) if cheap_lego else None
-    if plan:
+    plan = _lego_cost(cheap_lego, opts) if cheap_lego else None
+    if plan and not opts.get("lego_free"):
         for tier_name in ("Bestseller", "Standard"):
             t = plan["tiers"].get(tier_name)
             if t and t.get("fee") and t["subtotal"] < t["fee"]:
@@ -112,7 +127,47 @@ def scenarios(items, opts=None):
                 moved = [i for i in cheap_lego if (i["tier"] or "Unknown") == tier_name]
                 cheap_lego = [i for i in cheap_lego if (i["tier"] or "Unknown") != tier_name]
                 cheap_market += moved
-    out.append(build("Cheapest per part", cheap_lego, cheap_market, "Each part from whichever is cheaper, with LEGO categories dropped when the fee would exceed the parts."))
+    # With an imported cart we know what each store charges to ship. If everything still coming from one
+    # store is also sold by LEGO, and paying LEGO's (higher) prices for those parts costs less than that
+    # store's shipping, drop the store.
+    why = {}
+    alloc = (ctx or {}).get("alloc", {})
+    if alloc and opts.get("market_shipping") is None:
+        cost = lambda lg, mk: (_lego_cost(lg, opts)["total"] if lg else 0) + _market_cost(mk, opts)["total"]
+        while True:
+            now, best = cost(cheap_lego, cheap_market), None
+            for st in sorted({r["store"] for i in cheap_market for r in alloc.get(i["key"], [])}):
+                mine = [i for i in cheap_market if any(r["store"] == st for r in alloc.get(i["key"], []))]
+                if not mine or any(i["lego_price"] is None for i in mine):
+                    continue
+                keys = {i["key"] for i in mine}
+                c = cost(cheap_lego + mine, [i for i in cheap_market if i["key"] not in keys])
+                if c < now - 0.005 and (best is None or c < best[0]):
+                    best = (c, st, mine, keys)
+            if not best:
+                break
+            _, st, mine, keys = best
+            cheap_lego += mine
+            cheap_market = [i for i in cheap_market if i["key"] not in keys]
+            for i in mine:
+                why[i["key"]] = st
+    sc = build("Cheapest per part", cheap_lego, cheap_market,
+               "Each part from whichever is cheaper" + ("" if opts.get("lego_free") else ", with LEGO categories dropped when the fee would exceed the parts")
+               + ("; a store is dropped when LEGO can supply everything it would send for less than its shipping" if alloc and opts.get("market_shipping") is None else "") + ".")
+    # What to put in the LEGO basket, and what each line saves against the marketplace.
+    detail = []
+    for i in cheap_lego:
+        lp, mp = lego_price(i, opts), market_price(i, ctx)
+        detail.append({"key": i["key"], "name": f"{i['color_name']} {i['name']}", "qty": i["qty"], "lego": round(lp, 4),
+                       "market": None if mp is None else round(mp, 4), "saving": None if mp is None else round((mp - lp) * i["qty"], 2),
+                       "drops_store": why.get(i["key"])})
+    detail.sort(key=lambda d: (d["drops_store"] is not None, -(d["saving"] if d["saving"] is not None else 1e9)))
+    sc["lego_detail"] = detail
+    if alloc:
+        still = {r["store"] for i in cheap_market for r in alloc.get(i["key"], [])}
+        sc["stores_dropped"] = [{"store": st, "shipping": sh} for st, sh in ctx["shipping"].items() if st not in still and any(
+            r["store"] == st for rows in alloc.values() for r in rows)]
+    out.append(sc)
     out.sort(key=lambda s: (s.get("incomplete", False), s["total"]))
     return out
 
@@ -126,7 +181,7 @@ def cart_scenarios(items, carts, opts=None):
         rest = [i for i in items if i["key"] not in covered]
         lego_items = [i for i in rest if i["lego_price"] is not None]
         leftover = [i for i in rest if i["lego_price"] is None]
-        L = _lego_cost(lego_items) if lego_items else None
+        L = _lego_cost(lego_items, opts) if lego_items else None
         total = c["total"] + (L["total"] if L else 0)
         out.append({
             "name": f"{c['source']} cart: {c['name']}", "cart_id": c["id"], "url": c.get("url"),
