@@ -15,7 +15,7 @@
     rev: -1,
     mode: localStorage.getItem('lb_mode') || 'have',   // have | trip | build | buy
     search: '',
-    sort: localStorage.getItem('lb_sort') || 'type',
+    sort: 'type',
     hideDone: localStorage.getItem('lb_hide_done') !== '0',
     onlyOwned: localStorage.getItem('lb_only_owned') === '1',  // only lots already checked off (which set does this tub belong to?)
     who: localStorage.getItem('lb_who') || '',
@@ -157,16 +157,24 @@
     for (const c of list) c.rows.sort((a, b) => (a.color_name || '').localeCompare(b.color_name || ''));
     const cmp = {
       // Bin by bin, in the order the bins are kept; inside a bin by category, then by name.
-      type: (a, b) => a.bin - b.bin || a.rank - b.rank || a.cat.localeCompare(b.cat) || a.title.localeCompare(b.title),
-      color: (a, b) => (a.rows[0].color_name || '').localeCompare(b.rows[0].color_name || '') || a.title.localeCompare(b.title),
-      name: (a, b) => a.title.localeCompare(b.title),
-      remaining: (a, b) => sum(b.rows, remaining) - sum(a.rows, remaining) || a.title.localeCompare(b.title),
-      recent: (a, b) => maxUpd(b.rows) - maxUpd(a.rows) || a.title.localeCompare(b.title),
-      tier: (a, b) => tierRank(a.rows[0]) - tierRank(b.rows[0]) || a.cat.localeCompare(b.cat) || a.title.localeCompare(b.title),
-      price: (a, b) => maxPrice(b.rows) - maxPrice(a.rows) || sum(b.rows, value) - sum(a.rows, value) || a.title.localeCompare(b.title),
+      type: (a, b) => a.bin - b.bin || a.rank - b.rank || a.cat.localeCompare(b.cat) || byName(a.title, b.title),
+      color: (a, b) => (a.rows[0].color_name || '').localeCompare(b.rows[0].color_name || '') || byName(a.title, b.title),
+      name: (a, b) => byName(a.title, b.title),
+      remaining: (a, b) => sum(b.rows, remaining) - sum(a.rows, remaining) || byName(a.title, b.title),
+      recent: (a, b) => maxUpd(b.rows) - maxUpd(a.rows) || byName(a.title, b.title),
+      tier: (a, b) => tierRank(a.rows[0]) - tierRank(b.rows[0]) || a.cat.localeCompare(b.cat) || byName(a.title, b.title),
+      price: (a, b) => maxPrice(b.rows) - maxPrice(a.rows) || sum(b.rows, value) - sum(a.rows, value) || byName(a.title, b.title),
     }[state.sort] || ((a, b) => 0);
     list.sort(cmp);
     return list;
+  };
+  // Names in size order ("Brick 1 x 2" before "Brick 1 x 10"), not character by character.
+  const nameOrder = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+  const byName = (a, b) => nameOrder.compare(a || '', b || '');
+  // Each tab remembers its own sort: by bin at home (one box at a time), by colour at the store (walk the wall).
+  const sortFor = (mode) => {
+    let v = null; try { v = localStorage.getItem('lb_sort:' + mode); if (!v && mode === 'trip') v = localStorage.getItem('lb_sort'); } catch {}
+    return v || (mode === 'trip' ? 'color' : 'type');
   };
   // Storage bins: categories grouped and ordered (see /bins). Unknown until loaded, or offline: one bin, alphabetical.
   const binPlace = (cat) => (state.binOf && state.binOf[cat]) || [state.bins ? state.bins.length - 1 : 0, 0];
@@ -752,6 +760,7 @@
     $('#subtabs').hidden = stage !== 'parts';
     $$('.subtab').forEach((b) => b.classList.toggle('active', b.dataset.sub === m));
     $('#sort').closest('.sort').hidden = m === 'build' && state.steps.length > 0;
+    state.sort = sortFor(m); $('#sort').value = state.sort;
     if (state.set) { syncFilterUI(); render(); }
   };
 
@@ -982,7 +991,7 @@
     });
     $('#search').addEventListener('input', (e) => { state.search = e.target.value; render(); });
     $('#sort').value = state.sort;
-    $('#sort').addEventListener('change', (e) => { state.sort = e.target.value; localStorage.setItem('lb_sort', state.sort); render(); });
+    $('#sort').addEventListener('change', (e) => { state.sort = e.target.value; try { localStorage.setItem('lb_sort:' + state.mode, state.sort); } catch {} render(); });
     $('#btn-filters').addEventListener('click', () => { $('#filters').hidden = !$('#filters').hidden; });
     $('#f-hide-done').addEventListener('change', (e) => { state.hideDone = e.target.checked; localStorage.setItem('lb_hide_done', state.hideDone ? '1' : '0'); syncFilterUI(); render(); });
     $('#f-hide-owned').addEventListener('change', (e) => { state.onlyOwned = e.target.checked; localStorage.setItem('lb_only_owned', state.onlyOwned ? '1' : '0'); syncFilterUI(); render(); });
