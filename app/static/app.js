@@ -1093,6 +1093,26 @@
         renderSourcing();
       } catch (e) { $('#bo-cart-status').textContent = e.message; }
     });
+    $('#lego-bag-import').addEventListener('click', async () => {
+      const st = $('#lego-bag-status'); const f = $('#lego-bag-file').files[0];
+      if (!f) { st.textContent = 'Choose the saved Pick a Brick page first.'; return; }
+      const fd = new FormData();
+      try { fd.append('file', await inMemory(f)); } catch (e) { st.textContent = `Couldn't read that file (${e.message}). Try choosing it again.`; return; }
+      if ($('#lego-bag-complete').checked) fd.append('complete', '1');
+      st.textContent = 'Reading…';
+      try {
+        const r = await fetch(`/api/sourcing/${srcIdent()}/lego-bag`, { method: 'POST', body: fd });
+        const j = await r.json();
+        if (!r.ok) { st.textContent = j.error || 'Import failed'; return; }
+        st.textContent = `${j.in_bag} different pieces in LEGO's bag ($${j.subtotal.toFixed(2)} for ${j.pieces} pieces): ${j.on_list} are on this list and now have LEGO's price${j.not_on_list ? `, ${j.not_on_list} are not on it` : ''}.`
+          + (j.not_sold ? ` ${j.not_sold} marked as not sold by LEGO.` : '')
+          + (j.unknown ? ` ${j.unknown} other parts of this list were not in the bag: tick the box and import again if you uploaded the whole list, so they count as not sold.` : '')
+          + (j.short ? ` ${j.short} are in the bag in a smaller quantity than you need (LEGO's limit or stock).` : '');
+        $('#lego-bag-file').value = '';
+        await loadSet();
+        renderSourcing();
+      } catch (e) { st.textContent = e.message; }
+    });
     $('#ci-save').addEventListener('click', async () => {
       const ident = state.isView ? `v:${viewKeys}` : state.setNum;
       const stores = $('#ci-stores').value.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => {

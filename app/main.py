@@ -605,6 +605,51 @@ async def api_sourcing_xml(request: Request):
                     headers={"Content-Disposition": f'attachment; filename="wanted-{time.strftime("%Y%m%d")}.xml"'})
 
 
+async def api_lego_bag_import(request: Request):
+    """Import a saved LEGO Pick a Brick page (multipart 'file'): every piece in the bag gets LEGO's real
+    price and counts as sold by LEGO; pieces in its "Unavailable" box count as not sold. With complete=1
+    (the whole list was uploaded to LEGO first), every other piece of this list with an element id is
+    marked not sold as well."""
+    ident = request.path_params["ident"]
+    info, parts, keys = _target(ident)
+    if not info:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    form = await request.form()
+    up = form.get("file")
+    if up is None or not getattr(up, "filename", None):
+        return JSONResponse({"error": "Choose the saved Pick a Brick page first."}, status_code=400)
+    try:
+        bag = cartparse.parse_lego_bag(await up.read())
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    if not bag["items"] and not bag["unavailable"]:
+        return JSONResponse({"error": "No pieces found in that page's bag. Save the Pick a Brick page while the bag panel lists the pieces."}, status_code=400)
+    complete = str(form.get("complete") or "") in ("1", "true", "on")
+    items = sourcing.needed_items(info, parts)
+    mine = {str(i["element_id"]): i for i in items if i.get("element_id")}
+    in_bag = {b["element_id"]: b for b in bag["items"]}
+    if complete and not any(el in mine for el in in_bag):
+        return JSONResponse({"error": "None of the pieces in that bag are on this list, so nothing was changed. Is it the bag for a different list?"}, status_code=400)
+
+    def save():
+        for el, b in in_bag.items():
+            db.save_price(el, {"price": b["price"], "tier": None, "available": True, "limit": None})
+        gone = set(bag["unavailable"]) | ({el for el in mine if el not in in_bag} if complete else set())
+        for el in gone:
+            db.save_price(el, None)
+        return gone
+    gone = await run_in_threadpool(save)
+    on_list = [el for el in in_bag if el in mine]
+    short = [el for el in on_list if in_bag[el]["qty"] < mine[el]["qty"]]
+    log.info("LEGO bag import for %s: %d in bag (%d on this list), %d marked not sold, complete=%s", ident, len(in_bag), len(on_list), len(gone), complete)
+    return JSONResponse({
+        "in_bag": len(in_bag), "on_list": len(on_list), "not_on_list": len(in_bag) - len(on_list),
+        "pieces": sum(b["qty"] for b in bag["items"]), "subtotal": bag["subtotal"],
+        "not_sold": len(gone), "unknown": 0 if complete else len([el for el in mine if el not in in_bag and el not in gone]),
+        "short": len(short), "complete": complete,
+    })
+
+
 async def api_sourcing_pab(request: Request):
     """LEGO Pick a Brick upload file (elementId,quantity). ?keys= limits it to those parts; LEGO takes 200
     different pieces per file, so ?part=2 is the second 200."""
@@ -1068,6 +1113,7 @@ routes = [
     Route("/api/sourcing/{ident}/brickowl", api_sourcing_bo, methods=["POST"]),
     Route("/api/sourcing/{ident}/wanted.xml", api_sourcing_xml),
     Route("/api/sourcing/{ident}/pick-a-brick.csv", api_sourcing_pab),
+    Route("/api/sourcing/{ident}/lego-bag", api_lego_bag_import, methods=["POST"]),
     Route("/api/sourcing/{ident}/swaps", api_sourcing_swaps, methods=["GET", "POST"]),
     Route("/api/sourcing/{ident}/export.json", api_sourcing_export),
     Route("/api/sourcing/{ident}/carts", api_carts, methods=["GET", "POST", "DELETE"]),

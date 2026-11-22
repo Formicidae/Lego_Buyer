@@ -146,3 +146,46 @@ def parse_buy_wishlist_page(data: bytes):
     if wl:
         out["url"] = f"https://www.brickowl.com/wishlist/magic?wishlist={wl.group(1)}"
     return out
+
+
+# ---------- a saved LEGO Pick a Brick page (the bag after "Upload list") ----------
+
+_BAG_ROW = re.compile(r'(?=<[^>]+data-test="element-cart-item")')
+_BAG_NUM = re.compile(r"\$\s*([\d,]+\.\d{2})")
+
+
+def is_lego_bag(page: str) -> bool:
+    return 'data-test="element-cart-item"' in page or ("Pick a Brick" in page and "lego.com" in page.lower())
+
+
+def parse_lego_bag(data: bytes):
+    """-> {"items": [{element_id, design_id, name, price, qty}], "subtotal", "unavailable": [element ids]}
+    from LEGO's Pick a Brick page saved with pieces in the bag. Every bag row carries the element id, the
+    price of one and the quantity; the "Unavailable Pieces" box lists what an uploaded list asked for
+    that LEGO does not sell."""
+    page = page_html(data)
+    if not is_lego_bag(page):
+        raise ValueError("This doesn't look like a saved LEGO Pick a Brick page.")
+    items, seen = [], set()
+    for chunk in _BAG_ROW.split(page)[1:]:
+        def field(name):
+            m = re.search(r'data-test="%s"[^>]*>([^<]*)<' % name, chunk)
+            return htmlmod.unescape(m.group(1)).strip() if m else ""
+        ids = re.match(r"(\d{4,9})\s*/\s*(\w+)", field("element-cart-item-details"))
+        price = _BAG_NUM.search(field("element-cart-item-price"))
+        if not ids or not price or ids.group(1) in seen:
+            continue
+        seen.add(ids.group(1))
+        qty = re.search(r'data-test="stepper-input"[^>]*\bvalue="(\d+)"', chunk)
+        items.append({"element_id": ids.group(1), "design_id": ids.group(2), "name": field("cart-item-title"),
+                      "price": float(price.group(1).replace(",", "")), "qty": int(qty.group(1)) if qty else 1})
+    unavailable = []
+    at = page.find("Unavailable Pieces")
+    if at >= 0:
+        for row in re.findall(r"<tr\b.*?</tr>", page[at:at + 400000], re.S):
+            cells = [re.sub(r"<[^>]+>", "", c).strip() for c in re.findall(r"<td\b[^>]*>(.*?)</td>", row, re.S)]
+            if cells and re.fullmatch(r"\d{4,9}", cells[0]) and cells[0] not in seen:
+                unavailable.append(cells[0])
+    sub = re.search(r'data-test="(?:pab-)?(?:bag|cart)-(?:sub)?total[^"]*"[^>]*>\s*\$([\d,]+\.\d{2})', page)
+    subtotal = float(sub.group(1).replace(",", "")) if sub else round(sum(i["price"] * i["qty"] for i in items), 2)
+    return {"items": items, "subtotal": subtotal, "unavailable": unavailable}

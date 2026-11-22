@@ -230,6 +230,16 @@
     </details>
     <p class="hint"><a id="link-export" href="#" download>Download this list's price data</a> — one file with every part's prices, the imported carts and how the totals above were worked out; attach it when something here looks wrong.</p>
 
+    <details class="cart-import">
+      <summary>Import a LEGO Pick a Brick bag</summary>
+      <p class="hint">For LEGO's real prices and what it actually stocks: download the <b>Pick a Brick file</b> for the whole list above, upload it on lego.com (<b>Pick a Brick → Upload list</b>; with several files, upload them one after another), then save that page with the bag showing (browser menu → Download page, an .mht or .html file) and choose it here. Every piece in the bag gets LEGO's price; the plans above then show what is worth buying there, and <b>Pick a Brick file: LEGO side of this plan</b> is the list of just those pieces.</p>
+      <div class="cart-form">
+        <label>Saved Pick a Brick page <input id="lego-bag-file" type="file" accept=".mht,.mhtml,.html,.htm"></label>
+        <label><input id="lego-bag-complete" type="checkbox"> I uploaded every file for this list, so anything not in the bag is not sold by LEGO</label>
+        <button class="btn primary" id="lego-bag-import" type="button">Import LEGO bag</button>
+        <span class="hint" id="lego-bag-status"></span>
+      </div>
+    </details>
     <details class="cart-import" open>
       <summary>Import a BrickOwl cart</summary>
       <p class="hint">On BrickOwl's <b>Buy Wishlist</b> page, tick the stores you want, then save the page (Ctrl/⌘-S → “Webpage, Single File” .mht, or “Complete” .html) and upload it: every allocated lot's price is read and shown on the part cards as <b>BO</b>, and the marketplace scenarios use those real prices. Pasting the page text or a printed PDF also works, but only gives store totals. Each configuration becomes a scenario above.</p>

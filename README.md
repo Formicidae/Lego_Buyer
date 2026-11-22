@@ -61,7 +61,10 @@ one-page guide to tape inside the lid: every bin in order with its part types an
 **Pick a Brick file.** The Buy tab downloads LEGO's "Upload list" format (`elementId,quantity`, 200
 different pieces per file, split into several files past that) for the LEGO side of the chosen plan or
 for the whole list. Uploading the whole list is the quickest way to see what LEGO stocks: it fills the
-bag with what it sells and lists the rest as unavailable.
+bag with what it sells and lists the rest as unavailable. Save that page with the bag showing and give
+it to *Import a LEGO Pick a Brick bag*: every piece in the bag gets LEGO's real price, the rest can be
+marked as not sold, and *Pick a Brick file: LEGO side of this plan* then holds only the pieces worth
+buying there.
 
 **Cheaper colours.** *Cheaper colours for expensive parts* on the Buy tab takes every part costing at
 least a set amount (50¢ by default, the 40 most expensive), asks Rebrickable which other colours the
