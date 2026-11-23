@@ -189,3 +189,38 @@ def parse_lego_bag(data: bytes):
     sub = re.search(r'data-test="(?:pab-)?(?:bag|cart)-(?:sub)?total[^"]*"[^>]*>\s*\$([\d,]+\.\d{2})', page)
     subtotal = float(sub.group(1).replace(",", "")) if sub else round(sum(i["price"] * i["qty"] for i in items), 2)
     return {"items": items, "subtotal": subtotal, "unavailable": unavailable}
+
+
+# ---------- a saved BrickOwl order page (Order History -> an order) ----------
+
+def parse_order_page(data: bytes):
+    """-> {"order_no", "store", "date", "subtotal", "shipping", "total", "lots": [{name, ids, qty, price,
+    category, img, minifig}]} from BrickOwl's page for one order. A lot's name keeps its colour in front
+    ("Medium Stone Gray Angle Connector #1"), as on the cart page, so the same matching applies."""
+    page = page_html(data)
+    head = re.search(r"<title>\s*(.*?)\s+Order\s+#(\d+)\s*\|\s*Brick Owl", page, re.S)
+    if not head or "q-row" not in page:
+        raise ValueError("This doesn't look like a saved BrickOwl order page (Order History, then the order).")
+    text = re.sub(r"<[^>]+>", "\n", page)
+
+    def money(label):
+        m = re.search(label + r"\s*\n\s*\$([\d,]+\.\d{2})", text)
+        return float(m.group(1).replace(",", "")) if m else None
+    date = re.search(r"Order Date\s*\n\s*([^\n]+)", text)
+    lots = []
+    for row in re.split(r"(?=<tr\b)", page):
+        qty = re.search(r'class="q-row[^"]*">\s*<span>[^<]*</span>\s*<span>(\d+)</span>', row)
+        img = re.search(r'<img[^>]+src="([^"]+)"[^>]*\btitle="([^"]+)"', row) or re.search(r'<img[^>]+title="([^"]+)"[^>]*\bsrc="([^"]+)"', row)
+        if not qty or not img:
+            continue
+        src, title = (img.group(1), img.group(2)) if img.re.pattern.startswith('<img[^>]+src') else (img.group(2), img.group(1))
+        name, ids = parse_lot_title(title)
+        cat = re.search(r"<small>\s*([^<]+?)\s*</small>", row)
+        price = re.search(r'<span class="price">\s*\$([\d,]+\.\d+)', row)
+        category = htmlmod.unescape(cat.group(1)).strip() if cat else ""
+        lots.append({"name": name, "ids": ids, "qty": int(qty.group(1)), "price": float(price.group(1).replace(",", "")) if price else None,
+                     "category": category, "img": src, "minifig": category.lower().startswith("minifig")})
+    if not lots:
+        raise ValueError("No items found on that order page.")
+    return {"order_no": head.group(2), "store": htmlmod.unescape(head.group(1)).strip(), "date": date.group(1).strip() if date else None,
+            "subtotal": money("Subtotal"), "shipping": money("Shipping"), "total": money("Order Total"), "lots": lots}

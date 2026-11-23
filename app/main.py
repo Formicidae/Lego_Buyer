@@ -22,7 +22,7 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from . import bins, bricklink, brickowl, cartparse, csvlist, db, jobs, lego, partlists, rebrickable, sourcing, steps, swaps, views
+from . import bins, bricklink, brickowl, cartparse, csvlist, db, jobs, lego, orders, partlists, rebrickable, sourcing, steps, swaps, views
 from .checklist import build_checklist, render_checklist_html, render_checklist_pdf
 from .config import APP_PASSCODE, SECRET, REBRICKABLE_API_KEY, DATA_DIR, CHROMIUM_PATH
 
@@ -605,6 +605,82 @@ async def api_sourcing_xml(request: Request):
                     headers={"Content-Disposition": f'attachment; filename="wanted-{time.strftime("%Y%m%d")}.xml"'})
 
 
+def _figs(ident):
+    if ident.startswith("v:"):
+        return views.items(views.parse_keys(ident[2:]))[1]
+    return db.set_items(ident)[1]
+
+
+async def api_orders(request: Request):
+    """GET: the orders imported for this list. POST (multipart 'file'): import a saved BrickOwl order page and
+    match its lots to what the list (or the lists opened together, in their order) still needs."""
+    ident = request.path_params["ident"]
+    info, parts, keys = _target(ident)
+    if not info:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    if request.method == "GET":
+        return JSONResponse({"orders": [orders.summary(o) for o in db.orders(ident)]})
+    form = await request.form()
+    up = form.get("file")
+    if up is None or not getattr(up, "filename", None):
+        return JSONResponse({"error": "Choose the saved order page first."}, status_code=400)
+    try:
+        order = cartparse.parse_order_page(await up.read())
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    old = db.find_order(ident, "BrickOwl", order["order_no"])
+    if old and old["applied_at"]:
+        return JSONResponse({**orders.summary(old), "already": True})
+    result = orders.match(info, parts, _figs(ident), order)
+    oid = db.save_order(ident, "BrickOwl", order["order_no"], order["store"], order["total"], {"order": order, "result": result},
+                        replace_id=old["id"] if old else None)
+    s = orders.summary(db.get_order(oid))
+    log.info("order import for %s: #%s, %d lots, %d of %d pieces placed", ident, order["order_no"], s["lots"], s["placed"], s["pieces"])
+    return JSONResponse(s)
+
+
+async def api_order(request: Request):
+    """POST {"action": "apply" | "undo", "who"}: mark the order's pieces as owned on their lists, or take that back.
+    DELETE: forget the order (owned counts stay as they are)."""
+    o = db.get_order(int(request.path_params["order_id"]))
+    if not o:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    if request.method == "DELETE":
+        db.delete_order(o["id"])
+        return JSONResponse({"ok": True})
+    body = await request.json()
+    action, who = body.get("action"), (body.get("who") or "")[:40]
+    if action == "apply" and o["applied_at"]:
+        return JSONResponse({"error": "This order's pieces are already marked as owned."}, status_code=400)
+    if action == "undo" and not o["applied_at"]:
+        return JSONResponse({"error": "This order's pieces are not marked as owned."}, status_code=400)
+    if action not in ("apply", "undo"):
+        return JSONResponse({"error": "unknown action"}, status_code=400)
+    n = await run_in_threadpool(orders.apply, o, who, action == "undo")
+    log.info("order #%s %s: %d pieces", o["order_no"], action, n)
+    return JSONResponse({**orders.summary(db.get_order(o["id"])), "changed": n})
+
+
+async def order_print_page(request: Request):
+    """The sorting sheet for an order: one row per lot, one column per list, the number of pieces for each."""
+    o = db.get_order(int(request.path_params["order_id"]))
+    if not o:
+        return Response("No such order", status_code=404)
+    res = o["data"]["result"]
+    cols = [l for l in res["lists"] if any(s["set_num"] == l["set_num"] for r in res["rows"] for s in r["split"])]
+    rows = []
+    for n, r in enumerate(res["rows"]):
+        per = {}
+        for s in r["split"]:
+            per[s["set_num"]] = per.get(s["set_num"], 0) + s["qty"]
+        only = next(iter(per)) if len(per) == 1 and not r["extra"] else None
+        rows.append({**r, "n": n, "per": per, "only": only})
+    totals = {l["set_num"]: sum(r["per"].get(l["set_num"], 0) for r in rows) for l in cols}
+    return templates.TemplateResponse(request, "order_print.html", {
+        "o": o, "order": o["data"]["order"], "cols": cols, "rows": rows, "totals": totals,
+        "other": sum(r["extra"] for r in rows), "pieces": sum(r["qty"] for r in rows)})
+
+
 async def api_lego_bag_import(request: Request):
     """Import a saved LEGO Pick a Brick page (multipart 'file'): every piece in the bag gets LEGO's real
     price and counts as sold by LEGO; pieces in its "Unavailable" box count as not sold. With complete=1
@@ -1114,6 +1190,9 @@ routes = [
     Route("/api/sourcing/{ident}/wanted.xml", api_sourcing_xml),
     Route("/api/sourcing/{ident}/pick-a-brick.csv", api_sourcing_pab),
     Route("/api/sourcing/{ident}/lego-bag", api_lego_bag_import, methods=["POST"]),
+    Route("/api/sourcing/{ident}/orders", api_orders, methods=["GET", "POST"]),
+    Route("/api/orders/{order_id:int}", api_order, methods=["POST", "DELETE"]),
+    Route("/orders/{order_id:int}/print", order_print_page),
     Route("/api/sourcing/{ident}/swaps", api_sourcing_swaps, methods=["GET", "POST"]),
     Route("/api/sourcing/{ident}/export.json", api_sourcing_export),
     Route("/api/sourcing/{ident}/carts", api_carts, methods=["GET", "POST", "DELETE"]),

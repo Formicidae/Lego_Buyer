@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Order {{ o.order_no }} sorting sheet · Lego Buyer</title>
+<style>
+  @page { size: letter portrait; margin: 9mm; }
+  * { box-sizing: border-box; }
+  body { font: 9pt/1.2 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #111; background: #fff; margin: 0; padding: 12px; }
+  h1 { font-size: 14pt; margin: 0 0 2px; }
+  .sub { color: #444; margin: 0 0 8px; }
+  .tools { display: flex; gap: 10px; align-items: center; margin: 0 0 10px; font-size: 11pt; flex-wrap: wrap; }
+  .tools button, .tools select { font: inherit; padding: 6px 12px; border: 1px solid #888; border-radius: 8px; background: #f3f3f3; color: #111; }
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 0.6pt solid #999; padding: 1px 5px; vertical-align: middle; }
+  thead th { background: #e9e9e9; font-size: 8.5pt; text-align: center; vertical-align: bottom; }
+  thead th.part { text-align: left; }
+  td.box { width: 16px; } td.box i { display: block; width: 11px; height: 11px; border: 1pt solid #333; border-radius: 2px; }
+  td.pic { width: 32px; padding: 1px; text-align: center; } td.pic img { width: 28px; height: 28px; object-fit: contain; display: block; margin: auto; }
+  td.part b { font-weight: 650; } td.part small { display: block; color: #444; font-size: 8pt; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; border: 0.6pt solid #555; margin-right: 4px; vertical-align: -0.5px; }
+  td.n, td.q { text-align: center; font-size: 11pt; font-weight: 700; width: 9%; }
+  td.q { width: 34px; font-weight: 500; }
+  td.n.zero { color: #bbb; font-weight: 400; }
+  td.n.all { background: #111; color: #fff; }
+  td.other { background: #f6f0d8; }
+  tr { break-inside: avoid; }
+  tr.group td { background: #111; color: #fff; font-weight: 700; padding: 3px 6px; }
+  tfoot td { font-weight: 700; background: #e9e9e9; text-align: center; }
+  tfoot td.part { text-align: right; }
+  .legend { margin: 6px 0 0; font-size: 8pt; color: #444; }
+  @media print { .tools { display: none; } body { padding: 0; } .scroll { overflow: visible; } }
+</style>
+</head>
+<body>
+<div class="tools">
+  <button type="button" onclick="window.print()">Print</button>
+  <label>Order rows <select id="sort">
+    <option value="set">by set (whole bags first)</option>
+    <option value="page">as on the BrickOwl order</option>
+    <option value="colour">by colour</option>
+  </select></label>
+</div>
+<h1>{{ o.store }} order #{{ o.order_no }}: which pieces go to which set</h1>
+<p class="sub">{{ pieces }} pieces in {{ rows | length }} lots{% if order.date %} · ordered {{ order.date }}{% endif %}{% if o.total %} · ${{ '%.2f' | format(o.total) }}{% endif %}{% if not o.applied_at %} · not yet marked as owned in the app{% endif %}</p>
+<div class="scroll">
+<table>
+  <thead><tr>
+    <th></th><th></th><th class="part">Part</th><th>Qty</th>
+    {% for c in cols %}<th>{{ c.name }}</th>{% endfor %}
+    {% if other %}<th>Other / extra</th>{% endif %}
+  </tr></thead>
+  <tbody id="rows">
+  {% for r in rows %}
+    <tr data-n="{{ r.n }}" data-only="{{ r.only or '' }}" data-colour="{{ r.color_name or 'zzz' }}" data-name="{{ r.our_name or r.name }}">
+      <td class="box"><i></i></td>
+      <td class="pic">{% if r.img_url or r.img %}<img alt="" loading="lazy" src="{{ r.img_url or r.img }}">{% endif %}</td>
+      <td class="part"><b>{% if r.color_rgb %}<span class="dot" style="background:#{{ r.color_rgb }}"></span>{% endif %}{{ r.name }}</b>
+        <small>{% if r.ids %}{{ r.ids | join(' / ') }}{% endif %}{% if r.note %}{% if r.ids %} · {% endif %}{{ r.note }}{% endif %}</small></td>
+      <td class="q">{{ r.qty }}</td>
+      {% for c in cols %}{% set v = r.per.get(c.set_num, 0) %}<td class="n{{ ' zero' if not v }}{{ ' all' if r.only == c.set_num }}">{{ v or '·' }}</td>{% endfor %}
+      {% if other %}<td class="n other{{ ' zero' if not r.extra }}">{{ r.extra or '·' }}</td>{% endif %}
+    </tr>
+  {% endfor %}
+  </tbody>
+  <tfoot><tr>
+    <td colspan="3" class="part">Pieces</td><td>{{ pieces }}</td>
+    {% for c in cols %}<td>{{ totals[c.set_num] }}</td>{% endfor %}
+    {% if other %}<td>{{ other }}</td>{% endif %}
+  </tr></tfoot>
+</table>
+</div>
+<p class="legend">A black number means the whole bag goes to that set. "Other / extra" is anything no ticked list still needed when the order was imported: pieces for another list, spares, or a lot the app could not match.</p>
+<script>
+  const body = document.getElementById('rows'), sel = document.getElementById('sort');
+  const names = { {% for c in cols %}{{ c.set_num | tojson }}: {{ c.name | tojson }}, {% endfor %} };
+  const order = Object.keys(names);
+  const rows = [...body.querySelectorAll('tr')];
+  const span = rows[0] ? rows[0].children.length : 1;
+  const draw = () => {
+    const mode = sel.value; body.replaceChildren();
+    const by = (f) => [...rows].sort((a, b) => f(a) < f(b) ? -1 : f(a) > f(b) ? 1 : a.dataset.n - b.dataset.n);
+    if (mode === 'page') { rows.forEach((r) => body.appendChild(r)); }
+    else if (mode === 'colour') { by((r) => r.dataset.colour + '|' + r.dataset.name).forEach((r) => body.appendChild(r)); }
+    else {
+      const groups = [...order.map((k) => [names[k] + ': whole bags', rows.filter((r) => r.dataset.only === k)]), ['Split between sets, or not for these sets', rows.filter((r) => !r.dataset.only)]];
+      for (const [label, rs] of groups) {
+        if (!rs.length) continue;
+        const tr = document.createElement('tr'); tr.className = 'group'; const td = document.createElement('td'); td.colSpan = span; td.textContent = `${label} (${rs.length})`; tr.appendChild(td); body.appendChild(tr);
+        rs.sort((a, b) => a.dataset.name < b.dataset.name ? -1 : 1).forEach((r) => body.appendChild(r));
+      }
+    }
+    try { localStorage.setItem('lb_order_sort', mode); } catch (e) {}
+  };
+  try { const m = localStorage.getItem('lb_order_sort'); if (m) sel.value = m; } catch (e) {}
+  sel.addEventListener('change', draw); draw();
+</script>
+</body>
+</html>

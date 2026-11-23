@@ -1093,6 +1093,56 @@
         renderSourcing();
       } catch (e) { $('#bo-cart-status').textContent = e.message; }
     });
+    // ---------- orders: mark what was bought as owned, and the which-set sorting sheet ----------
+    const drawOrders = (list) => {
+      const box = $('#orders-list'); box.replaceChildren();
+      for (const o of list) {
+        const row = document.createElement('div'); row.className = 'order-row';
+        const per = o.per_list.filter((l) => l.pieces).map((l) => `${l.name} ${l.pieces}`).join(' · ');
+        const left = o.pieces - o.placed;
+        const lines = [`<b>${swapEsc(o.store || 'Order')} #${swapEsc(o.order_no)}</b> · ${o.pieces} pieces in ${o.lots} lots${o.total ? ` · ${money(o.total)}` : ''}`,
+          `${o.placed} pieces matched${per ? `: ${swapEsc(per)}` : ''}`];
+        if (o.unmatched.length) lines.push(`Not on ${state.isView ? 'these lists' : 'this list'}: ${swapEsc(o.unmatched.map((u) => `${u.qty}× ${u.name}`).join('; '))}`);
+        if (o.extra.length) lines.push(`More than still needed: ${swapEsc(o.extra.map((u) => `${u.qty}× ${u.name}`).join('; '))}`);
+        if (o.flagged.length) lines.push(`Check these matches: ${swapEsc(o.flagged.map((u) => `${u.name} (${u.note})`).join('; '))}`);
+        row.innerHTML = lines.map((l, i) => `<div class="${i ? 'hint' : ''}">${l}</div>`).join('')
+          + `<div class="buy-actions">${o.applied_at
+            ? `<span class="order-done">✓ ${o.placed} marked as owned</span><button class="btn ghost" data-act="undo" type="button">Undo</button>`
+            : `<button class="btn primary" data-act="apply" type="button"${o.placed ? '' : ' disabled'}>Mark ${o.placed} pieces as owned</button>`}
+            <a class="btn ghost" href="/orders/${o.id}/print" target="_blank" rel="noopener">Sorting sheet</a>
+            <button class="btn ghost" data-act="delete" type="button">Remove</button></div>${left && !o.applied_at ? `<div class="hint">${left} piece${left === 1 ? '' : 's'} will not be marked: nothing here still needs ${left === 1 ? 'it' : 'them'}.</div>` : ''}`;
+        row.querySelectorAll('button[data-act]').forEach((b) => b.addEventListener('click', async () => {
+          const act = b.dataset.act;
+          if (act === 'delete' && !confirm('Remove this order from the app? Owned counts stay as they are.')) return;
+          if (act === 'undo' && !confirm(`Take the ${o.placed} pieces of this order off the owned counts again?`)) return;
+          b.disabled = true;
+          try {
+            if (act === 'delete') await api(`/api/orders/${o.id}`, { method: 'DELETE' });
+            else await api(`/api/orders/${o.id}`, { method: 'POST', body: JSON.stringify({ action: act, who: ensureWho() }) });
+            if (act !== 'delete') { await loadSet(); renderSourcing(); toast(act === 'apply' ? `${o.placed} pieces marked as owned` : 'Taken back', 4000); }
+            loadOrders();
+          } catch (e) { toast(e.message, 6000); b.disabled = false; }
+        }));
+        box.appendChild(row);
+      }
+    };
+    const loadOrders = async () => { try { drawOrders((await api(`/api/sourcing/${srcIdent()}/orders`)).orders); } catch (e) { /* the list stays as it was */ } };
+    $('#order-box').addEventListener('toggle', () => { if ($('#order-box').open) loadOrders(); });
+    $('#order-import').addEventListener('click', async () => {
+      const st = $('#order-status'); const f = $('#order-file').files[0];
+      if (!f) { st.textContent = 'Choose the saved order page first.'; return; }
+      const fd = new FormData();
+      try { fd.append('file', await inMemory(f)); } catch (e) { st.textContent = `Couldn't read that file (${e.message}). Try choosing it again.`; return; }
+      st.textContent = 'Reading…';
+      try {
+        const r = await fetch(`/api/sourcing/${srcIdent()}/orders`, { method: 'POST', body: fd });
+        const j = await r.json();
+        if (!r.ok) { st.textContent = j.error || 'Import failed'; return; }
+        st.textContent = j.already ? `Order #${j.order_no} was already imported and marked as owned; nothing changed.` : `Order #${j.order_no} read: ${j.placed} of ${j.pieces} pieces matched. Nothing is marked yet: use the button below.`;
+        $('#order-file').value = '';
+        loadOrders();
+      } catch (e) { st.textContent = e.message; }
+    });
     $('#lego-bag-import').addEventListener('click', async () => {
       const st = $('#lego-bag-status'); const f = $('#lego-bag-file').files[0];
       if (!f) { st.textContent = 'Choose the saved Pick a Brick page first.'; return; }

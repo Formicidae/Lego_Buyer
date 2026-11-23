@@ -88,6 +88,19 @@ CREATE TABLE IF NOT EXISTS trips (
     finished_by TEXT
 );
 
+-- Orders placed (a saved BrickOwl order page): the lots bought and which list each piece was matched to.
+CREATE TABLE IF NOT EXISTS orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ident TEXT NOT NULL,
+    source TEXT NOT NULL,
+    order_no TEXT NOT NULL,
+    store TEXT,
+    total REAL,
+    data TEXT NOT NULL,
+    applied_at REAL,
+    created_at REAL NOT NULL
+);
+
 -- Cart configurations imported from BrickOwl/BrickLink (their cart builders), for comparison.
 CREATE TABLE IF NOT EXISTS carts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -656,3 +669,40 @@ def add_cart(ident, source, name, stores, keys, parts_total, shipping_total, lot
 def delete_cart(cart_id):
     with tx() as conn:
         conn.execute("DELETE FROM carts WHERE id=?", (cart_id,))
+
+
+def _order(r):
+    if r:
+        r["data"] = json.loads(r["data"])
+    return r
+
+
+def orders(ident):
+    return [_order(r) for r in q("SELECT * FROM orders WHERE ident=? ORDER BY created_at DESC", (ident,))]
+
+
+def get_order(order_id):
+    return _order(q1("SELECT * FROM orders WHERE id=?", (order_id,)))
+
+
+def find_order(ident, source, order_no):
+    return _order(q1("SELECT * FROM orders WHERE ident=? AND source=? AND order_no=?", (ident, source, order_no)))
+
+
+def save_order(ident, source, order_no, store, total, data, replace_id=None):
+    with tx() as conn:
+        if replace_id:
+            conn.execute("DELETE FROM orders WHERE id=?", (replace_id,))
+        cur = conn.execute("INSERT INTO orders(ident, source, order_no, store, total, data, created_at) VALUES(?,?,?,?,?,?,?)",
+                           (ident, source, order_no, store, total, json.dumps(data), time.time()))
+        return cur.lastrowid
+
+
+def set_order_applied(order_id, when):
+    with tx() as conn:
+        conn.execute("UPDATE orders SET applied_at=? WHERE id=?", (when, order_id))
+
+
+def delete_order(order_id):
+    with tx() as conn:
+        conn.execute("DELETE FROM orders WHERE id=?", (order_id,))

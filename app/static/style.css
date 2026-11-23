@@ -295,3 +295,8 @@ a { color: var(--green); }
 .swap-main .swap-to { color: var(--ink); font-weight: 600; }
 .swap-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,.35); margin-right: 5px; vertical-align: -1px; }
 #pab-links:empty { display: none; }
+
+/* Buy tab: imported orders */
+.order-row { border-top: 1px solid var(--line); padding: 10px 0; display: grid; gap: 4px; font-size: 14px; }
+.order-row .buy-actions { margin-top: 4px; align-items: center; }
+.order-done { font-weight: 700; color: var(--ok, #1b7a3d); }

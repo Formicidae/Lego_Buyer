@@ -66,6 +66,13 @@ it to *Import a LEGO Pick a Brick bag*: every piece in the bag gets LEGO's real 
 marked as not sold, and *Pick a Brick file: LEGO side of this plan* then holds only the pieces worth
 buying there.
 
+**Orders.** After buying, save BrickOwl's page for the order (Order History, then the order) and give
+it to *Import an order you placed* on the Buy tab of the list, or of several lists opened together.
+Each lot is matched to what is still needed and shared out to the lists in their order; *Mark as
+owned* adds those pieces to each list's owned count in one go (with an undo), and *Sorting sheet*
+(`/orders/<id>/print`) prints one row per bag with a column per set, whole-bag rows first. The match
+is stored with the order, so the sheet can be reprinted after everything is marked.
+
 **Cheaper colours.** *Cheaper colours for expensive parts* on the Buy tab takes every part costing at
 least a set amount (50¢ by default, the 40 most expensive), asks Rebrickable which other colours the
 part was made in and how many sets each appeared in, and shows them closest-looking first. Prices are
@@ -190,6 +197,7 @@ app/db.py           SQLite schema + queries (sets, parts, minifigs, progress, re
 app/rebrickable.py  Rebrickable API client
 app/partlists.py    Bundled element-ID lists (app/partlists/*.json) → list rows via Rebrickable
 app/swaps.py        Other colours for a list's expensive parts → a new list with the picks swapped
+app/orders.py       A placed order's lots → which list each piece is for, mark as owned, sorting sheet
 app/checklist.py    Printable checklist → HTML → PDF (Chromium)
 app/templates/      index.html (the app), checklist.html (print), login.html
 app/static/         app.js, style.css (no build step)

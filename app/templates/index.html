@@ -230,6 +230,16 @@
     </details>
     <p class="hint"><a id="link-export" href="#" download>Download this list's price data</a> — one file with every part's prices, the imported carts and how the totals above were worked out; attach it when something here looks wrong.</p>
 
+    <details class="cart-import" id="order-box">
+      <summary>Import an order you placed (mark as owned, sorting sheet)</summary>
+      <p class="hint">After ordering on BrickOwl, open the order (Order History → the order), save that page (browser menu → Download page, an .mht or .html file) and choose it here. Each lot is matched to what this list still needs; with several lists open together, pieces go to the lists in their order. Then mark everything as owned in one tap, and print the sheet that says which bag goes to which set.</p>
+      <div class="cart-form">
+        <label>Saved order page <input id="order-file" type="file" accept=".mht,.mhtml,.html,.htm"></label>
+        <button class="btn primary" id="order-import" type="button">Import order</button>
+        <span class="hint" id="order-status"></span>
+      </div>
+      <div id="orders-list"></div>
+    </details>
     <details class="cart-import">
       <summary>Import a LEGO Pick a Brick bag</summary>
       <p class="hint">For LEGO's real prices and what it actually stocks: download the <b>Pick a Brick file</b> for the whole list above, upload it on lego.com (<b>Pick a Brick → Upload list</b>; with several files, upload them one after another), then save that page with the bag showing (browser menu → Download page, an .mht or .html file) and choose it here. Every piece in the bag gets LEGO's price; the plans above then show what is worth buying there, and <b>Pick a Brick file: LEGO side of this plan</b> is the list of just those pieces.</p>
