@@ -315,6 +315,8 @@
     const miss = sum(items, missing); const lots = items.filter((i) => missing(i) > 0).length;
     $('#btn-build-start').hidden = !!s.build_mode;
     $('#btn-build-jump').hidden = !s.build_mode || !state.steps.length;
+    // Starting over only makes sense once something has been counted or marked missing.
+    $('#btn-build-reset').hidden = !(s.build_mode || state.parts.concat(state.figs || []).some((i) => i.owned || i.found_exact || i.found_alt));
     $('#build-opts').hidden = !state.steps.length;
     $('#build-status').textContent = importing && !state.steps.length ? 'The build order for this set is being imported — the step-by-step view will appear here in a moment.' : !s.build_mode
       ? 'Build mode marks every part as owned, then you tap “Missing” on whatever the box turns out not to have. The Buy tab and BrickOwl wishlist come straight from those marks, and every tap is saved, so you can stop and pick it up another day.'
@@ -1008,6 +1010,17 @@
         const r = await api(`${state.api}/build_start`, { method: 'POST', body: JSON.stringify({ who: ensureWho() }) });
         if (!r) return;
         state.rev = -1; await loadSet(); toast(`Build mode on · ${r.marked} lots marked owned`);
+      } catch (e) { toast(e.message); }
+    });
+    $('#btn-build-reset').addEventListener('click', async () => {
+      const items = visibleItems(); const miss = sum(items, missing); const lots = items.filter((i) => missing(i) > 0).length;
+      const what = miss ? `The ${miss} piece${miss === 1 ? '' : 's'} in ${lots} lot${lots === 1 ? '' : 's'} now marked missing or still needed will count as have` : 'Every part will count as have';
+      if (!confirm(`Start this set over in build mode?\n\n${what}, trip counts are cleared, and the build goes back to step 1. You then mark what is really missing as you build.\n\nThis can't be undone.`)) return;
+      try {
+        const r = await api(`${state.api}/build_start`, { method: 'POST', body: JSON.stringify({ who: ensureWho(), reset: true }) });
+        if (!r) return;
+        state.rev = -1; await loadSet(); toast(`Started over · all ${r.marked} lots marked as have`, 5000);
+        if (state.steps.length) scrollToStep(currentSeq());
       } catch (e) { toast(e.message); }
     });
     $('#btn-build-jump').addEventListener('click', () => scrollToStep(currentSeq()));

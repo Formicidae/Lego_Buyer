@@ -454,10 +454,16 @@ def reset_progress(set_num, fields):
         bump_rev(conn, set_num)
 
 
-def start_build_mode(set_num, who=None):
+def start_build_mode(set_num, who=None, reset=False):
     """Build mode: everything starts as owned and you mark what's missing as you build. Items that were
-    never touched get owned=quantity; anything already counted is left alone."""
+    never touched get owned=quantity; anything already counted is left alone.
+
+    reset=True starts over instead (for a set whose missing parts have since been bought): every count
+    is thrown away, every part and minifigure is owned in full, and the build goes back to step 1."""
     with tx() as conn:
+        if reset:
+            conn.execute("DELETE FROM progress WHERE set_num=?", (set_num,))
+            conn.execute("UPDATE sets SET build_pos=NULL WHERE set_num=?", (set_num,))
         touched = {r["key"] for r in conn.execute("SELECT key FROM progress WHERE set_num=?", (set_num,))}
         n = 0
         rows = [(f"p:{r['id']}", r["quantity"]) for r in conn.execute("SELECT id, quantity FROM set_parts WHERE set_num=?", (set_num,))]

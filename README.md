@@ -163,7 +163,9 @@ made while offline, syncing them when the Pi is reachable again.
 - **Build** — for building an incomplete set. *Start build mode* marks every part as owned; as you
   build, tap *Missing* (or the picture) on whatever the box doesn't have. The Buy tab and the
   BrickOwl wishlist are derived from those marks, so there is nothing to "save": stop halfway, come
-  back another day, keep marking. Import a **build order** (an LDraw `.ldr`/`.mpd` model with
+  back another day, keep marking. *Start over: mark everything as have* does the same from scratch
+  for a set you have already counted (say, after the missing parts arrived): all counts are dropped,
+  everything is owned in full and the build goes back to step 1. Import a **build order** (an LDraw `.ldr`/`.mpd` model with
   `0 STEP` markers — e.g. from the [LDraw OMR](https://library.ldraw.org/omr) or the LDraw forums —
   or a JSON steps file) and the parts are shown step by step with a *Step done → next* button;
   the current step is remembered on the server. Without one, parts are listed by type.

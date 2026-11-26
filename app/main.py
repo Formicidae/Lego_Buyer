@@ -276,13 +276,15 @@ async def api_reset(request: Request):
 
 
 async def api_build_start(request: Request):
-    """Switch a set to build mode: everything not yet counted becomes owned; missing parts get marked as you build."""
+    """Switch a set to build mode: everything not yet counted becomes owned; missing parts get marked as you build.
+    {"reset": true} starts over: all counts are dropped and everything is owned in full again."""
     set_num = request.path_params["set_num"]
     if not db.get_set(set_num):
         return JSONResponse({"error": "not found"}, status_code=404)
     body = await request.json() if request.headers.get("content-type", "").startswith("application/json") else {}
-    res = db.start_build_mode(set_num, (body.get("who") or "")[:40])
-    log.info("build mode started: %s (%d items marked owned)", set_num, res["marked"])
+    reset = bool(body.get("reset"))
+    res = db.start_build_mode(set_num, (body.get("who") or "")[:40], reset=reset)
+    log.info("build mode %s: %s (%d items marked owned)", "reset" if reset else "started", set_num, res["marked"])
     return JSONResponse({**res, "set": db.get_set(set_num)})
 
 
