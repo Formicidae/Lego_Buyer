@@ -285,7 +285,8 @@
       const el = tplStep.cloneNode(true).firstElementChild;
       el.dataset.seq = st.seq;
       el.classList.toggle('current', st.seq === cur);
-      $('.design', el).textContent = `STEP ${st.seq} OF ${state.steps.length}${st.parts.length !== items.length ? ` · ${items.length} OF ${st.parts.length} PARTS SHOWN` : ''}`;
+      // A running count, not the book's step number (sub-builds and bag changes make the two drift apart), so it must not say "step".
+      $('.design', el).textContent = `${st.seq} / ${state.steps.length} THROUGH THE BUILD${st.parts.length !== items.length ? ` · ${items.length} OF ${st.parts.length} PARTS SHOWN` : ''}`;
       $('.part-name', el).textContent = stepLabel(st);
       const rows = $('.rows', el);
       for (const [it, qty] of items) rows.appendChild(makeRow(it, qty));
@@ -320,7 +321,7 @@
     $('#build-opts').hidden = !state.steps.length;
     $('#build-status').textContent = importing && !state.steps.length ? 'The build order for this set is being imported — the step-by-step view will appear here in a moment.' : !s.build_mode
       ? 'Build mode marks every part as owned, then you tap “Missing” on whatever the box turns out not to have. The Buy tab and BrickOwl wishlist come straight from those marks, and every tap is saved, so you can stop and pick it up another day.'
-      : `Build mode on · ${miss} piece${miss === 1 ? '' : 's'} in ${lots} lot${lots === 1 ? '' : 's'} marked missing${state.steps.length ? ` · at step ${currentSeq()} of ${state.steps.length}` : ''}.`;
+      : `Build mode on · ${miss} piece${miss === 1 ? '' : 's'} in ${lots} lot${lots === 1 ? '' : 's'} marked missing${state.steps.length ? ` · at ${stepLabel(state.steps.find((x) => x.seq === currentSeq()) || state.steps[0])} (${currentSeq()} / ${state.steps.length} through the build)` : ''}.`;
     const m = state.stepsMeta;
     $('#steps-summary').textContent = state.steps.length ? `Build order: ${state.steps.length} steps (${(m && m.source) || 'imported'})`
       : importing ? 'Build order: importing… (matching parts to the inventory, up to a minute)' : 'Build order: none yet — parts are listed by type';
